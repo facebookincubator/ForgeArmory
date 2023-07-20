@@ -1,0 +1,57 @@
+---
+name: Renovate
+on:
+  workflow_dispatch:
+    inputs:
+      dryRun:
+        description: "Dry-Run"
+        default: "false"
+        required: false
+      logLevel:
+        description: "Log-Level"
+        default: "debug"
+        required: false
+  schedule:
+    # Run once per week - at 00:00 on Sunday
+    - cron: "0 0 * * 0"
+  push:
+    branches: ["main"]
+    paths:
+      - .github/renovate-bot.json5
+      - .github/renovate.json5
+      - .github/renovate/**.json5
+
+env:
+  LOG_LEVEL: debug
+  RENOVATE_DRY_RUN: false
+  RENOVATE_CONFIG_FILE: .github/renovate-bot.json5
+
+jobs:
+  renovate:
+    name: Renovate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up git repository
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+        with:
+          token: "${{ secrets.BOT_TOKEN }}"
+
+      - name: Override default config from dispatch variables
+        run: |
+          echo "RENOVATE_DRY_RUN=${{ github.event.inputs.dryRun || env.RENOVATE_DRY_RUN }}" >> "${GITHUB_ENV}"
+          echo "LOG_LEVEL=${{ github.event.inputs.logLevel || env.LOG_LEVEL }}" >> "${GITHUB_ENV}"
+
+      - name: Delete old dashboard
+        run: |
+          ISSUE_NUMBER=$(gh issue list -S 'Renovate Dashboard 🤖' --json number -q '.[0].number')
+          if [ "$ISSUE_NUMBER" != "null" ]; then
+            gh issue close $ISSUE_NUMBER
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
+
+      - name: Renovate
+        uses: renovatebot/github-action@eb0ef0ca2efe27f0b0a70ca6cd1eee63fcfbb61a # v39.0.0
+        with:
+          configurationFile: "${{ env.RENOVATE_CONFIG_FILE }}"
+          token: "${{ secrets.BOT_TOKEN }}"
