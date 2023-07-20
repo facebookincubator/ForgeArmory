@@ -1,47 +1,56 @@
 ---
 # Area
 - name: area/github
-  color: "72ccf3"
+  color: "72ccf3" # light blue
   description: >-
-    Changes made to GitHub actions
+    Changes made to github actions
 - name: area/pre-commit
-  color: "BC9BE3"
+  color: "BC9BE3" # purple
   description: >-
     Changes made to pre-commit hooks
-- name: area/mage
-  color: "7BD7E0"
+- name: area/magefiles
+  color: "7BD7E0" # light blue
   description: >-
-    Changes made to mage
+    Changes made to magefiles
 - name: area/persistence
   color: "#c5def5"
   description: >-
     TTPs simulating persistence mechanisms.
+- name: area/asdf
+  color: "F4D1B7" # orange
+  description: >-
+    Changes made to asdf resources
+
 # Renovate
 - name: renovate/container
-  color: "ffc300"
+  color: "ffc300" # yellow
 - name: renovate/github-action
-  color: "ffc300"
+  color: "ffc300" # yellow
 - name: renovate/github-release
-  color: "ffc300"
+  color: "ffc300" # yellow
+
 # Semantic Type
 - name: type/digest
-  color: "FFEC19"
+  color: "FFEC19" # yellow
 - name: type/patch
-  color: "FFEC19"
+  color: "FFEC19" # yellow
 - name: type/minor
-  color: "FF9800"
+  color: "FF9800" # orange
 - name: type/major
-  color: "F6412D"
+  color: "F6412D" # red
 - name: type/break
-  color: "F6412D"
+  color: "F6412D" # red
+
 # Uncategorized
 - name: bug
-  color: "ee0701"
+  color: "ee0701" # red
 - name: do-not-merge
-  color: "ee0701"
+  color: "ee0701" # red
+- name: docs
+  color: "F4D1B7" # light orange
 - name: enhancement
-  color: "84b6eb"
+  color: "84b6eb" # blue
 - name: question
   description: >-
     Clarification and/or additional information required to move forward
-  color: "cc317c"
+  color: "cc317c" # pink

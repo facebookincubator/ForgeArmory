@@ -9,5 +9,9 @@ area/pre-commit:
 area/mage:
   - "magefiles/*"
 
+area/asdf:
+  - ".tool-versions"
+  - ".asdf"
+
 area/persistence:
   - "persistence/*"
