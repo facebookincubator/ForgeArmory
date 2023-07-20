@@ -6,7 +6,7 @@
       "matchManagers": ["github-actions"],
       "matchDatasources": ["github-tags"],
       "automerge": true,
-      "ignoreTests": true,
+      "ignoreTests": false, # ensure tests pass before autoMerge
       "automergeType": "pr",
       "matchUpdateTypes": ["minor", "patch", "digest"]
     }
