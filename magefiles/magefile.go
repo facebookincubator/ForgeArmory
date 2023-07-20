@@ -26,11 +26,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/l50/goutils/v2/dev/lint"
-	mageutils "github.com/l50/goutils/v2/dev/mage"
-	"github.com/l50/goutils/v2/docs"
-	"github.com/l50/goutils/v2/git"
-	"github.com/l50/goutils/v2/sys"
+	"github.com/facebookincubator/ForgeMunitions/v2/dev/lint"
+	mageutils "github.com/facebookincubator/ForgeMunitions/v2/dev/mage"
+	"github.com/facebookincubator/ForgeMunitions/v2/docs"
+	"github.com/facebookincubator/ForgeMunitions/v2/git"
+	"github.com/facebookincubator/ForgeMunitions/v2/sys"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 
