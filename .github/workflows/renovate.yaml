@@ -44,8 +44,8 @@ jobs:
       - name: Delete old dashboard
         run: |
           ISSUE_NUMBER=$(gh issue list -S 'Renovate Dashboard 🤖' --json number -q '.[0].number')
-          if [ "$ISSUE_NUMBER" != "null" ]; then
-            gh issue close $ISSUE_NUMBER
+          if [ "$ISSUE_NUMBER" != "null" ] && [ -n "$ISSUE_NUMBER" ]; then
+            gh issue close "$ISSUE_NUMBER"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
