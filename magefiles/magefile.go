@@ -26,17 +26,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/facebookincubator/ForgeMunitions/v2/dev/lint"
-	mageutils "github.com/facebookincubator/ForgeMunitions/v2/dev/mage"
-	"github.com/facebookincubator/ForgeMunitions/v2/docs"
-	"github.com/facebookincubator/ForgeMunitions/v2/git"
-	"github.com/facebookincubator/ForgeMunitions/v2/sys"
+	"github.com/l50/goutils/v2/dev/lint"
+	mageutils "github.com/l50/goutils/v2/dev/mage"
+	"github.com/l50/goutils/v2/docs"
+	"github.com/l50/goutils/v2/git"
+	"github.com/l50/goutils/v2/sys"
 	"github.com/spf13/afero"
-	"github.com/spf13/viper"
-
-	// mage utility functions
-	"github.com/magefile/mage/mg"
-	"github.com/magefile/mage/sh"
 )
 
 func init() {
@@ -62,21 +57,6 @@ func InstallDeps() error {
 	return nil
 }
 
-// FindExportedFuncsWithoutTests finds exported functions without tests
-func FindExportedFuncsWithoutTests(pkg string) ([]string, error) {
-	funcs, err := mageutils.FindExportedFuncsWithoutTests(os.Args[1])
-	if err != nil {
-		return funcs, err
-	}
-
-	for _, funcName := range funcs {
-		fmt.Println(funcName)
-	}
-
-	return funcs, nil
-
-}
-
 // GeneratePackageDocs generates package documentation
 // for packages in the current directory and its subdirectories.
 func GeneratePackageDocs() error {
@@ -90,7 +70,7 @@ func GeneratePackageDocs() error {
 
 	repo := docs.Repo{
 		Owner: "facebookincubator",
-		Name:  "ttpforge",
+		Name:  "forgemunitions",
 	}
 
 	excludedPkgs := []string{"main"}
@@ -121,34 +101,5 @@ func RunPreCommit() error {
 		return err
 	}
 
-	return nil
-}
-
-// RunTests runs all of the unit tests
-func RunTests() error {
-	mg.Deps(InstallDeps)
-
-	fmt.Println("Running unit tests.")
-	if err := sh.RunV(filepath.Join(".hooks", "run-go-tests.sh"), "all"); err != nil {
-		return fmt.Errorf("failed to run unit tests: %v", err)
-	}
-
-	return nil
-}
-
-// DownloadART downloads the latest Atomic Red Team atomics
-// from the specified GitHub repository.
-func DownloadART() error {
-	viper.Set("art.repo.owner", "redcanaryco")
-	viper.Set("art.dir.update_branch", "master")
-	viper.Set("art.dir.force_update", false)
-	viper.Set("art.dir.path", "./art-ttps")
-
-	fp, err := art.FetchARTAtomics()
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("ART atomics downloaded to: %s", filepath.Dir(fp))
 	return nil
 }
