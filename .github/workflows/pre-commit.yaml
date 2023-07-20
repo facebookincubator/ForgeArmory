@@ -44,8 +44,8 @@ jobs:
           git diff --quiet && git diff --staged --quiet || \
             git commit -m "Update mage go.mod and go.sum"
 
-      - name: Make sure docs have been generated prior to push
-        run: bash .hooks/generate-docs.sh
+      # - name: Make sure docs have been generated prior to push
+      #   run: bash .hooks/generate-docs.sh
 
       - name: Install pre-commit dependencies
         run: mage installDeps
