@@ -1,10 +1,11 @@
 # ForgeMunitions
 
-[![License](https://img.shields.io/github/license/facebookincubator/ForgeMunitions?label=License&style=flat&color=blue&logo=github)](https://github.com/facebookincubator/ForgeMunitions/blob/main/LICENSE)
 [![🚨 Semgrep Analysis](https://github.com/facebookincubator/ForgeMunitions/actions/workflows/semgrep.yaml/badge.svg)](https://github.com/facebookincubator/ForgeMunitions/actions/workflows/semgrep.yaml)
 [![Renovate](https://github.com/facebookincubator/ForgeMunitions/actions/workflows/renovate.yaml/badge.svg)](https://github.com/facebookincubator/ForgeMunitions/actions/workflows/renovate.yaml)
 
-This repo is comprised of utilities that I use across various go projects.
+This repo hosts the community-driven TTPs that Meta's TTPForge can consume.
+
+---
 
 ## Dependencies
 
