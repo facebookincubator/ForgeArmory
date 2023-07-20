@@ -42,10 +42,6 @@ func init() {
 func InstallDeps() error {
 	fmt.Println("Installing dependencies.")
 
-	if err := mageutils.Tidy(); err != nil {
-		return fmt.Errorf("failed to install dependencies: %v", err)
-	}
-
 	if err := lint.InstallGoPCDeps(); err != nil {
 		return fmt.Errorf("failed to install pre-commit dependencies: %v", err)
 	}
