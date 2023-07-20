@@ -1,7 +1,7 @@
 ---
 name: backdoor-authorized-keys
 description: |
-  Add rogue public SSH key to `$HOME/.ssh/authorized_keys` to maintain 
+  Add rogue public SSH key to `$HOME/.ssh/authorized_keys` to maintain
   persistence on a target system.
 args:
   - name: ssh_authorized_keys
