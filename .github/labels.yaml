@@ -3,23 +3,19 @@
 - name: area/github
   color: "72ccf3"
   description: >-
-    Changes made to github actions
+    Changes made to GitHub actions
 - name: area/pre-commit
   color: "BC9BE3"
   description: >-
     Changes made to pre-commit hooks
-- name: area/go
+- name: area/mage
   color: "7BD7E0"
   description: >-
-    Changes made to go resources
-- name: area/docs
-  color: "FBCA04"
-  description: >-
-    Changes made in the docs directory
-- name: area/ttps
+    Changes made to mage
+- name: area/persistence
   color: "#c5def5"
   description: >-
-    Changes made to ttps
+    TTPs simulating persistence mechanisms.
 # Renovate
 - name: renovate/container
   color: "ffc300"
@@ -49,11 +45,3 @@
   description: >-
     Clarification and/or additional information required to move forward
   color: "cc317c"
-- name: DEF CON
-  description: >-
-    Work that must get done before DEF CON
-  color: "7DD527"
-- name: future-aspirations
-  description: >-
-    Ideas for the future
-  color: "D10078"
