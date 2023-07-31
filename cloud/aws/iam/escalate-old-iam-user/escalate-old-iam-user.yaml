@@ -1,0 +1,48 @@
+---
+name: escalate-old-iam-user
+description: Add an access key to a previously dormant IAM user.
+args:
+  - name: cleanup
+  - name: user
+  - name: group
+steps:
+  - name: ensure-aws-creds-present
+    inline: |
+      set -e
+      if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+        echo "error: AWS_DEFAULT_REGION must be set."
+        exit 1
+      fi
+      if [[ -n "${AWS_ACCESS_KEY_ID}" && -n "${AWS_SECRET_ACCESS_KEY}" ]]; then
+        if [[ -z "${AWS_SESSION_TOKEN}" ]]; then
+          echo "warning: AWS_SESSION_TOKEN is not set with AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
+        fi
+      elif [[ -z "${AWS_PROFILE}" ]]; then
+        echo "error: AWS credentials are not set, exiting."
+        exit 1
+      fi
+
+  - name: ensure-aws-cli-present
+    inline: |
+      set -e
+      if ! [ -x "$(command -v aws)" ]; then
+        echo 'error: AWS CLI is not installed.' >&2
+      else
+        echo 'AWS CLI is installed.'
+        aws --version
+      fi
+
+  - name: add-user-to-group
+    inline: |
+      set -e
+      # Add the user to the group
+      aws iam add-user-to-group --user-name {{args.user}} --group-name {{args.group}}
+
+    cleanup:
+      name: cleanup
+      inline: |
+        set -e
+        if [[ "{{args.cleanup}}" == true ]]; then
+          # Remove the user from the group
+          aws iam remove-user-from-group --user-name {{args.user}} --group-name {{args.group}}
+        fi

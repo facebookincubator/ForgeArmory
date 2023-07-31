@@ -1,0 +1,119 @@
+---
+name: revive-old-iam-user
+description: Add an access key to a previously dormant IAM user.
+args:
+  - name: cleanup
+  - name: detect
+  - name: user
+steps:
+  - name: ensure-aws-creds-present
+    inline: |
+      set -e
+      if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+        echo "error: AWS_DEFAULT_REGION must be set."
+        exit 1
+      fi
+      if [[ -n "${AWS_ACCESS_KEY_ID}" && -n "${AWS_SECRET_ACCESS_KEY}" ]]; then
+        if [[ -z "${AWS_SESSION_TOKEN}" ]]; then
+          echo "warning: AWS_SESSION_TOKEN is not set with AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
+        fi
+      elif [[ -z "${AWS_PROFILE}" ]]; then
+        echo "error: AWS credentials are not set, exiting."
+        exit 1
+      fi
+
+  - name: ensure-aws-cli-present
+    inline: |
+      set -e
+      if ! [ -x "$(command -v aws)" ]; then
+        echo 'error: AWS CLI is not installed.' >&2
+      else
+        echo 'AWS CLI is installed.'
+        aws --version
+      fi
+
+  - name: add-access-key
+    inline: |
+      set -e
+
+      function create_key() {
+        local USER=$1
+
+        # Create a new key
+        new_key=$(aws iam create-access-key --user-name $USER)
+
+        # Extract new access key id
+        new_access_key_id=$(echo $new_key | jq -r '.AccessKey.AccessKeyId')
+
+        # Store the new list of keys
+        keys_after=$(aws iam list-access-keys --user-name $USER --query 'AccessKeyMetadata[].AccessKeyId' --output text)
+
+        # Confirm that a new key has been added
+        if [[ "$keys_after" == *"$new_access_key_id"* ]]; then
+          echo $new_access_key_id
+        else
+          echo "Failed to add new key for $USER"
+          exit 1
+        fi
+      }
+
+      function delete_key() {
+        local USER=$1
+        local new_access_key_id=$2
+
+        aws iam delete-access-key --access-key-id $new_access_key_id --user-name $USER
+
+        # Confirm that the key has been deleted
+        keys_final=$(aws iam list-access-keys --user-name $USER --query 'AccessKeyMetadata[].AccessKeyId' --output text)
+
+        if [[ "$keys_final" != *"$new_access_key_id"* ]]; then
+          echo "Key $new_access_key_id has been deleted for $USER"
+        else
+          echo "Failed to delete key for $USER"
+          exit 1
+        fi
+      }
+
+      USER="{{args.user}}"
+      new_key_id=$(create_key $USER)
+      if [[ "{{args.cleanup}}" == true ]]; then
+        delete_key $USER $new_key_id
+      fi
+
+  - name: check-detection
+    inline: |
+      set -e
+
+      if [ "{{args.detect}}" == true ]; then
+        current_time() {
+            date -u +'%Y-%m-%dT%H:%M:%SZ'
+        }
+
+        ten_minutes_ago() {
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            date -v-10M -u +'%Y-%m-%dT%H:%M:%SZ'
+        else
+            date -u -d '10 minutes ago' +'%Y-%m-%dT%H:%M:%SZ'
+        fi
+        }
+
+        # Define a time window for CloudTrail lookup
+        START_TIME=$(ten_minutes_ago)
+        END_TIME=$(current_time)
+
+        # Check for `CreateAccessKey` and `GenerateDataKey` events in the last 10 minutes
+        EVENT_NAMES=("CreateAccessKey" "GenerateDataKey")
+
+        for event_name in "${EVENT_NAMES[@]}"; do
+            EVENTS=$(aws cloudtrail lookup-events \
+                --lookup-attributes AttributeKey=EventName,AttributeValue=$event_name \
+                --start-time $START_TIME --end-time $END_TIME)
+
+            # If there are recent events
+            if [[ "$(echo "$EVENTS" | jq -r '.Events | length')" -gt 0 ]]; then
+                echo "Recent $event_name events detected."
+            else
+                echo "No recent $event_name events detected."
+            fi
+        done
+      fi

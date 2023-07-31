@@ -1,0 +1,97 @@
+---
+name: exfil-instance-profile-creds
+description: Determine what permissions an IAM role has through brute force.
+args:
+  - name: cleanup
+  - name: detect
+steps:
+  - name: ensure-aws-creds-present
+    inline: |
+      set -e
+      if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+        echo "AWS_DEFAULT_REGION must be set."
+        exit 1
+      fi
+      if [[ -n "${AWS_ACCESS_KEY_ID}" && -n "${AWS_SECRET_ACCESS_KEY}" ]]; then
+        if [[ -z "${AWS_SESSION_TOKEN}" ]]; then
+          echo "AWS_SESSION_TOKEN must be set when using AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
+          exit 1
+        fi
+      elif [[ -z "${AWS_PROFILE}" ]]; then
+        echo "Either AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_SESSION_TOKEN, or AWS_PROFILE must be set."
+        exit 1
+      fi
+
+  - name: ensure-aws-cli-present
+    inline: |
+      set -e
+      if ! [ -x "$(command -v aws)" ]; then
+        echo 'Error: AWS CLI is not installed.' >&2
+      else
+        echo -e "AWS CLI is installed: $(aws --version)"
+      fi
+
+  - name: create-an-instance-and-steal-instance-profile
+    file: scripts/create_instance_steal_creds.sh
+
+  - name: cleanup
+    inline: |
+      set -e
+      if [[ "{{args.cleanup}}" == true ]]; then
+        bash scripts/cleanup.sh
+      fi
+
+  - name: check-detection
+    inline: |
+      set -e
+
+      if [ "{{args.detect}}" == true ]; then
+        current_time() {
+            date -u +'%Y-%m-%dT%H:%M:%SZ'
+        }
+
+        ten_minutes_ago()
+                          {
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                date -v-10M -u +'%Y-%m-%dT%H:%M:%SZ'
+            else
+                date -u -d '10 minutes ago' +'%Y-%m-%dT%H:%M:%SZ'
+            fi
+        }
+
+        # Define a time window for AWS GuardDuty
+        START_TIME=$(ten_minutes_ago)
+        END_TIME=$(current_time)
+
+        # The finding type to look for
+        FINDING_TYPE="UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration.OutsideAWS"
+
+        DETECTORS=$(aws guardduty list-detectors --output json)
+        DETECTOR_IDS=$(echo "$DETECTORS" | jq -r '.DetectorIds[]')
+
+        for DETECTOR_ID in $DETECTOR_IDS; do
+            FINDINGS=$(aws guardduty list-findings --detector-id "$DETECTOR_ID" --output json)
+            FINDING_IDS=$(echo "$FINDINGS" | jq -r '.FindingIds[]')
+
+            if [[ -z "$FINDING_IDS" ]]; then
+                echo "No $FINDING_TYPE event detected in the last 10 minutes"
+            else
+                for FINDING_ID in $FINDING_IDS; do
+                    FINDING=$(aws guardduty get-findings --detector-id "$DETECTOR_ID" --finding-ids "$FINDING_ID" --output json)
+                    UPDATED_AT=$(echo "$FINDING" | jq -r '.Findings[0].UpdatedAt')
+
+                    if [[ "$OSTYPE" == "darwin"* ]]; then
+                        if [[ $(date -j -f '%Y-%m-%dT%H:%M:%SZ' "$END_TIME" +%s 2> /dev/null) -gt $(date -j -f '%Y-%m-%dT%H:%M:%SZ' "$START_TIME" +%s 2> /dev/null) ]]; then
+                            echo "UnauthorizedAccess finding detected!"
+                        fi
+                    else
+                        # Linux
+                        if [[ $(date -u -d "$UPDATED_AT" +%s 2> /dev/null) -gt $(date -u -d "$START_TIME" +%s 2> /dev/null) ]] \
+                            && [[ $(date -u -d "$UPDATED_AT" +%s 2> /dev/null) -lt $(date -u -d "$END_TIME" +%s 2> /dev/null) ]]; then
+                            echo -e "UnauthorizedAccess finding detected!"
+                        fi
+                    fi
+                done
+            fi
+        done
+      fi
