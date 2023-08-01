@@ -89,6 +89,20 @@ steps:
       fi
       popd || exit 1
 
+    cleanup:
+      inline: |
+        set -e
+
+        if [[ "{{args.cleanup}}" == true ]]; then
+          echo "Uninstalling Python packages..."
+          cd {{args.eiam_path}} && pip3 uninstall -y -r requirements.txt
+
+          if [[ -d "{{args.eiam_path}}" ]]; then
+              echo "Cleaning up enumerate-iam repository..."
+              rm -rf {{args.eiam_path}}
+          fi
+        fi
+
   - name: check-detection
     inline: |
       set -e
