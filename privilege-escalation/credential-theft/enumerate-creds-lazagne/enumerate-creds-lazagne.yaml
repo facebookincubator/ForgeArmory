@@ -25,7 +25,7 @@ steps:
           exit 1
       fi
 
-      if [[ -d "{{ args.lazagne_path }}" ]]; then
+      if [[ -d "{{args.lazagne_path}}" ]]; then
           echo "Info: LaZagne already present on the current system"
       else
           git clone https://github.com/AlessandroZ/LaZagne.git {{args.lazagne_path}}
@@ -57,11 +57,11 @@ steps:
         set -e
 
         if [[ "{{args.cleanup}}" == true ]]; then
+          echo "Uninstalling Python packages..."
+          cd {{args.lazagne_path}} && pip3 uninstall -y -r requirements.txt
+
           if [[ -d "{{args.lazagne_path}}" ]]; then
               echo "Cleaning up LaZagne repository..."
               rm -rf {{args.lazagne_path}}
           fi
-
-          echo "Uninstalling Python packages..."
-          cd {{args.lazagne_path}} && pip3 uninstall -y -r requirements.txt
         fi
