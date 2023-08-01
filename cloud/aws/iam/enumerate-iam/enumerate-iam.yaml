@@ -8,6 +8,7 @@ args:
   - name: detect
   - name: eiam_path
   - name: extended_scan
+  - name: cleanup
 
 steps:
   - name: setup
