@@ -21,9 +21,9 @@ The script below runs `LaZagne` tool at a specified path. Post execution, it
 cleans up the artifacts:
 
 ```bash
-./ttpforge -c config.yaml \
-    run ttps/privilege-escalation/credential-theft/enumerate-creds-lazagne \
-    /enumerate-creds-lasagna.yaml --arg lazagne_path=/path/to/lazagne \
+ttpforge -c config.yaml \
+    run ttps/privilege-escalation/credential-theft/enumerate-creds-lazagne/enumerate-creds-lazagne.yaml \
+    --arg lazagne_path=~/lazagne \
     --arg cleanup=true
 ```
 

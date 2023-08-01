@@ -10,40 +10,29 @@ args:
 steps:
   - name: setup
     inline: |
-      set -e
-
       if ! command -v python3 &> /dev/null; then
-          echo "Error: Python3 is not installed on the current system, cannot run laZagne"
+          echo "Error: Python3 is not installed on the current system, cannot run LaZagne"
           exit 1
       fi
 
       if ! command -v pip3 &> /dev/null; then
-          echo "Error: pip3 is not installed on the current system, cannot run laZagne"
+          echo "Error: pip3 is not installed on the current system, cannot run LaZagne"
           exit 1
       fi
 
       if ! command -v git &> /dev/null; then
-          echo "Error: git is not installed on the current system, cannot run laZagne"
+          echo "Error: git is not installed on the current system, cannot run LaZagne"
           exit 1
       fi
 
-      if [ -d "{{ args.lazagne_path }}" ]; then
+      if [[ -d "{{ args.lazagne_path }}" ]]; then
           echo "Info: LaZagne already present on the current system"
       else
-          sudo git clone https://github.com/AlessandroZ/LaZagne.git {{ args.lazagne_path }}
+          git clone https://github.com/AlessandroZ/LaZagne.git {{args.lazagne_path}}
       fi
 
       echo "Info: Ensuring the latest LaZagne dependencies are installed and up-to-date"
-      cd {{ args.lazagne_path }} && sudo pip3 install -r requirements.txt
-
-      if ! command -v python3 &> /dev/null || ! command -v pip3 &> /dev/null || ! command -v git &> /dev/null; then
-          echo "Error: Python3, pip3, or git is not installed on the current system, cannot run laZagne"
-      else
-          if [ ! -d "{{ args.lazagne_path }}" ]; then
-              sudo git clone https://github.com/AlessandroZ/LaZagne.git {{ args.lazagne_path }}
-              cd {{ args.lazagne_path }} && sudo pip3 install -r requirements.txt
-          fi
-      fi
+      cd {{args.lazagne_path}} && pip3 install -r requirements.txt
 
   - name: run-lazagne
     inline: |
@@ -60,19 +49,19 @@ steps:
           exit 1
       fi
 
-      echo "Running laZagne"
-      cd "{{ args.lazagne_path }}" && python3 "${TARGET_OS}/laZagne.py all"
+      echo "Running LaZagne"
+      cd {{args.lazagne_path}} && python3 ${TARGET_OS}/laZagne.py all
 
-  - name: cleanup
-    inline: |
-      set -e
+    cleanup:
+      inline: |
+        set -e
 
-      if [[ "{{args.cleanup}}" == true ]]; then
-        if [ -d "{{ args.lazagne_path }}" ]; then
-            echo "Cleaning up LaZagne repository..."
-            sudo rm -rf {{ args.lazagne_path }}
+        if [[ "{{args.cleanup}}" == true ]]; then
+          if [[ -d "{{args.lazagne_path}}" ]]; then
+              echo "Cleaning up LaZagne repository..."
+              rm -rf {{args.lazagne_path}}
+          fi
+
+          echo "Uninstalling Python packages..."
+          cd {{args.lazagne_path}} && pip3 uninstall -y -r requirements.txt
         fi
-
-        echo "Uninstalling Python packages..."
-        cd {{ args.lazagne_path }} && sudo pip3 uninstall -y -r requirements.txt
-      fi
