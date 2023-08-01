@@ -84,3 +84,9 @@ Create release:
 ```bash
 gh release create "${NEXT_VERSION}" -F CHANGELOG.md
 ```
+
+## Add to TTPForge
+
+```bash
+ln -s /clone/path/for/ForgeMunitions /clone/path/for/TTPForge/ttps
+```
