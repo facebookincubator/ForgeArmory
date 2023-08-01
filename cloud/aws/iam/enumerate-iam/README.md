@@ -32,7 +32,7 @@ Execute the `enumerate-iam` tool at a specified path. Post execution,
 it cleans up the artifacts:
 
 ```bash
-./ttpforge -c config.yaml run ttps/cloud/aws/iam/enumerate-iam/enumerate-iam.yaml \
+ttpforge -c config.yaml run ttps/cloud/aws/iam/enumerate-iam/enumerate-iam.yaml \
     --arg detect=true \
     --arg eiam_path=/tmp/enumerate-iam \
     --arg extended_scan=false \
@@ -44,7 +44,7 @@ skip the cleanup step, log results to a custom file, and get detection
 data. This will take more time due to the use of extended APIs:
 
 ```bash
-./ttpforge -c config.yaml run ttps/cloud/aws/iam/enumerate-iam/enumerate-iam.yaml \
+ttpforge -c config.yaml run ttps/cloud/aws/iam/enumerate-iam/enumerate-iam.yaml \
     -l brute-force-iam-permissions.log \
     --arg detect=true \
     --arg eiam_path=/tmp/enumerate-iam \
