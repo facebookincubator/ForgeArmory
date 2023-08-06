@@ -10,10 +10,12 @@ args:
     description: "The rogue public SSH key to be added"
   - name: cleanup
     default: true
+
 steps:
   - name: ensure-authorized_keys-present
     inline: |
       set -e
+
       if [[ ! -f "{{args.ssh_authorized_keys}}" ]]; then
         echo "Error: no authorized_keys file present at the specified path."
         exit 1
@@ -22,16 +24,19 @@ steps:
   - name: backup-authorized_keys
     inline: |
       set -e
+
       cp "{{args.ssh_authorized_keys}}" "{{args.ssh_authorized_keys}}.bak"
 
   - name: modify-authorized_keys
     inline: |
       set -e
+
       echo "{{args.rogue_key}}" >> "{{args.ssh_authorized_keys}}"
 
   - name: cleanup
     inline: |
       set -e
+
       if [[ "{{args.cleanup}}" == true ]]; then
         mv "{{args.ssh_authorized_keys}}.bak" "{{args.ssh_authorized_keys}}"
       fi
