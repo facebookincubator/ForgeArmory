@@ -5,6 +5,7 @@ args:
   - name: cleanup
   - name: user
   - name: group
+
 steps:
   - name: ensure-aws-creds-present
     inline: |
