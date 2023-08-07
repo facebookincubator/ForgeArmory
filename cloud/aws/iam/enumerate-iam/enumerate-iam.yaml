@@ -5,10 +5,10 @@ description: |
   brute force using the
   [enumerate-iam](https://github.com/andresriancho/enumerate-iam) tool.
 args:
+  - name: cleanup
   - name: detect
   - name: eiam_path
   - name: extended_scan
-  - name: cleanup
 
 steps:
   - name: setup
@@ -99,7 +99,6 @@ steps:
         if [[ "{{args.cleanup}}" == true ]]; then
           echo "Uninstalling Python packages..."
           cd {{args.eiam_path}} && pip3 uninstall -y -r requirements.txt
-
           if [[ -d "{{args.eiam_path}}" ]]; then
               echo "Cleaning up enumerate-iam repository..."
               rm -rf {{args.eiam_path}}
