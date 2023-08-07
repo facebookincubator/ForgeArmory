@@ -66,7 +66,7 @@ func GeneratePackageDocs() error {
 
 	repo := docs.Repo{
 		Owner: "facebookincubator",
-		Name:  "forgemunitions",
+		Name:  "forgearmory",
 	}
 
 	excludedPkgs := []string{"main"}
