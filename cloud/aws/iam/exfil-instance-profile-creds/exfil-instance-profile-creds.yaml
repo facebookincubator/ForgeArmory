@@ -24,6 +24,11 @@ steps:
         exit 1
       fi
 
+      if ! command -v aws &> /dev/null; then
+          echo "Error: aws cli is not installed on the current system, can't run enumerate-iam"
+          exit 1
+      fi
+
   - name: ensure-aws-cli-present
     inline: |
       set -e
@@ -54,8 +59,7 @@ steps:
             date -u +'%Y-%m-%dT%H:%M:%SZ'
         }
 
-        ten_minutes_ago()
-                          {
+        ten_minutes_ago() {
             if [[ "$OSTYPE" == "darwin"* ]]; then
                 date -v-10M -u +'%Y-%m-%dT%H:%M:%SZ'
             else

@@ -55,7 +55,6 @@ steps:
           git clone https://github.com/andresriancho/enumerate-iam.git {{args.eiam_path}}
       fi
 
-      echo "Info: Ensuring the latest enumerate-iam dependencies are installed and up-to-date"
       cd {{args.eiam_path}} && pip3 install -r requirements.txt
 
       if [[ "{{args.extended_scan}}" == true ]]; then
