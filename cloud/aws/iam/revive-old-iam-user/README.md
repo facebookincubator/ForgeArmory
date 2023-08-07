@@ -60,3 +60,28 @@ log the results in a custom logfile, and get detection information:
       --arg cleanup=true \
       --arg detect=true
 ```
+
+## Steps
+
+1. **Preparation**: Ensure a valid set of AWS credentials and that the target
+   IAM user has less than 2 access keys. The script provided can be used to
+   enumerate users and verify access keys.
+
+2. **Target User Identification**: Identify the IAM user for the new access key
+   using the `user` argument.
+
+3. **Detection Query (Optional)**: If `detect` is true, query cloudtrail to
+   see if the TTP was logged.
+
+4. **Access Key Creation**: Create a new access key for the specified IAM user
+   by interacting with AWS's IAM service.
+
+5. **Logging (Optional)**: Ensure appropriate log configurations if specific
+   logging is required, such as in a custom logfile.
+
+6. **Cleanup (Optional)**: If `cleanup` is true, clean up any artifacts created
+   during the TTP's execution.
+
+7. **Verification**: Optionally verify that the new access key is successfully
+   added to the target IAM user, confirming its presence and correct
+   configuration.
