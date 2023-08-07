@@ -17,8 +17,8 @@ extracting credentials stored on disk and in memory of a target system.
 
 ## Examples
 
-Execute the `LaZagne` tool at a specified path. Post execution,
-it cleans up the artifacts:
+Execute the `LaZagne` tool at a specified path.
+Post execution, it cleans up associated artifacts:
 
 ```bash
 ttpforge -c config.yaml \
@@ -29,13 +29,18 @@ ttpforge -c config.yaml \
 
 ## Steps
 
-1. **Setup**: Checks for the presence of Python3, pip3, and git.
-    If absent, an error message is displayed and the
-    script exits. If present, it checks for LaZagne tool at the
-    specified path. If absent, it clones the tool from its GitHub repository.
+1. **Setup**: Checks for the presence of Python3
+   pip3, and git.
+   If absent, an error message is displayed and the
+   script exits. If present, it checks for LaZagne
+   tool at the specified path. If absent, it
+   clones the tool from its GitHub repository.
 
-1. **Run LaZagne**: Identifies the operating system of the system and
-    runs the LaZagne tool accordingly.
+1. **Run LaZagne**: Identifies the operating system
+   of the target and runs the LaZagne tool
+   accordingly.
 
-1. **Cleanup**: If the `cleanup` argument is set to `true`, a cleanup
-    script is executed to remove artifacts created during script's execution.
+1. **Cleanup**: If the `cleanup` argument is set
+   to `true`, a cleanup
+   script is executed to remove artifacts created
+   during script's execution.

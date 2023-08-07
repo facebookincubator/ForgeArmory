@@ -4,9 +4,14 @@ This script uses AWS CLI commands to exfiltrate secrets from AWS Secrets Manager
 
 ## Arguments
 
-- **detect**: If set to true, the script will query CloudTrail to determine if the secret retrieval was logged.
-- **target_secret_id**: The ID of the secret that you want to steal. If this is set to "all", the script will attempt to steal all secrets.
-- **cleanup**: When set to true, the script will delete the pillaged secrets after execution.
+- **detect**: If set to true, the script will
+  query CloudTrail to determine if the secret
+  retrieval was logged.
+- **target_secret_id**: The ID of the secret that
+  you want to steal. If this is set to "all", the
+  script will attempt to steal all secrets.
+- **cleanup**: When set to true, the script will
+  delete the pillaged secrets after execution.
 
 ## Pre-requisites
 
