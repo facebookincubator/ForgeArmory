@@ -38,3 +38,25 @@ ttpforge -c config.yaml \
     --arg command_or_path="bash -c echo Oh uh" \
     --arg cleanup=true
 ```
+
+## Steps
+
+1. **Verify Permissions**: Check that you have the necessary permissions to
+   create files in the `~/Library/LaunchAgents` directory and to execute the
+   specified script or command.
+
+1. **Create Plist File**: Define a property list file (plist) in
+   `~/Library/LaunchAgents` that specifies the script or command to run. The
+   plist file will include the `command_or_path` argument, providing details of
+   the script or command.
+
+1. **Load Launch Agent**: Use the `launchctl` command to load the plist file.
+   This will schedule the execution of the script or command each time the
+   system reboots or the user logs in.
+
+1. **Test Execution**: Optionally, test the launch agent to ensure it executes
+   the specified script or command as expected.
+
+1. **Cleanup**: If the `cleanup` argument is set to `true`, remove the plist
+   file and any related scripts. This will undo the persistence setup, stopping
+   the launch agent from executing in the future.
