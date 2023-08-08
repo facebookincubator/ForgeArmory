@@ -1,5 +1,7 @@
 # escalate-old-iam-user
 
+![Meta TTP](https://img.shields.io/badge/Meta_TTP-blue)
+
 Add previously dormant IAM user to a privileged group or remove them from that group.
 
 ## Arguments

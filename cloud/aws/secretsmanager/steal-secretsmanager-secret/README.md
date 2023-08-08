@@ -1,5 +1,7 @@
 # steal-secretsmanager-secret
 
+![Meta TTP](https://img.shields.io/badge/Meta_TTP-blue)
+
 This script uses AWS CLI commands to exfiltrate secrets from AWS Secrets Manager.
 
 ## Arguments

@@ -1,5 +1,7 @@
 # macOS Launch Agent Persistence
 
+![Meta TTP](https://img.shields.io/badge/Meta_TTP-blue)
+
 Create and manage a launch agent on macOS, allowing for persistent execution of a
 given script or command. The launch agent will execute the specified script or
 command each time the system reboots or the user logs in.

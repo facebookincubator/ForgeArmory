@@ -1,5 +1,7 @@
 # exfil-instance-profile-creds
 
+![Meta TTP](https://img.shields.io/badge/Meta_TTP-blue)
+
 Finds the default VPC and subnet, creates a security group,
 authorizes inbound traffic, gets the latest AMI, creates an EC2 instance,
 and fetches the instance role credentials.

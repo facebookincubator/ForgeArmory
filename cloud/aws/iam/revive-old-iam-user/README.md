@@ -1,5 +1,7 @@
 # revive-old-iam-user
 
+![Meta TTP](https://img.shields.io/badge/Meta_TTP-blue)
+
 Add a new access key to a previously dormant IAM user.
 
 ## Arguments

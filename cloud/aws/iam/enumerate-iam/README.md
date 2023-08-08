@@ -1,5 +1,7 @@
 # enumerate-iam
 
+![Meta TTP](https://img.shields.io/badge/Meta_TTP-blue)
+
 This script uses the [enumerate-iam](https://github.com/andresriancho/enumerate-iam)
 tool to determine what permissions an IAM role has through brute force.
 
