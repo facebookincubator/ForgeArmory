@@ -9,9 +9,11 @@ args:
 steps:
   - name: launchagent
     inline: |
+      set -e
+
       command_or_path="{{args.command_or_path}}"
       echo "===> Creating ~/Library/LaunchAgents if it does not already exist..."
-      mkdir -p /Users/$USER/Library/LaunchAgents
+      mkdir -p "/Users/$(whoami)/Library/LaunchAgents"
       echo "===> Writing plist to ~/Library/LaunchAgents/com.ttpforge.plist"
 
       cat <<EOF > ~/Library/LaunchAgents/com.ttpforge.plist
@@ -37,6 +39,8 @@ steps:
 
     cleanup:
       inline: |
+        set -e
+
         if [[ "{{args.cleanup}}" == "true" ]]; then
             rm -rf ~/Library/LaunchAgents/com.ttpforge.plist /tmp/launchagent-*
         fi
