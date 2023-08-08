@@ -21,7 +21,7 @@ Ensure that you have the necessary permissions to create files in the user's
 
 Set up launch agent persistence with a specific script. The agent will execute
 the script every time the system reboots or the user logs in. If cleanup is set
-to true, the launch agent and related files will be removed after 3 minutes:
+to true, the launch agent and related files will be removed:
 
 ```bash
 ttpforge -c config.yaml \
