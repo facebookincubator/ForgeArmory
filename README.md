@@ -1,7 +1,7 @@
-# ForgeMunitions
+# ForgeArmory
 
-[![🚨 Semgrep Analysis](https://github.com/facebookincubator/ForgeMunitions/actions/workflows/semgrep.yaml/badge.svg)](https://github.com/facebookincubator/ForgeMunitions/actions/workflows/semgrep.yaml)
-[![Renovate](https://github.com/facebookincubator/ForgeMunitions/actions/workflows/renovate.yaml/badge.svg)](https://github.com/facebookincubator/ForgeMunitions/actions/workflows/renovate.yaml)
+[![🚨 Semgrep Analysis](https://github.com/facebookincubator/ForgeArmory/actions/workflows/semgrep.yaml/badge.svg)](https://github.com/facebookincubator/ForgeArmory/actions/workflows/semgrep.yaml)
+[![Renovate](https://github.com/facebookincubator/ForgeArmory/actions/workflows/renovate.yaml/badge.svg)](https://github.com/facebookincubator/ForgeArmory/actions/workflows/renovate.yaml)
 
 This repo hosts the community-driven TTPs that Meta's TTPForge can consume.
 
@@ -83,4 +83,10 @@ Create release:
 
 ```bash
 gh release create "${NEXT_VERSION}" -F CHANGELOG.md
+```
+
+## Add to TTPForge
+
+```bash
+ln -s /clone/path/for/ForgeArmory /clone/path/for/TTPForge/ttps
 ```

