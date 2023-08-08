@@ -11,7 +11,7 @@ args:
   - name: extended_scan
 
 steps:
-  - name: setup
+  - name: ensure-aws-creds-present
     inline: |
       set -e
 
@@ -29,6 +29,20 @@ steps:
           exit 1
       fi
 
+  - name: ensure-aws-cli-present
+    inline: |
+      set -e
+
+      if ! [ -x "$(command -v aws)" ]; then
+        echo 'Error: AWS CLI is not installed.' >&2
+      else
+        echo -e "AWS CLI is installed: $(aws --version)"
+      fi
+
+  - name: ensure-dependencies-present
+    inline: |
+      set -e
+
       if ! command -v python3 &> /dev/null; then
           echo "Error: Python3 is not installed on the current system, cannot run enumerate-iam"
           exit 1
@@ -44,10 +58,9 @@ steps:
           exit 1
       fi
 
-      if ! command -v aws &> /dev/null; then
-          echo "Error: aws cli is not installed on the current system, can't run enumerate-iam"
-          exit 1
-      fi
+  - name: setup
+    inline: |
+      set -e
 
       if [[ -d "{{args.eiam_path}}" ]]; then
           echo "Info: enumerate-iam already present on the current system"

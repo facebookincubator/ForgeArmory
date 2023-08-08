@@ -25,11 +25,6 @@ steps:
         exit 1
       fi
 
-      if ! command -v aws &> /dev/null; then
-          echo "Error: aws cli is not installed on the current system, can't run enumerate-iam"
-          exit 1
-      fi
-
   - name: ensure-aws-cli-present
     inline: |
       set -e
