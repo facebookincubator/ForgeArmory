@@ -11,6 +11,6 @@ args:
 steps:
   - name: print_args
     inline: |
-      echo "hi! You passed the message: {{args.a_message}}"
-      echo "You passed the number: {{args.a_number}}"
-      echo "has_a_default has the value: '{{args.has_a_default}}'"
+      echo "hi! You passed the message: {{ .Args.a_message }}"
+      echo "You passed the number: {{ .Args.a_number }}"
+      echo "has_a_default has the value: '{{ .Args.has_a_default }}'"
