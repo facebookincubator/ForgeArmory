@@ -1,0 +1,166 @@
+---
+name: brute-force-iam-permissions
+description: |
+  Determine what permissions an IAM role has through
+  brute force using the
+  [enumerate-iam](https://github.com/andresriancho/enumerate-iam) tool.
+args:
+  - name: cleanup
+  - name: detect
+  - name: eiam_path
+  - name: extended_scan
+
+steps:
+  - name: ensure-aws-creds-present
+    inline: |
+      set -e
+
+      if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+          echo "Error: AWS_DEFAULT_REGION must be set."
+          exit 1
+      fi
+
+      if [[ -n "${AWS_ACCESS_KEY_ID}" && -n "${AWS_SECRET_ACCESS_KEY}" ]]; then
+          if [[ -z "${AWS_SESSION_TOKEN}" ]]; then
+            echo "Warning: AWS_SESSION_TOKEN is not set with AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
+          fi
+      elif [[ -z "${AWS_PROFILE}" ]]; then
+          echo "Error: AWS credentials are not set, exiting."
+          exit 1
+      fi
+
+  - name: ensure-aws-cli-present
+    inline: |
+      set -e
+
+      if ! [ -x "$(command -v aws)" ]; then
+        echo 'Error: AWS CLI is not installed.' >&2
+      else
+        echo -e "AWS CLI is installed: $(aws --version)"
+      fi
+
+  - name: ensure-dependencies-present
+    inline: |
+      set -e
+
+      if ! command -v python3 &> /dev/null; then
+          echo "Error: Python3 is not installed on the current system, cannot run enumerate-iam"
+          exit 1
+      fi
+
+      if ! command -v pip3 &> /dev/null; then
+          echo "Error: pip3 is not installed on the current system, cannot run enumerate-iam"
+          exit 1
+      fi
+
+      if ! command -v git &> /dev/null; then
+          echo "Error: git is not installed on the current system, cannot run enumerate-iam"
+          exit 1
+      fi
+
+  - name: setup
+    inline: |
+      set -e
+
+      if [[ -d "{{args.eiam_path}}" ]]; then
+          echo "Info: enumerate-iam already present on the current system"
+      else
+          git clone https://github.com/andresriancho/enumerate-iam.git {{args.eiam_path}}
+      fi
+
+      cd {{args.eiam_path}} && pip3 install -r requirements.txt
+
+      if [[ "{{args.extended_scan}}" == true ]]; then
+          # Get latest APIs
+          echo "Info: Extended scan specified - getting latest AWS API endpoints"
+          git clone https://github.com/aws/aws-sdk-js.git {{args.eiam_path}}/enumerate_iam/aws-sdk-js
+          pushd {{args.eiam_path}} || exit 1
+          python3 generate_bruteforce_tests.py
+          popd || exit 1
+      fi
+
+      # Fix hanging issue bug (https://github.com/andresriancho/enumerate-iam/pull/15/commits/77ad5b41216e3b5f1511d0c385da8cd5984c2d3c)
+      sed -i"" -e "s/'max_attempts': 30/'max_attempts': 3/" /tmp/enumerate-iam/enumerate_iam/main.py
+
+  - name: run-enumerate-iam
+    inline: |
+      set -e
+
+      pushd {{args.eiam_path}} || exit 1
+      if [[ -n "${AWS_PROFILE}" ]]; then
+          # AWS_PROFILE is set, extract credentials from AWS profile
+          export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id --profile "${AWS_PROFILE}")
+          export AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key --profile "${AWS_PROFILE}")
+          export AWS_SESSION_TOKEN=$(aws configure get aws_session_token --profile "${AWS_PROFILE}")
+      fi
+
+      if [[ -n "${AWS_ACCESS_KEY_ID}" && -n "${AWS_SECRET_ACCESS_KEY}" ]]; then
+          if [[ -z "${AWS_SESSION_TOKEN}" ]]; then
+            echo "warning: AWS_SESSION_TOKEN is not set with AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
+            python3 enumerate-iam.py --access-key "${AWS_ACCESS_KEY_ID}" --secret-key "${AWS_SECRET_ACCESS_KEY}"
+          else
+            python3 enumerate-iam.py --access-key "${AWS_ACCESS_KEY_ID}" --secret-key "${AWS_SECRET_ACCESS_KEY}" --session-token "${AWS_SESSION_TOKEN}"
+          fi
+      fi
+      popd || exit 1
+
+    cleanup:
+      inline: |
+        set -e
+
+        if [[ "{{args.cleanup}}" == true ]]; then
+          echo "Uninstalling Python packages..."
+          cd {{args.eiam_path}} && pip3 uninstall -y -r requirements.txt
+          if [[ -d "{{args.eiam_path}}" ]]; then
+              echo "Cleaning up enumerate-iam repository..."
+              rm -rf {{args.eiam_path}}
+          fi
+        fi
+
+  - name: check-detection
+    inline: |
+      set -e
+
+      if [[ "{{args.detect}}" == true ]]; then
+        current_time() {
+          date -u +'%Y-%m-%dT%H:%M:%SZ'
+        }
+
+        ten_minutes_ago() {
+          if [[ "$OSTYPE" == "darwin"* ]]; then
+            date -v-10M -u +'%Y-%m-%dT%H:%M:%SZ'
+          else
+            date -u -d '10 minutes ago' +'%Y-%m-%dT%H:%M:%SZ'
+          fi
+        }
+
+        # Define a time window for CloudTrail lookup
+        START_TIME=$(ten_minutes_ago)
+        END_TIME=$(current_time)
+
+        # Non-exhaustive list of API calls to look for
+        API_CALLS=("ListUsers" "ListGroups" "ListRoles")
+
+        for api_call in "${API_CALLS[@]}"; do
+          EVENTS=$(aws cloudtrail lookup-events \
+            --lookup-attributes AttributeKey=EventName,AttributeValue=$api_call \
+            --start-time $START_TIME --end-time $END_TIME)
+
+          # Check if api_call event exists in the events
+          if echo "$EVENTS" | jq -e '.Events[] | select(.EventName=="'$api_call'")' > /dev/null; then
+            # Count the number of events from each IP address
+            COUNTS=$(echo "$EVENTS" | jq -r '.Events[] | .SourceIPAddress' | sort | uniq -c)
+
+            # Set a threshold for alerting (e.g., more than 5 events from the same IP address)
+            THRESHOLD=5
+
+            while read -r count ip; do
+              if (( count > THRESHOLD )); then
+                echo "Possible IAM enumeration detected from $ip with $count $api_call events in the last 10 minutes"
+              fi
+            done <<< "$COUNTS"
+          else
+            echo "No $api_call event detected in the last 10 minutes"
+          fi
+        done
+      fi
