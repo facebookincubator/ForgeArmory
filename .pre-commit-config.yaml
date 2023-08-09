@@ -48,3 +48,11 @@ repos:
         entry: |
           codespell -q 3 -f
           -S ".git,.github,README.md,docs/*,go.sum,*test.go"
+
+  - repo: local
+    hooks:
+      - id: go-copyright
+        name: Ensure all go files have the copyright header
+        language: script
+        entry: .hooks/go-copyright.sh
+        files: '\.go$'
