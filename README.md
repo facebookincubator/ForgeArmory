@@ -1,6 +1,6 @@
 # ForgeArmory
 
-[![License](https://img.shields.io/github/license/facebookincubuator/ForgeArmory?label=License&style=flat&color=blue&logo=github)](https://github.com/facebookincubator/ForgeArmory/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/facebookincubator/ForgeArmory?label=License&style=flat&color=blue&logo=github)](https://github.com/facebookincubator/ForgeArmory/blob/main/LICENSE)
 [![🚨 Semgrep Analysis](https://github.com/facebookincubator/ForgeArmory/actions/workflows/semgrep.yaml/badge.svg)](https://github.com/facebookincubator/ForgeArmory/actions/workflows/semgrep.yaml)
 [![Pre-Commit](https://github.com/facebookincubator/ForgeArmory/actions/workflows/pre-commit.yaml/badge.svg)](https://github.com/facebookincubator/ForgeArmory/actions/workflows/pre-commit.yaml)
 [![Renovate](https://github.com/facebookincubator/ForgeArmory/actions/workflows/renovate.yaml/badge.svg)](https://github.com/facebookincubator/ForgeArmory/actions/workflows/renovate.yaml)
