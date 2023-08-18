@@ -3,11 +3,11 @@ description: |
   This TTP injects a custom dylib (which opens Calculator) into the SafariForWebkitDevelopment binary.
 mitre:
   tactics:
-  - TA0005 Defense Evasion
+    - TA0005 Defense Evasion
   techniques:
-  - T1055 Process Injection
+    - T1055 Process Injection
   subtechniques:
-  - 
+    -
 steps:
   - name: injectdylib
     inline: |

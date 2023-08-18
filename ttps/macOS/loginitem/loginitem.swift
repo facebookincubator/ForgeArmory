@@ -36,7 +36,3 @@ var retString = ""
     }
 
     print(retString)
-
-
-
-

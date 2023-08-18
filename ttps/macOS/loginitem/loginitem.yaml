@@ -3,11 +3,11 @@ description: |
   This TTP adds Calc as a Login Item.
 mitre:
   tactics:
-  - TA0003 Persistence
+    - TA0003 Persistence
   techniques:
-  - T1547 Boot or Logon Autostart Execution 
+    - T1547 Boot or Logon Autostart Execution
   subtechniques:
-  - T1547.015 Boot or Logon Autostart Execution: Login Items
+    - T1547.015 Boot or Logon Autostart Execution: Login Items
 steps:
   - name: loginitem
     inline: |

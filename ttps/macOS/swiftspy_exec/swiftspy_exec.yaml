@@ -1,13 +1,13 @@
 name: Execute SwiftSpy to perform keylog monitoring.
 description: |
-  This TTP executes SwiftSpy to monitor keyboard strokes. 
+  This TTP executes SwiftSpy to monitor keyboard strokes.
 mitre:
   tactics:
-  - T0009 Collection
+    - T0009 Collection
   techniques:
-  - T1056 Input Capture
+    - T1056 Input Capture
   subtechniques:
-  - T1056.001 Input Capture: Keylogging
+    - T1056.001 Input Capture: Keylogging
 steps:
   - name: swiftspy_exec
     inline: |

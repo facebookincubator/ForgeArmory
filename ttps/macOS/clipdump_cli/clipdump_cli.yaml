@@ -3,11 +3,11 @@ description: |
   This TTP uses the osascript binary to dump clipboard contents.
 mitre:
   tactics:
-  - T0009 Collection
+    - T0009 Collection
   techniques:
-  - T1115 Clipboard Data
+    - T1115 Clipboard Data
   subtechniques:
-  -
+    -
 steps:
   - name: clipdump_cli
     inline: |
@@ -17,7 +17,7 @@ steps:
          echo "[+] This TTP successfully completed. The \"SuperSecretClipboardString\" string was captured from the clipboard"
       else
          echo "[-] This TTP did not successfully complete. Exiting..."
-      fi     
+      fi
     cleanup:
       inline: |
         echo "No cleanup needed, as this TTP simply dumped clipboard contents."

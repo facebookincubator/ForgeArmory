@@ -21,11 +21,9 @@ alert.accessoryView = passfield
 let response = alert.runModal()
 if response == NSApplication.ModalResponse.alertFirstButtonReturn{
       print("Creds captured: " + passfield.stringValue)
-      
+
     } else {
 
       print("Cancel button clicked. Creds not captured.")
-     
+
     }
-
-

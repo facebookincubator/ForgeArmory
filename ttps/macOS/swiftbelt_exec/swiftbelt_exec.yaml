@@ -1,13 +1,13 @@
 name: Execute SwiftBelt code to gather host information.
 description: |
-  This TTP executes SwiftBelt to gether host information. 
+  This TTP executes SwiftBelt to gether host information.
 mitre:
   tactics:
-  - T0009 Collection
+    - T0009 Collection
   techniques:
-  - T1119 Automated Collection
+    - T1119 Automated Collection
   subtechniques:
-  -
+    -
 steps:
   - name: swiftbelt_exec
     inline: |

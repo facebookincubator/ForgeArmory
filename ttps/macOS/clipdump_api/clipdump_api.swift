@@ -12,4 +12,3 @@ if pString.contains("AnotherSecretClipboardString"){
 else {
         print("[-] TTP did not successfully complete. Exiting...")
 }
-

@@ -23,7 +23,7 @@ for i in processes {
     procList.append(str1)
 
 }
-    
+
 let processes2 = procList.joined(separator: ", ")
 
 if processes2.contains("com.apple.calculator") {
@@ -31,7 +31,3 @@ if processes2.contains("com.apple.calculator") {
     } else {
         print("[-] DYLIB Injection NOT successful")
     }
-
-
-
-

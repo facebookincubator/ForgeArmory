@@ -3,12 +3,12 @@ description: |
   This TTP uses the osascript binary to launch a fake prompt requesting password entry.
 mitre:
   tactics:
-  - T1059 Command and Scripting Interpreter
-  - TA0006 Credential Access
+    - T1059 Command and Scripting Interpreter
+    - TA0006 Credential Access
   techniques:
-  - T1059.002 Command and Scripting Interpreter: AppleScript
+    - T1059.002 Command and Scripting Interpreter: AppleScript
   subtechniques:
-  -
+    -
 steps:
   - name: prompt_cli
     inline: |
