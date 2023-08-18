@@ -1,0 +1,23 @@
+name: macOS cli clipboard dump
+description: |
+  This TTP uses the osascript binary to dump clipboard contents.
+mitre:
+  tactics:
+  - T0009 Collection
+  techniques:
+  - T1115 Clipboard Data
+  subtechniques:
+  -
+steps:
+  - name: clipdump_cli
+    inline: |
+      echo -e "==> Dumping clipboard contents via the osascript binary. First the string 'SuperSecretClipboardString' will be pasted onto the clipboard. Then this TTP will dump the clipboard and verify that this string was obtained."
+      ttp=$(echo "SuperSecretClipboardString" | pbcopy && osascript -e 'return (the clipboard)')
+      if [[ "$ttp" == *"SuperSecretClipboardString"* ]]; then
+         echo "[+] This TTP successfully completed. The \"SuperSecretClipboardString\" string was captured from the clipboard"
+      else
+         echo "[-] This TTP did not successfully complete. Exiting..."
+      fi     
+    cleanup:
+      inline: |
+        echo "No cleanup needed, as this TTP simply dumped clipboard contents."

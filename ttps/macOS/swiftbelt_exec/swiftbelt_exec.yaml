@@ -1,0 +1,24 @@
+name: Execute SwiftBelt code to gather host information.
+description: |
+  This TTP executes SwiftBelt to gether host information. 
+mitre:
+  tactics:
+  - T0009 Collection
+  techniques:
+  - T1119 Automated Collection
+  subtechniques:
+  -
+steps:
+  - name: swiftbelt_exec
+    inline: |
+      echo -e "First, building the SwiftBelt source file into a compiled binary for execution..."
+      swiftc SwiftBelt.swift -o SwiftBelt
+      echo -e "===> Executing SwiftBelt..."
+      ./SwiftBelt
+      echo -e "\n"
+      echo "[+] DONE!"
+    cleanup:
+      inline: |
+        echo "Cleaning up the compiled SwiftBelt binary..."
+        rm -f SwiftBelt
+        echo "Cleanup DONE!"

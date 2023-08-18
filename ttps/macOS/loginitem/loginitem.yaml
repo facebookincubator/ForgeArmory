@@ -1,0 +1,26 @@
+name: Login Item
+description: |
+  This TTP adds Calc as a Login Item.
+mitre:
+  tactics:
+  - TA0003 Persistence
+  techniques:
+  - T1547 Boot or Logon Autostart Execution 
+  subtechniques:
+  - T1547.015 Boot or Logon Autostart Execution: Login Items
+steps:
+  - name: loginitem
+    inline: |
+      echo -e "First building the source Swift into a compiled binary..."
+      swiftc loginitem.swift -o loginitem
+      swiftc rm-loginitem.swift -o rm-loginitem
+      echo "Next, executing the compiled loginitem binary to add Calc to the Login Items list."
+      ./loginitem
+      echo "TTP Done!"
+    cleanup:
+      inline: |
+        echo "Sleeping for 15 seconds and then removing the login item persistence..."
+        sleep 15
+        ./rm-loginitem
+        rm loginitem rm-loginitem
+        echo "Cleanup Finished!"

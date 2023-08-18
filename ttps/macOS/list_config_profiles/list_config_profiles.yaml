@@ -1,0 +1,19 @@
+name: Leverage the profiles command to list configuration profile names on the target host.
+description: |
+  This TTP simply lists all configuration profile names.
+mitre:
+  tactics:
+  - T0009 Collection
+  techniques:
+  - T1602 Data From Configuration Repository
+  subtechniques:
+  -
+steps:
+  - name: list_config_profiles
+    inline: |
+      echo -e "Searching for configuration profiles using the profiles binary..."
+      profiles -C
+      echo "[+] TTP Done!"
+    cleanup:
+      inline: |
+        echo "Cleanup not required for this TTP, as this is a simple profiles command execution."

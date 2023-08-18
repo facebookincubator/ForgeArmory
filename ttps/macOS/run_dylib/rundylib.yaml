@@ -1,0 +1,29 @@
+name: Run A Dylib
+description: |
+  This TTP executes a C compiled dylib.
+mitre:
+  tactics:
+  - T0002 Execution
+  techniques:
+  - T1129 Shared Modules
+  subtechniques:
+  -
+steps:
+  - name: rundylib
+    inline: |
+      echo -e "First building the source c file into a dylib..."
+      gcc -dynamiclib calc.c -o calc.dylib
+      echo -e "Next building the Swift source file to a compiled binary for execution..."
+      swiftc rundylib.swift -o rundylib
+      echo "Next, executing the compiled run dylib binary load the hello.dylib library. Running with a timeout of 10 seconds."
+      timeout 10 ./rundylib
+      if pgrep -x "Calculator"
+         then echo "[+] The dylib loaded Calculator successfully. TTP Done!"
+      else
+         echo "[-] Calculator not successfully loaded by the dylib. TTP did not successfully execute"
+      fi
+    cleanup:
+      inline: |
+        echo "Removing the compiled calc.dylib binary as well as the compiled ryndylib file..."
+        rm calc.dylib rundylib
+        echo "Cleanup Finished!"
