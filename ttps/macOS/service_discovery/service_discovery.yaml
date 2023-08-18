@@ -3,11 +3,11 @@ description: |
   This TTP runs different dns-sd commands for local network service discovery.
 mitre:
   tactics:
-  - TA0043 Reconnaissance
+    - TA0043 Reconnaissance
   techniques:
-  - T1592 Gather Victim Host Information
+    - T1592 Gather Victim Host Information
   subtechniques:
-  -
+    -
 steps:
   - name: Discover_ssh_hosts
     inline: |

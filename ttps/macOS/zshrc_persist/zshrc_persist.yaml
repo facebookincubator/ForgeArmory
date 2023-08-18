@@ -1,16 +1,16 @@
 name: Create .zshrc persistence.
 description: |
-  This TTP checks to see if ~/.zshrc is present and if not creates it and adds a line to execute a script (which opens Calc). 
+  This TTP checks to see if ~/.zshrc is present and if not creates it and adds a line to execute a script (which opens Calc).
 mitre:
   tactics:
-  - T0003 Persistence
+    - T0003 Persistence
   techniques:
-  - T1547 Boot or Logon Autostart Execution
+    - T1547 Boot or Logon Autostart Execution
   subtechniques:
-  - T1547.007 Boot or Logon Autostart Execution: Re-opened Applications
+    - T1547.007 Boot or Logon Autostart Execution: Re-opened Applications
 steps:
   - name: zshrc
-    inline : |
+    inline: |
       if [ ! -f ~/.zshrc ]
          then echo "No ~/.zshrc file found so creating an empty file"
          touch ~/.zshrc
@@ -26,4 +26,4 @@ steps:
         sleep 15
         cp .zshrc-orig ~/.zshrc
         rm .zshrc-orig /tmp/purple.sh
-        echo "Cleanup done!"        
+        echo "Cleanup done!"

@@ -3,11 +3,11 @@ description: |
   This TTP simply lists all configuration profile names.
 mitre:
   tactics:
-  - T0009 Collection
+    - T0009 Collection
   techniques:
-  - T1602 Data From Configuration Repository
+    - T1602 Data From Configuration Repository
   subtechniques:
-  -
+    -
 steps:
   - name: list_config_profiles
     inline: |

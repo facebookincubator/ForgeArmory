@@ -3,11 +3,11 @@ description: |
   This TTP dumps clipboard contents by making nspasteboard API calls.
 mitre:
   tactics:
-  - T0009 Collection
+    - T0009 Collection
   techniques:
-  - T1115 Clipboard Data
+    - T1115 Clipboard Data
   subtechniques:
-  -
+    -
 steps:
   - name: clipdump_api
     inline: |

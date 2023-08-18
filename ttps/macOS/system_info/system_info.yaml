@@ -3,11 +3,11 @@ description: |
   This TTP uses the osascript binary to gather system information.
 mitre:
   tactics:
-  - T0009 Collection
+    - T0009 Collection
   techniques:
-  - T1119 Automated Collection
+    - T1119 Automated Collection
   subtechniques:
-  -
+    -
 steps:
   - name: system_info
     inline: |

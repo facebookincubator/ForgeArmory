@@ -17,6 +17,3 @@ for each in loginItems{
         	print("[+] Clean-up completed: Calculator has been removed from Login Items")
         }
 }
-
-
-

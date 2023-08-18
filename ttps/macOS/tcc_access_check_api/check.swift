@@ -33,7 +33,7 @@ if let query = MDQueryCreate(kCFAllocatorDefault, queryString as CFString, nil, 
         if let rawPtr = MDQueryGetResultAtIndex(query, i) {
             let item = Unmanaged<MDItem>.fromOpaque(rawPtr).takeUnretainedValue()
             if let path = MDItemCopyAttribute(item, kMDItemPath) as? String {
-               
+
                 if path.hasSuffix("/Users/\(username)/Desktop"){
                     p1 = 1
                     results += "[+] This app HAS ALREADY been granted TCC access to \(path)\n"
@@ -49,23 +49,23 @@ if let query = MDQueryCreate(kCFAllocatorDefault, queryString as CFString, nil, 
                     results += "[+] This app HAS ALREADY been granted TCC access to \(path)\n"
                     results += "-----------------------------------------------------------------------------------\n"
                 }
-                
+
             }
         }
     }
-    
+
     if p1 == 0 {
-        results += "[-] This app has NOT yet been given access to /Users/\(username)/Desktop. Tread carefully!!\n"
+        results += "[-] This app has NOT yet been given access to /Users/\(username)/Desktop. Be careful!!\n"
         results += "---------------------------------------------------------------\n"
     }
 
     if p2 == 0 {
-        results += "[-] This app has NOT yet been given access to /Users/\(username)/Documents. Tread carefully!!\n"
+        results += "[-] This app has NOT yet been given access to /Users/\(username)/Documents. Be careful!!\n"
         results += "---------------------------------------------------------------\n"
     }
 
     if p3 == 0 {
-        results += "[-] This app has NOT yet been given access to /Users/\(username)/Downloads. Tread carefully!!\n"
+        results += "[-] This app has NOT yet been given access to /Users/\(username)/Downloads. Be careful!!\n"
         results += "---------------------------------------------------------------\n"
     }
 }

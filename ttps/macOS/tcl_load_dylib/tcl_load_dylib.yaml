@@ -3,11 +3,11 @@ description: |
   This TTP loads a custom dylib (which opens Calculator) by piping an echo command to tclsh.
 mitre:
   tactics:
-  - T0002 Execution
+    - T0002 Execution
   techniques:
-  - T1129 Shared Modules
+    - T1129 Shared Modules
   subtechniques:
-  -
+    -
 steps:
   - name: tcl_load_dylib
     inline: |

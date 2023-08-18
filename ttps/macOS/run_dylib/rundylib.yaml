@@ -3,11 +3,11 @@ description: |
   This TTP executes a C compiled dylib.
 mitre:
   tactics:
-  - T0002 Execution
+    - T0002 Execution
   techniques:
-  - T1129 Shared Modules
+    - T1129 Shared Modules
   subtechniques:
-  -
+    -
 steps:
   - name: rundylib
     inline: |

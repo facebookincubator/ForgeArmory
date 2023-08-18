@@ -1,13 +1,13 @@
 name: If Firefox is installed, dump cookie values.
 description: |
-  This TTP will simply read from the cookies.json file if Firefox is installed. 
+  This TTP will simply read from the cookies.json file if Firefox is installed.
 mitre:
   tactics:
-  - T0006 Credential Access
+    - T0006 Credential Access
   techniques:
-  - T1539 Steal Web Session Cookie
+    - T1539 Steal Web Session Cookie
   subtechniques:
-  -
+    -
 steps:
   - name: dump_cookies
     inline: |

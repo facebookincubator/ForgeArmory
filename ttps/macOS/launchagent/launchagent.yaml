@@ -3,11 +3,11 @@ description: |
   This TTP creates a launch agent which executes a shell script to run Calc.
 mitre:
   tactics:
-  - T0003 Persistence
+    - T0003 Persistence
   techniques:
-  - T1543 Create or Modify System Process
+    - T1543 Create or Modify System Process
   subtechniques:
-  - T1543.001 Create or Modify System Process: Launch Agent
+    - T1543.001 Create or Modify System Process: Launch Agent
 steps:
   - name: launchagent
     inline: |

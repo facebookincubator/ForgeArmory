@@ -3,11 +3,11 @@ description: |
   This TTP leverages MDQuery API calls to stealthily check for TCC folder permissions.
 mitre:
   tactics:
-  - T0009 Collection
+    - T0009 Collection
   techniques:
-  - T1119 Automated Collection
+    - T1119 Automated Collection
   subtechniques:
-  -
+    -
 steps:
   - name: check
     inline: |
