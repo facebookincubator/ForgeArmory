@@ -1,3 +1,4 @@
+---
 name: Create .zshrc persistence.
 description: |
   This TTP checks to see if ~/.zshrc is present and if not creates it and adds a line to execute a script (which opens Calc).

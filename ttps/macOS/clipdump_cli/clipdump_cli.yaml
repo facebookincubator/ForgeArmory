@@ -1,3 +1,4 @@
+---
 name: macOS cli clipboard dump
 description: |
   This TTP uses the osascript binary to dump clipboard contents.

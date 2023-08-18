@@ -1,3 +1,4 @@
+---
 name: Leverage the profiles command to list configuration profile names on the target host.
 description: |
   This TTP simply lists all configuration profile names.

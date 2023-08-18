@@ -1,3 +1,4 @@
+---
 name: TCC Folder Access Checker Via API Calls
 description: |
   This TTP leverages MDQuery API calls to stealthily check for TCC folder permissions.

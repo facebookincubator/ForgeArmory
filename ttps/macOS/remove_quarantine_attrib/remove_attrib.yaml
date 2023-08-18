@@ -1,3 +1,4 @@
+---
 name: Test different ways to remove the quarantine attribute
 description: |
   This TTP leverages xattr and cat to remove the com.apple.quarantine attribute from a file.

@@ -1,3 +1,4 @@
+---
 name: Gather macOS system information.
 description: |
   This TTP uses the osascript binary to gather system information.
