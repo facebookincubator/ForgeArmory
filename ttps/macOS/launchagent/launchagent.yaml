@@ -1,0 +1,27 @@
+name: Launch Agent
+description: |
+  This TTP creates a launch agent which executes a shell script to run Calc.
+mitre:
+  tactics:
+  - T0003 Persistence
+  techniques:
+  - T1543 Create or Modify System Process
+  subtechniques:
+  - T1543.001 Create or Modify System Process: Launch Agent
+steps:
+  - name: launchagent
+    inline: |
+      echo -e "First building the source Swift into a compiled binary..."
+      swiftc launchagent.swift -o launchagent
+      echo "Next, executing the compiled launchagent binary. This will drop /Users/Shared/purple.sh (which runs Calc) and then dropping ~/Library/LaunchAgents/com.purpleteam.plist to call purple.sh and immediately loading it with launchctl..."
+      ./launchagent
+      echo "TTP Done!"
+    cleanup:
+      inline: |
+        echo "Sleeping for 15 seconds and then removing the persistence..."
+        sleep 15
+        launchctl unload -w ~/Library/LaunchAgents/com.purpleteam.plist
+        rm -f /Users/Shared/purple.sh
+        rm -f ~/Library/LaunchAgents/com.purpleteam.plist
+        rm -f launchagent
+        echo "Cleanup Finished!"

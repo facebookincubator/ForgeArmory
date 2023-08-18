@@ -1,0 +1,22 @@
+name: Copy Keychain
+description: |
+  This TTP copies the user's login keychain database to the /tmp directory.
+mitre:
+  tactics:
+  - T0006 Credential Access
+  techniques:
+  - T1555.001 Credentials from Password Stores: Keychain
+  subtechniques:
+  -
+steps:
+  - name: copykeychain
+    inline: |
+      echo -e "Copying ~/Library/Keychains/login.keychain-db to /tmp..."
+      cp ~/Library/Keychains/login.keychain-db /tmp/keychain-copied
+      echo "TTP Done!"
+    cleanup:
+      inline: |
+        echo "Sleeping for 15 seconds and then removing the copied keychain from the /tmp directory..."
+        sleep 15
+        rm /tmp/keychain-copied
+        echo "Cleanup Finished!"
