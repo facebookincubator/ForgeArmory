@@ -1,3 +1,4 @@
+---
 name: If Firefox is installed, dump cookie values.
 description: |
   This TTP will simply read from the cookies.json file if Firefox is installed.

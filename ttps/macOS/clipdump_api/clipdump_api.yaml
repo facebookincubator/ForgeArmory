@@ -1,3 +1,4 @@
+---
 name: macOS clipboard dump (api)
 description: |
   This TTP dumps clipboard contents by making nspasteboard API calls.
