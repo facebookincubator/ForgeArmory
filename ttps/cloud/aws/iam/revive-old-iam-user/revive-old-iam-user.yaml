@@ -77,9 +77,9 @@ steps:
         fi
       }
 
-      USER="{{args.user}}"
+      USER="{{ .Args.user }}"
       new_key_id=$(create_key $USER)
-      if [[ "{{args.cleanup}}" == true ]]; then
+      if [[ "{{ .Args.cleanup }}" == true ]]; then
         delete_key $USER $new_key_id
       fi
 
@@ -87,7 +87,7 @@ steps:
     inline: |
       set -e
 
-      if [ "{{args.detect}}" == true ]; then
+      if [ "{{ .Args.detect }}" == true ]; then
         current_time() {
             date -u +'%Y-%m-%dT%H:%M:%SZ'
         }

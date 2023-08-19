@@ -62,19 +62,19 @@ steps:
     inline: |
       set -e
 
-      if [[ -d "{{args.eiam_path}}" ]]; then
+      if [[ -d "{{ .Args.eiam_path }}" ]]; then
           echo "Info: enumerate-iam already present on the current system"
       else
-          git clone https://github.com/andresriancho/enumerate-iam.git {{args.eiam_path}}
+          git clone https://github.com/andresriancho/enumerate-iam.git {{ .Args.eiam_path }}
       fi
 
-      cd {{args.eiam_path}} && pip3 install -r requirements.txt
+      cd {{ .Args.eiam_path }} && pip3 install -r requirements.txt
 
-      if [[ "{{args.extended_scan}}" == true ]]; then
+      if [[ "{{ .Args.extended_scan }}" == true ]]; then
           # Get latest APIs
           echo "Info: Extended scan specified - getting latest AWS API endpoints"
-          git clone https://github.com/aws/aws-sdk-js.git {{args.eiam_path}}/enumerate_iam/aws-sdk-js
-          pushd {{args.eiam_path}} || exit 1
+          git clone https://github.com/aws/aws-sdk-js.git {{ .Args.eiam_path }}/enumerate_iam/aws-sdk-js
+          pushd {{ .Args.eiam_path }} || exit 1
           python3 generate_bruteforce_tests.py
           popd || exit 1
       fi
@@ -86,7 +86,7 @@ steps:
     inline: |
       set -e
 
-      pushd {{args.eiam_path}} || exit 1
+      pushd {{ .Args.eiam_path }} || exit 1
       if [[ -n "${AWS_PROFILE}" ]]; then
           # AWS_PROFILE is set, extract credentials from AWS profile
           export AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id --profile "${AWS_PROFILE}")
@@ -108,12 +108,12 @@ steps:
       inline: |
         set -e
 
-        if [[ "{{args.cleanup}}" == true ]]; then
+        if [[ "{{ .Args.cleanup }}" == true ]]; then
           echo "Uninstalling Python packages..."
-          cd {{args.eiam_path}} && pip3 uninstall -y -r requirements.txt
-          if [[ -d "{{args.eiam_path}}" ]]; then
+          cd {{ .Args.eiam_path }} && pip3 uninstall -y -r requirements.txt
+          if [[ -d "{{ .Args.eiam_path }}" ]]; then
               echo "Cleaning up enumerate-iam repository..."
-              rm -rf {{args.eiam_path}}
+              rm -rf {{ .Args.eiam_path }}
           fi
         fi
 
@@ -121,7 +121,7 @@ steps:
     inline: |
       set -e
 
-      if [[ "{{args.detect}}" == true ]]; then
+      if [[ "{{ .Args.detect }}" == true ]]; then
         current_time() {
           date -u +'%Y-%m-%dT%H:%M:%SZ'
         }
