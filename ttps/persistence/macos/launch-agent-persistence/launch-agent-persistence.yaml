@@ -11,7 +11,7 @@ steps:
     inline: |
       set -e
 
-      command_or_path="{{args.command_or_path}}"
+      command_or_path="{{ .Args.command_or_path }}"
       echo "===> Creating ~/Library/LaunchAgents if it does not already exist..."
       mkdir -p "/Users/$(whoami)/Library/LaunchAgents"
       echo "===> Writing plist to ~/Library/LaunchAgents/com.ttpforge.plist"
@@ -41,6 +41,6 @@ steps:
       inline: |
         set -e
 
-        if [[ "{{args.cleanup}}" == "true" ]]; then
+        if [[ "{{ .Args.cleanup }}" == "true" ]]; then
             rm -rf ~/Library/LaunchAgents/com.ttpforge.plist /tmp/launchagent-*
         fi

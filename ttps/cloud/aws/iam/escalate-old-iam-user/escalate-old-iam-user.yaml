@@ -39,15 +39,15 @@ steps:
     inline: |
       set -e
       # Add the user to the group
-      aws iam add-user-to-group --user-name {{args.user}} \
-        --group-name {{args.group}}
+      aws iam add-user-to-group --user-name {{ .Args.user }} \
+        --group-name {{ .Args.group }}
 
     cleanup:
       name: cleanup
       inline: |
         set -e
-        if [[ "{{args.cleanup}}" == true ]]; then
+        if [[ "{{ .Args.cleanup }}" == true ]]; then
           # Remove the user from the group
-          aws iam remove-user-from-group --user-name {{args.user}} \
-            --group-name {{args.group}}
+          aws iam remove-user-from-group --user-name {{ .Args.user }} \
+            --group-name {{ .Args.group }}
         fi

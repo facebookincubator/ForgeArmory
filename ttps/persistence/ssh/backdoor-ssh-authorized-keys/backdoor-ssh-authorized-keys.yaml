@@ -16,7 +16,7 @@ steps:
     inline: |
       set -e
 
-      if [[ ! -f "{{args.ssh_authorized_keys}}" ]]; then
+      if [[ ! -f "{{ .Args.ssh_authorized_keys }}" ]]; then
         echo "Error: no authorized_keys file present at the specified path."
         exit 1
       fi
@@ -25,18 +25,18 @@ steps:
     inline: |
       set -e
 
-      cp "{{args.ssh_authorized_keys}}" "{{args.ssh_authorized_keys}}.bak"
+      cp "{{ .Args.ssh_authorized_keys }}" "{{ .Args.ssh_authorized_keys }}.bak"
 
   - name: modify-authorized_keys
     inline: |
       set -e
 
-      echo "{{args.rogue_key}}" >> "{{args.ssh_authorized_keys}}"
+      echo "{{ .Args.rogue_key }}" >> "{{ .Args.ssh_authorized_keys }}"
 
   - name: cleanup
     inline: |
       set -e
 
-      if [[ "{{args.cleanup}}" == true ]]; then
-        mv "{{args.ssh_authorized_keys}}.bak" "{{args.ssh_authorized_keys}}"
+      if [[ "{{ .Args.cleanup }}" == true ]]; then
+        mv "{{ .Args.ssh_authorized_keys }}.bak" "{{ .Args.ssh_authorized_keys }}"
       fi
