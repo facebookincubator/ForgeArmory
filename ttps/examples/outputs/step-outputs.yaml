@@ -6,7 +6,7 @@ steps:
   - name: raw_output
     inline: echo "this will be accessible in stdout"
   - name: access_raw_output
-    inline: echo "previous step output is {{steps.raw_output.stdout}}"
+    inline: echo "previous step output is $forge.steps.raw_output.stdout"
   - name: with_json_output
     inline: echo {\"foo\":\"bar\"}
     outputs:
@@ -14,4 +14,4 @@ steps:
         filters:
           - json_path: foo
   - name: print_json
-    inline: echo {{steps.with_json_output.outputs.my_value}}
+    inline: echo $forge.steps.with_json_output.outputs.my_value
