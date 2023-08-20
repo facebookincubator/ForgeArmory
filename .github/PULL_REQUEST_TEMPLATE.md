@@ -22,6 +22,5 @@ especially for UI updates -->
 ## Checklist
 
 - [ ] Ran `mage runprecommit` locally and fixed any issues that arose.
-- [ ] Ran `mage runtests` locally and fixed any issues that arose.
-- [ ] Curated your commits so they are legible and easy to read and understand.
+- [ ] Curated your commit(s) so they are legible and easy to read and understand.
 - [ ] 🚀
