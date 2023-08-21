@@ -10,7 +10,8 @@ Ensure that ps is installed on the target system and that you have the necessary
 
 ## Examples
 
-Utilize ps to view currently running processes. This TTP does not produce artifacts, so it is not necessary to run the cleap up afterward:
+Utilize ps to view currently running processes. This TTP does not produce artifacts,
+so it is not necessary to run the cleap up afterward:
 
 ```bash
 ttpforge -c config.yaml \

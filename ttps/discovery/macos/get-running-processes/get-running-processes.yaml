@@ -9,12 +9,14 @@ mitre:
     - T1057 Process Discovery
   subtechniques:
     -
+
 steps:
   - name: run-ps
     inline: |
       echo -e "===> Gathering running processes using ps..."
       ps aux
       echo "[+] DONE!"
+
     cleanup:
       inline: |
         echo "No cleanup required for this TTP..."
