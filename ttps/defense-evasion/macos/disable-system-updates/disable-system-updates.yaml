@@ -1,7 +1,7 @@
 ---
 name: Disable system security updates
 description: |
-  This TTP disables the automatic installation of macOS security updates. 
+  This TTP disables the automatic installation of macOS security updates.
 mitre:
   tactics:
     - T0005 Defense Evasion
