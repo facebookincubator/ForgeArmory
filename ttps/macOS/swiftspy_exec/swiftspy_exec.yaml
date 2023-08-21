@@ -15,7 +15,7 @@ steps:
       echo -e "First, building the SwiftSpy source file into a compiled binary for execution...This was pulled from https://github.com/slyd0g/SwiftSpy"
       swiftc swiftspy.swift -o swiftspy
       echo -e "===> Executing the compiled SwiftSpy binary with a 20 second timeout..."
-      timeout 20 ./expect.sh
+      timeout 20 ./expect.exp
       ret=$?
       if [[ "$ret" == *"Could not open HID manager"* ]]; then
          echo "[-] This TTP Requires that Terminal have Input Monitoring permissions. Please grant Terminal Input Monitoring permissions, restart Terminal, and re-run. Exiting..."
