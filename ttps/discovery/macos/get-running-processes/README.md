@@ -14,8 +14,7 @@ Utilize ps to view currently running processes. This TTP does not produce artifa
 so it is not necessary to run the cleap up afterward:
 
 ```bash
-ttpforge -c config.yaml \
-    run ttps/discovery/macos/get-running-processes/get-running-processes.yaml
+ttpforge run ttps/discovery/macos/get-running-processes/get-running-processes.yaml
 ```
 
 ## Steps

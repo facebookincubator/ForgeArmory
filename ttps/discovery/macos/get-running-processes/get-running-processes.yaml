@@ -7,8 +7,6 @@ mitre:
     - T0007 Collection
   techniques:
     - T1057 Process Discovery
-  subtechniques:
-    -
 
 steps:
   - name: run-ps
