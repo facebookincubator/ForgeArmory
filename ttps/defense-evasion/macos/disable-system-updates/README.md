@@ -1,6 +1,6 @@
 # macOS Disable System Updates
 
-![Meta TTP](https://img.shields.io/badge/Meta_TTP-blue)
+![Community TTP - VVX7](https://img.shields.io/badge/Community_TTP-green)
 
 Disable automatic system security updates.
 
