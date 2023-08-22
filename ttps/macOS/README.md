@@ -182,7 +182,7 @@ ttpforge run ttps/macOS/tcl_load_dylib/tcl_load_dylib.yaml
 - From the root ForgeArmory directory, run:
 
 ```bash
-ttpforge ttps/macOS/mdfind_aws_keys/mdfind_aws_keys.yaml
+ttpforge run ttps/macOS/mdfind_aws_keys/mdfind_aws_keys.yaml
 ```
 
 21. List device configuration profile information for the target host.
