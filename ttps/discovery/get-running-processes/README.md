@@ -12,7 +12,7 @@ permissions to run it.
 ## Examples
 
 Utilize ps to view currently running processes. This TTP does not produce
-artifacts, so it is not necessary to run the cleap up afterward:
+artifacts, so it is not necessary to run the clean up afterward:
 
 ```bash
 ttpforge run ttps/discovery/macos/get-running-processes/get-running-processes.yaml
