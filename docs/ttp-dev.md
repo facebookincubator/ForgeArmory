@@ -88,7 +88,7 @@ When creating assessment type blocks, it's preferable to place each test in its 
 
 It is often necessary for a TTP to install dependencies, stage files, or otherwise shape the target environment prior to executing the core TTP logic.  As with assessment type blocks, when creating shaping type blocks, it's preferable to place each action in its own block.
 
-```text
+```yaml
 <- snip ->
 
   - name: setup
