@@ -1,6 +1,7 @@
 # TTP Development
 
-This document introduces concepts to help developers create their own TTPs for use in TTPForge.
+This document introduces concepts to help developers 
+create their own TTPs for use in TTPForge.
 
 ## TTP Anatomy
 
