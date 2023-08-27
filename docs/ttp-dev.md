@@ -4,7 +4,7 @@ This document introduces concepts to help developers create their own TTPs for u
 
 ## TTP Anatomy
 
-ForgeArmory TTPs are designed to be consumed by  [TTPForge](https://github.com/facebookincubator/TTPForge), which provides an interface to execute TTPs across various targets and mediums. Each ForgeArmory TTP consists of metadata, optional argument declarations, and steps, which define the TTP implementation logic.
+ForgeArmory TTPs are designed to be consumed by [TTPForge](https://github.com/facebookincubator/TTPForge), which provides an interface to execute TTPs across various targets and mediums. Each ForgeArmory TTP consists of metadata, optional argument declarations, and steps, which define the TTP implementation logic.
 
 ### Metadata
 
