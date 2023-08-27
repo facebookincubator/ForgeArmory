@@ -147,7 +147,8 @@ In addition to the implementation logic, each TTP must contain a `cleanup` block
 to revert artifacts from the preceding blocks. If no implementation blocks produce 
 artifacts, the `cleanup` block should just return a success log.
 
-Example with implementation block artifacts. Here we see that we're reverting the changes made in the previous steps.
+Example with implementation block artifacts: Here, we revert changes made in 
+previous steps.
 ```yaml
 steps:
   - name: disable-updates
