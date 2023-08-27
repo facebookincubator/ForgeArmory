@@ -126,7 +126,12 @@ sub-TTPs. In general, if the core logic implements multiple procedures or the
 procedure can be reasonably divided, refactoring into smaller steps will enhance
 maintainability.
 
-Code that is likely to be reused in other TTPs should be placed in a sub-TTP and imported where needed. It's much easier to maintain building blocks than to change the same (reimplemented) code in multiple places. Some good candidates for sub-TTPs include assessment and shaping operations, where you're likely to check if commonly used prerequisites are available, install commonly used tools, or tamper with security controls prior to the primary execution block.
+Code likely to be reused in other TTPs should be placed in a sub-TTP and imported 
+where needed. It's easier to maintain building blocks than to modify the same 
+(reimplemented) code in multiple places. Good candidates for sub-TTPs include 
+assessment and shaping operations. Here, you might check for commonly used 
+prerequisites, install frequent tools, or tamper with security controls before 
+the primary execution block.
 
 ```yaml
 steps:
