@@ -71,7 +71,10 @@ recommendations on developing sub-TTPs as common building blocks.
 
 #### Assessment
 
-It is often necessary for a TTP to test execution requirements, such as whether a necessary environment variable is set, and bail out of the TTP if it is not. In this example, if the `AWS_DEFAULT_REGION` environment variable is not set then the TTP returns exit code 1 and no further blocks are executed.
+It is often necessary for a TTP to test execution requirements, such as whether 
+a necessary environment variable is set, and bail out of the TTP if it is not. 
+In this example, if the `AWS_DEFAULT_REGION` environment variable is not set, 
+the TTP returns exit code 1 and no further blocks are executed.
 
 ```yaml
 steps:
