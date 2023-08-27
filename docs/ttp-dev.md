@@ -110,7 +110,7 @@ The execution blocks contain the core TTP logic. A single execution block may be
 
 Code that is likely to be reused in other TTPs should be placed in a sub-TTP and imported where needed. It's much easier to maintain building blocks than to change the same (reimplemented) code in multiple places. Some good candidates for sub-TTPs include assessment and shaping operations, where you're likely to check if commonly used prerequisites are available, install commonly used tools, or tamper with security controls prior to the primary execution block.
 
-```text
+```yaml
 steps:
   - name: first_sub_ttp
     ttp: examples/sub-ttps/my-sub-ttps/ttp1.yaml
