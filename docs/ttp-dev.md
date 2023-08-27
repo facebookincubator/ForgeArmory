@@ -15,7 +15,7 @@ mapped to MITRE ATT&CK then the `mitre` mapping and its child mappings should be
 omitted.
 
 An example of TTP metadata is shown below.
-```text
+```yaml
 ---
 name: Disable system security updates
 description: |
