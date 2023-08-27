@@ -8,7 +8,10 @@ ForgeArmory TTPs are designed to be consumed by [TTPForge](https://github.com/fa
 
 ### Metadata
 
-TTP metadata must include the name of the TTP and a description of that TTPs behavior. MITRE ATT&CK IDs are optional but recommended. If the TTP cannot be mapped to MITRE ATT&CK then the `mitre` mapping and it's child mappings should be omitted. 
+TTP metadata must include the name of the TTP and a description of that TTP's 
+behavior. MITRE ATT&CK IDs are optional but recommended. If the TTP cannot be 
+mapped to MITRE ATT&CK then the `mitre` mapping and its child mappings should be 
+omitted.
 
 An example of TTP metadata is shown below.
 ```text
