@@ -54,7 +54,8 @@ steps:
 
 ### Steps
 
-Steps are uniquely named blocks of implementation logic which are executed in sequence. Steps help developers organize and manage the complexity of TTPs.
+Steps are uniquely named blocks of implementation logic which are executed in 
+sequence. Steps help developers organize and manage the complexity of TTPs.
 
 In general, steps will fall into one of the following high-level categories;
 
