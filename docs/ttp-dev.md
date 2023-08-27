@@ -166,7 +166,7 @@ steps:
 
 Example without implementation block artifacts: No changes were made to the 
 target system. This is reported in the success log.
-```text
+```yaml
 steps:
   - name: clipdump_cli
     inline: |
