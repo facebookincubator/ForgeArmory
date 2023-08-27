@@ -96,7 +96,10 @@ will make your TTPs much easier to maintain as they become more complex.
 
 #### Shaping
 
-It is often necessary for a TTP to install dependencies, stage files, or otherwise shape the target environment prior to executing the core TTP logic.  As with assessment type blocks, when creating shaping type blocks, it's preferable to place each action in its own block.
+It is often necessary for a TTP to install dependencies, stage files, or shape 
+the target environment prior to executing the core TTP logic. As with assessment
+type blocks, when creating shaping type blocks, it's preferable to place each 
+action in its own block.
 
 ```yaml
 <- snip ->
