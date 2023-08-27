@@ -64,7 +64,10 @@ In general, steps will fall into one of the following high-level categories;
 - Execution
 - Cleanup
 
-Additionally, TTPs may be daisy-chained enabling developers to create complex sequences of TTPs. In doing so, each daisy-chained TTP is represented in the parent TTP as a sub-TTP. We'll see an example of this shortly and some recommendations on developing sub-TTPs as common building blocks.
+Additionally, TTPs may be daisy-chained enabling developers to create complex 
+sequences of TTPs. In doing so, each daisy-chained TTP is represented in the 
+parent TTP as a sub-TTP. We'll see an example of this shortly and some 
+recommendations on developing sub-TTPs as common building blocks.
 
 #### Assessment
 
