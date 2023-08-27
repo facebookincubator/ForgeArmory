@@ -32,7 +32,10 @@ mitre:
 
 ### Arguments
 
-Arguments are defined after the TTP metadata. Arguments are uniquely named, may be strongly typed, and may contain default values. Using an argument in the TTP is accomplished with the argument syntax, `{{ .Args.arg_name }}`. A complete example is shown below.
+Arguments are defined after the TTP metadata. Arguments are uniquely named, 
+may be strongly typed, and may contain default values. Using an argument in 
+the TTP is done with the argument syntax, `{{ .Args.arg_name }}`. 
+A complete example is shown below.
 
 ```text
 args:
