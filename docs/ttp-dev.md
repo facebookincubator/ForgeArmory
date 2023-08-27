@@ -90,7 +90,9 @@ steps:
 <- snip ->
 ```
 
-When creating assessment type blocks, it's preferable to place each test in its own block rather than a single block that tests all prerequisites. This will make your TTPs much easier to maintain as they become more complex.
+When creating assessment type blocks, it's preferable to place each test in its 
+own block rather than a single block that tests all prerequisites. This approach
+will make your TTPs much easier to maintain as they become more complex.
 
 #### Shaping
 
