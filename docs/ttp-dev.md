@@ -69,7 +69,7 @@ Additionally, TTPs may be daisy-chained enabling developers to create complex se
 
 It is often necessary for a TTP to test execution requirements, such as whether a necessary environment variable is set, and bail out of the TTP if it is not. In this example, if the `AWS_DEFAULT_REGION` environment variable is not set then the TTP returns exit code 1 and no further blocks are executed.
 
-```text
+```yaml
 steps:
   - name: ensure-aws-creds-present
     inline: |
