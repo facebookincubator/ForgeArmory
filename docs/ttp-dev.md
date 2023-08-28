@@ -5,7 +5,10 @@ create their own TTPs for use in TTPForge.
 
 ## TTP Anatomy
 
-ForgeArmory TTPs are designed to be consumed by [TTPForge](https://github.com/facebookincubator/TTPForge), which provides an interface to execute TTPs across various targets and mediums. Each ForgeArmory TTP consists of metadata, optional argument declarations, and steps, which define the TTP implementation logic.
+ForgeArmory TTPs are designed to be consumed by [TTPForge](https://github.com/facebookincubator/TTPForge), 
+which provides an interface to execute TTPs across various targets and mediums. 
+Each ForgeArmory TTP consists of metadata and optional argument declarations. 
+The steps define the TTP implementation logic.
 
 ### Metadata
 
@@ -15,6 +18,7 @@ mapped to MITRE ATT&CK then the `mitre` mapping and its child mappings should be
 omitted.
 
 An example of TTP metadata is shown below.
+
 ```yaml
 ---
 name: Disable system security updates
