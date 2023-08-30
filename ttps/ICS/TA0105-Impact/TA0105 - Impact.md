@@ -1,0 +1,9 @@
+# TA0105 - Impact
+
+### MITRE ATT&CK: https://attack.mitre.org/tactics/TA0105/
+
+The adversary is trying to manipulate, interrupt, or destroy your ICS systems, data, and their surrounding environment.
+
+Impact consists of techniques that adversaries use to disrupt, compromise, destroy, and manipulate the integrity and availability of control system operations, processes, devices, and data. These techniques encompass the influence and effects resulting from adversarial efforts to attack the ICS environment or that tangentially impact it. Impact techniques can result in more instantaneous disruption to control processes and the operator, or may result in more long term damage or loss to the ICS environment and related operations. The adversary may leverage Impair Process Control techniques, which often manifest in more self-revealing impacts on operations, or Impair Process Control techniques to hinder safeguards and alarms in order to follow through with and provide cover for Impact. In some scenarios, control system processes can appear to function as expected, but may have been altered to benefit the adversary’s goal over the course of a longer duration. These techniques might be used by adversaries to follow through on their end goal or to provide cover for a confidentiality breach.
+
+Loss of Productivity and Revenue, Theft of Operational Information, and Damage to Property are meant to encompass some of the more granular goals of adversaries in targeted and untargeted attacks. These techniques in and of themselves are not necessarily detectable, but the associated adversary behavior can potentially be mitigated and/or detected.
