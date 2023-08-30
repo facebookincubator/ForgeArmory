@@ -14,7 +14,7 @@ Ensure that `gcc` is installed and that you have permission to run it.
 
 ## Examples
 
-Execute `ssh-keygen -D` to load a dylib. Once execution is complete, 
+Execute `ssh-keygen -D` to load a dylib. Once execution is complete,
 this TTP will delete the generated `calc.dylib` file if cleanup is
 set to true:
 
