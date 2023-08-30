@@ -1,0 +1,20 @@
+---
+name: Gather macOS local user accounts.
+description: |
+  This TTP uses the Directory Service Command Line (DSCL) utility to gather local user accounts.
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1087 Account Discovery
+  subtechniques:
+    - T1087.001 Local Account
+steps:
+  - name: local_users
+    inline: |
+      echo -e "===> Gathering system info using Directory Service Command Line (DSCL)..."
+      dscl . list /Users | grep -v “^_”
+      echo "[+] DONE!"
+    cleanup:
+      inline: |
+        echo "Cleanup is not required for this TTP, as this TTP simply executes a DSCL command and does not drop anything to disk."
