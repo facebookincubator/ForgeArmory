@@ -12,7 +12,7 @@ mitre:
 steps:
   - name: local_users
     inline: |
-      echo -e "===> Gathering system info using Directory Service Command Line (DSCL)..."
+      echo -e "===> Gathering local user accounts using Directory Service Command Line (DSCL)..."
       dscl . list /Users | grep -v “^_”
       echo "[+] DONE!"
     cleanup:
