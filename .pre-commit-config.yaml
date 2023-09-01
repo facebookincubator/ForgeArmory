@@ -35,7 +35,7 @@ repos:
       - id: script-must-have-extension
         name: Ensure shell scripts end with .sh
         types: [shell]
-        exclude: ^templates/
+        exclude: ^templates/|^.hooks/tests/
       - id: shfmt
         exclude: ^templates/
       # Configuration in .mdlrc and .hooks/linters/mdstyle.rb
@@ -47,7 +47,7 @@ repos:
       - id: codespell
         entry: |
           codespell -q 3 -f
-          -S ".git,.github,README.md,docs/*,go.sum,*test.go,ttps/macOS/swiftbelt_exec/SwiftBelt.swift"
+          -S ".git,.github,README.md,docs/*,go.sum,*test.go,*SwiftBelt.swift"
 
   - repo: local
     hooks:
@@ -56,3 +56,8 @@ repos:
         language: script
         entry: .hooks/go-copyright.sh
         files: '\.go$'
+
+      - id: check-underscores-in-name
+        name: Ensure all committed directories and YAML files are uniform
+        language: script
+        entry: .hooks/check-underscores-in-name.sh
