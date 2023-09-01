@@ -1,0 +1,92 @@
+---
+name: Scan IP Address Blocks
+description: |
+  This TTP conducts scans against a range of IP addresses to identify alive hosts and open ports
+mitre:
+  tactics:
+    - TA0043 Reconnaissance
+  techniques:
+    - T1595 Active Scanning
+  subtechniques:
+    - "T1595.001 Active Scanning: Scanning IP Blocks"
+
+args:
+  - name: ip_range
+    type: string
+  - name: ports
+    type: string
+    default: 20,21,22,23,25,53,80,110,125,143,443,587,2525,3306,3389
+  - name: cleanup
+    type: bool
+    default: true
+
+steps:
+
+  - name: confirm-required-tools-installed
+    inline: |
+      # Determine the operating system
+      OS=$(uname)
+      if [[ "$OS" == "Darwin" ]]; then
+
+      # Confirm that brew package manager is installed
+        if ! command -v brew &> /dev/null; then
+          echo "===> Error: Brew package manager is not installed on the current system. Please install to proceed."
+        else
+          echo "===> Confirmed: Brew is installed."
+
+          # Confirm that nmap utility is installed. If not, install it.
+          if ! command -v nmap &> /dev/null; then
+            echo "===> Error: Nmap is not installed on the current system. Installing now."
+            brew install nmap
+          else
+            echo "===> Confirmed: Nmap is installed."
+          fi
+        fi
+      elif [[ "$OS" == "Linux" ]]; then
+
+        # Confirm that apt package manager is installed
+        if ! command -v apt &> /dev/null; then
+          echo "===> Error: Apt package manager is not installed on the current system. Please install to proceed."
+        else
+          echo "===> Apt is installed."
+
+          # Confirm that nmap utility is installed. If not, install it.
+          if ! command -v nmap &> /dev/null; then
+            echo "===> Error: Nmap is not installed on the current system. Installing now."
+            apt install nmap -y
+          else
+            echo "===> Confirmed: Nmap is installed."
+          fi
+        fi
+      else
+        echo "Unsupported operating system."
+        exit 1
+
+      fi
+
+  - name: run-scan
+    inline: |
+      echo "IP range: {{ .Args.ip_range }}"
+      echo "Port(s) to be scanned: {{ .Args.ports }}"
+      sudo nmap -sS -sV -Pn {{.Args.ip_range}} -p {{.Args.ports}}
+      echo "[+] DONE!"
+
+    cleanup:
+      inline: |
+        # Remove Nmap scanner
+        OS=$(uname)
+        if [[ "{{ .Args.cleanup }}" == true ]]; then
+          echo "===> Uninstalling Nmap scanner..."
+          if [[ "$OS" == "Darwin" ]]; then
+            echo "===> Uninstalling Nmap"
+            brew uninstall nmap
+            echo "[+] DONE!"
+
+          elif [[ "$OS" == "Linux" ]]; then
+            echo "===> Uninstalling Nmap"
+            apt uninstall nmap -y
+            echo "[+] DONE!"
+
+          fi
+        fi
+
