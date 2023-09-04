@@ -24,9 +24,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/l50/goutils/v2/dev/lint"
 	mageutils "github.com/l50/goutils/v2/dev/mage"
+	"github.com/l50/goutils/v2/sys"
 )
 
 func init() {
@@ -48,8 +50,31 @@ func InstallDeps() error {
 	return nil
 }
 
+func installCommitMsgHook() error {
+	// Define the path to the commit-msg hook file
+	gitDirPath := filepath.Join(".git", "hooks", "commit-msg")
+
+	// Check if the hook file already exists
+	if _, err := os.Stat(gitDirPath); os.IsNotExist(err) {
+		fmt.Println("Installing commit-msg pre-commit hook.")
+		cmd := "pre-commit"
+		args := []string{"install", "--hook-type", "commit-msg"}
+		if _, err := sys.RunCommand(cmd, args...); err != nil {
+			return err
+		}
+	} else if err != nil {
+		return fmt.Errorf("error checking for commit-msg hook: %v", err)
+	}
+
+	return nil
+}
+
 // RunPreCommit runs all pre-commit hooks locally
 func RunPreCommit() error {
+	if err := installCommitMsgHook(); err != nil {
+		return err
+	}
+
 	fmt.Println("Updating pre-commit hooks.")
 	if err := lint.UpdatePCHooks(); err != nil {
 		return err
