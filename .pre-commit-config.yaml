@@ -66,7 +66,6 @@ repos:
         name: Append Authored-by line to commit message
         language: script
         entry: .hooks/add-authored-by.sh
-        # stages: [commit-msg]
         always_run: true
         pass_filenames: false
         args: [".git/COMMIT_EDITMSG"]
