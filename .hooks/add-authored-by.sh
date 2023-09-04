@@ -11,6 +11,12 @@ COMMIT_MSG_FILE="$1"
 NAME=$(git config user.name || echo "")
 EMAIL=$(git config user.email || echo "")
 
+# Ensure that the commit message file is provided and exists
+if [[ -z "$COMMIT_MSG_FILE" || ! -f "$COMMIT_MSG_FILE" ]]; then
+    echo "Error: Commit message file not provided or doesn't exist."
+    exit 1
+fi
+
 # Check if NAME and EMAIL are set
 if [[ -z "$NAME" || -z "$EMAIL" ]]; then
     echo "Error: Git user.name or user.email is not set."
