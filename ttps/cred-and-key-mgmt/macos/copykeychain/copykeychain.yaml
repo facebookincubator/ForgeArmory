@@ -1,0 +1,52 @@
+---
+name: Copy Keychain
+description: |
+  This TTP copies the user's login keychain database to the /tmp directory.
+mitre:
+  tactics:
+    - T0006 Credential Access
+  techniques:
+    - T1555.001 Credentials from Password Stores: Keychain
+args:
+  - name: cleanup
+    default: true
+  - name: detect
+    default: true
+steps:
+  - name: copykeychain
+    inline: |
+      set -e
+
+      echo -e "Copying $HOME/Library/Keychains/login.keychain-db to /tmp..."
+      cp $HOME/Library/Keychains/login.keychain-db /tmp/keychain-copied
+      echo "TTP Done!"
+
+  - name: log-keychain-copying
+    inline: |
+      set -e
+
+      # Writing a log entry to a user-writable location
+      echo "$(date): Copied login.keychain-db to /tmp/keychain-copied" >> $HOME/keychain_copy.log
+
+    cleanup:
+      inline: |
+        set -e
+
+        if [[ "{{ .Args.cleanup }}" == true ]]; then
+          echo "Sleeping for 10 seconds and then removing the copied keychain from the /tmp directory..."
+          sleep 10
+          rm /tmp/keychain-copied
+        fi
+
+  - name: check-detection
+    inline: |
+      set -e
+
+      if [[ "{{ .Args.detect }}" == true ]]; then
+        # Check the log file for entries indicating the copy operation
+        if grep -q "Copied login.keychain-db to /tmp/keychain-copied" $HOME/keychain_copy.log; then
+          echo "Suspicious activity detected: login.keychain-db has been copied."
+        else
+          echo "No suspicious activity detected."
+        fi
+      fi

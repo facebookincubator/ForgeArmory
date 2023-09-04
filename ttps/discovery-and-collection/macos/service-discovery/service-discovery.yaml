@@ -1,0 +1,53 @@
+---
+name: Local Network Service Discovery
+description: |
+  This TTP runs different dns-sd commands for local network service discovery.
+mitre:
+  tactics:
+    - TA0043 Reconnaissance
+  techniques:
+    - T1592 Gather Victim Host Information
+steps:
+  - name: discover-ssh-hosts
+    inline: |
+      echo -e "===> Searching for hosts serving ssh via dns-sd..."
+      timeout 15 dns-sd -B _ssh._tcp
+      ret=$?
+      if [[ $ret -eq 124 ]]; then
+           ret=0
+      fi
+      echo -e "--------------------------------------------------"
+
+  - name: discover-web-hosts
+    inline: |
+      echo -e "===> Searching for hosts serving web services via dns-sd..."
+      timeout 15 dns-sd -B _http._tcp
+      ret=$?
+      if [[ $ret -eq 124 ]]; then
+           ret=0
+      fi
+      echo -e "--------------------------------------------------"
+
+  - name: discover-remote-screen-sharing-hosts
+    inline: |
+      echo -e "===> Searching for hosts serving remote screen sharing via dns-sd..."
+      timeout 15 dns-sd -B _rfb._tcp
+      ret=$?
+      if [[ $ret -eq 124 ]]; then
+           ret=0
+      fi
+      echo -e "--------------------------------------------------"
+
+  - name: discover-smb-hosts
+    inline: |
+      echo -e "===> Searching for hosts serving smb via dns-sd..."
+      timeout 15 dns-sd -B _smb._tcp
+      ret=$?
+      if [[ $ret -eq 124 ]]; then
+           ret=0
+      fi
+    cleanup:
+      inline: |
+        echo "Cleanup not required for these TTPs, as these are simple discovery commands that do not drop anything to disk."
+        echo -e "--------------------------------------------------"
+        echo "[+] TTPs Done!"

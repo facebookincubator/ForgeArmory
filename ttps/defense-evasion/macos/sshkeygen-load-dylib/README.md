@@ -28,4 +28,5 @@ ttpforge run ttps/macOS/sshkeygen_load_dylib/sshkeygen_load_dylib.yaml
 
 1. **Load Dylib**: Execute `ssh-keygen -D` to load the dylib.
 
-1. **Cleanup**: If the `cleanup` argument is set to `true`, delete the compiled dylib.
+1. **Cleanup**: If the `cleanup` argument is set to `true`, delete the
+   compiled dylib.
