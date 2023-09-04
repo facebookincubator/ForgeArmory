@@ -24,14 +24,9 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/l50/goutils/v2/dev/lint"
 	mageutils "github.com/l50/goutils/v2/dev/mage"
-	"github.com/l50/goutils/v2/docs"
-	"github.com/l50/goutils/v2/git"
-	"github.com/l50/goutils/v2/sys"
-	"github.com/spf13/afero"
 )
 
 func init() {
@@ -49,33 +44,6 @@ func InstallDeps() error {
 	if err := mageutils.InstallVSCodeModules(); err != nil {
 		return fmt.Errorf("failed to install vscode-go modules: %v", err)
 	}
-
-	return nil
-}
-
-// GeneratePackageDocs generates package documentation
-// for packages in the current directory and its subdirectories.
-func GeneratePackageDocs() error {
-	fs := afero.NewOsFs()
-
-	repoRoot, err := git.RepoRoot()
-	if err != nil {
-		return fmt.Errorf("failed to get repo root: %v", err)
-	}
-	sys.Cd(repoRoot)
-
-	repo := docs.Repo{
-		Owner: "facebookincubator",
-		Name:  "forgearmory",
-	}
-
-	excludedPkgs := []string{"main"}
-	template := filepath.Join(repoRoot, "magefiles", "tmpl", "README.md.tmpl")
-	if err := docs.CreatePackageDocs(fs, repo, template, excludedPkgs...); err != nil {
-		return fmt.Errorf("failed to create package docs: %v", err)
-	}
-
-	fmt.Println("Package docs created.")
 
 	return nil
 }
