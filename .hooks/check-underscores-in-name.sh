@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 for file in $(git diff --cached --name-only --diff-filter=ACM); do
     echo "Checking file: $file"
