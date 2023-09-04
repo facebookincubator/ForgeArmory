@@ -61,3 +61,11 @@ repos:
         name: Ensure all committed directories and YAML files are uniform
         language: script
         entry: .hooks/check-underscores-in-name.sh
+
+      - id: add-authored-by
+        name: Append Authored-by line to commit message
+        language: script
+        entry: .hooks/add-authored-by.sh
+        stages: [commit-msg]
+        always_run: true
+        pass_filenames: false
