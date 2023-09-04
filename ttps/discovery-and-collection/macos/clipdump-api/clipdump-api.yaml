@@ -1,0 +1,22 @@
+---
+name: macOS clipboard dump (api)
+description: |
+  This TTP dumps clipboard contents by making nspasteboard API calls.
+mitre:
+  tactics:
+    - T0009 Collection
+  techniques:
+    - T1115 Clipboard Data
+steps:
+  - name: clipdump-api
+    inline: |
+      echo -e "==> This TTP will first copy the string \"AnotherSecretClipboardString\" onto the clipboard and then dump the clipboard and verify that this string was captured..."
+      echo -e "First, building the swift source file for this TTP and then executing the compiled binary..."
+      swiftc clipdump-api.swift -o clipdump-api
+      echo -e "Next, executing the compiled clipdump-api binary..."
+      ./clipdump-api
+      echo "Done!"
+    cleanup:
+      inline: |
+        echo "Deleting the compiled binary..."
+        rm -f clipdump-api

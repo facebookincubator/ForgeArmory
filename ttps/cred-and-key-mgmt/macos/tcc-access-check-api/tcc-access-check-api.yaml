@@ -1,0 +1,31 @@
+---
+name: TCC Folder Access Checker Via API Calls
+description: |
+  This TTP leverages MDQuery API calls to stealthily check for TCC folder permissions.
+mitre:
+  tactics:
+    - T0009 Collection
+  techniques:
+    - T1119 Automated Collection
+args:
+  - name: cleanup
+    default: true
+steps:
+  - name: check
+    inline: |
+      set -e
+
+      echo -e "First, building the swift source file for this TTP and then executing the compiled binary..."
+      swiftc tcc_access_check_api.swift -o check
+      echo -e "Next, executing the compiled check binary..."
+      ./check
+      echo "TTP Done!"
+
+  - name: cleanup-compiled-binary
+    inline: |
+      set -e
+
+      if [[ "{{ .Args.cleanup }}" == true ]]; then
+        echo "Deleting the compiled binary..."
+        rm -f check
+      fi

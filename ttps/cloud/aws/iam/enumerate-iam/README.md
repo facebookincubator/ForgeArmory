@@ -2,13 +2,15 @@
 
 ![Meta TTP](https://img.shields.io/badge/Meta_TTP-blue)
 
-This script uses the [enumerate-iam](https://github.com/andresriancho/enumerate-iam)
+This TTP uses the [enumerate-iam](https://github.com/andresriancho/enumerate-iam)
 tool to determine what permissions an IAM role has through brute force.
 
 ## Arguments
 
-- **detect**: If set to true, the script will query CloudTrail to determine if the IAM enumeration was logged.
-- **eiam_path**: Specifies the location to clone and manage the enumerate-iam tool.
+- **detect**: If set to true, the script will
+  query CloudTrail to determine if the IAM enumeration was logged.
+- **eiam_path**: Specifies the location to clone and manage the enumerate-iam
+  tool.
 - **extended_scan**: When set to true, the script will use the
   extended AWS APIs to enumerate permissions.
   Note that this will take longer but will provide more accurate results.
@@ -66,8 +68,10 @@ ttpforge -c config.yaml run ttps/cloud/aws/iam/enumerate-iam/enumerate-iam.yaml 
    the provided AWS credentials.
 
 1. **Cleanup**: If `cleanup` is set to true, this step will uninstall
-   the Python packages required by the enumerate-iam tool and clean up the cloned repository.
+   the Python packages required by the enumerate-iam tool and clean up the
+   cloned repository.
 
 1. **Check Detection**: If `detect` is set to true, this step will look
    for specific API calls in the CloudTrail logs within a certain time
-   window. If it finds more than a threshold number of calls from the same IP address, it will raise an alert.
+   window. If it finds more than a threshold number of calls from the same IP
+   address, it will raise an alert.

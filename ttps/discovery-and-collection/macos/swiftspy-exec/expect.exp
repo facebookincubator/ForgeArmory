@@ -1,0 +1,5 @@
+#!/usr/bin/expect
+
+send -- "./swiftspy -keylog\r"
+
+expect eof
