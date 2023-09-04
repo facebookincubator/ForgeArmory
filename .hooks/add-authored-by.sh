@@ -20,4 +20,7 @@ if [[ -z "$NAME" || -z "$EMAIL" ]]; then
     exit 1
 fi
 
-printf "\nAuthored-by: %s <%s>\n" "$NAME" "$EMAIL" >> "$COMMIT_MSG_FILE"
+# Only append if the line doesn't already exist
+if ! grep -q "Authored-by: $NAME <$EMAIL>" "$COMMIT_MSG_FILE"; then
+    printf "\nAuthored-by: %s <%s>\n" "$NAME" "$EMAIL" >> "$COMMIT_MSG_FILE"
+fi
