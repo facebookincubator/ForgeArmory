@@ -69,3 +69,15 @@ repos:
         always_run: true
         pass_filenames: false
         args: [".git/COMMIT_EDITMSG"]
+
+      - id: bats-tests
+        name: Bats tests
+        description: This hook runs Bats tests on .bats files
+        entry: .hooks/run-bats-tests.sh
+        language: script
+
+      - id: shfmt
+        name: Run shfmt hook on shell scripts
+        language: script
+        entry: .hooks/shfmt.sh
+        files: \.sh$
