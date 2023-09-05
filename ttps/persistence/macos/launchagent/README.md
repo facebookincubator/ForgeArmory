@@ -1,22 +1,20 @@
-# macOS Launch Agent Persistence with Swift Support
+# macOS Launch Agent Persistence with Swift
 
 ![Meta TTP](https://img.shields.io/badge/Meta_TTP-blue)
 
-This TTP creates a launch agent that executes a given shell command or a
-compiled Swift binary for persistence on macOS. The launch agent will execute
-the specified script or command each time the system reboots or the user logs
-in.
+This TTP creates a launch agent for persistence on macOS. The agent runs a
+specified script or command upon system boot or user login.
 
 ## Arguments
 
-- **cleanup**: When set to true, it will remove the launch agent plist
-  file and any related scripts, undoing the persistence setup.
-- **command_or_path**: This argument specifies the path to the script
-  or a bash command to be run by the launch agent.
+- **cleanup**:
+  When set to true, it removes the launch agent `.plist` and related scripts.
+- **command_or_path**:
+  Path to the script or bash command for the launch agent to execute.
 
 ## Examples
 
-Set up launch agent persistence with a specific script, using Swift:
+Setup persistence with a script:
 
 ```bash
 ttpforge run ttps/persistence/macos/launch-agent-persistence/launch-agent-persistence.yaml \
@@ -24,40 +22,33 @@ ttpforge run ttps/persistence/macos/launch-agent-persistence/launch-agent-persis
     --arg cleanup=true
 ```
 
-Alternatively, without Swift:
+Run a direct command:
 
 ```bash
 ttpforge run ttps/persistence/macos/launch-agent-persistence/launch-agent-persistence.yaml \
-    --arg command_or_path="bash -c echo Oh uh" \
+    --arg command_or_path="osascript -e 'display dialog \"Hello World\"'" \
     --arg cleanup=true
 ```
 
 ## Steps
 
-### Shell-based Path
+1. **launchagent**:
+  - Build the `launchagent.swift` source into a compiled binary.
+  - Execute the compiled binary. It creates the script at the specified
+    path and the `~/Library/LaunchAgents/com.ttpforge.plist` to invoke the
+    script. It then loads this agent with `launchctl`.
+  - If `cleanup` is set to true, it will:
+    1. Delay for 15 seconds before starting the cleanup process.
+    1. Use `launchctl` to unload the `.plist`.
+    1. Delete the specified script, the `.plist`, and the compiled binary.
 
-1. **Create LaunchAgents Directory**: If not already present, the directory
-   `~/Library/LaunchAgents` will be created to store the plist file.
-2. **Write Plist File**: A plist file will be written to
-   `~/Library/LaunchAgents/com.ttpforge.plist`. It defines how the launch agent
-   will execute the command specified in the `command_or_path` argument.
-3. **Activate Launch Agent**: The plist is set to activate on the next reboot,
-   providing persistence for the given command or script.
+## Accompanying Code
 
-### Swift-based Path
+The `launchagent.swift` is the core of this TTP:
 
-1. **Compile Swift Code**: If `use_swift` is set to true, the Swift code is
-   compiled into a binary.
-2. **Execute Swift Binary**: The compiled binary is executed, performing the
-   same steps as the shell-based path but with additional possibilities
-   provided by Swift, such as more complex error handling or additional
-   functionality.
-
-### Cleanup Step
-
-1. **Cleanup**: If the `cleanup` argument is set to `true`,
-   the `launchctl` command is used to unload the plist, and all related
-   files are deleted. This reverses the persistence setup.
+- It creates a launch agent for the specified command or script.
+- For `/Users/Shared/calc.sh`, it launches the Calculator app.
+- The script then loads the launch agent with `launchctl`.
 
 ## MITRE ATT&CK Mapping
 
@@ -66,4 +57,4 @@ ttpforge run ttps/persistence/macos/launch-agent-persistence/launch-agent-persis
 - **Techniques**:
   - T1543 Create or Modify System Process
 - **Subtechniques**:
-  - T1543.001 Create or Modify System Process: Launch Agent
+  - T1543.001 Launch Agent
