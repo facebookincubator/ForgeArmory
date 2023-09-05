@@ -9,12 +9,10 @@ in.
 
 ## Arguments
 
-- **cleanup**: When set to true, it will remove the launch agent plist file
-  and any related scripts, undoing the persistence setup.
-- **command_or_path**: This argument specifies the path to the script or a bash
-  command to be run by the launch agent.
-- **use_swift**: Use the Swift code to create the LaunchAgent.
-  Default value is `true`.
+- **cleanup**: When set to true, it will remove the launch agent plist
+  file and any related scripts, undoing the persistence setup.
+- **command_or_path**: This argument specifies the path to the script
+  or a bash command to be run by the launch agent.
 
 ## Examples
 
@@ -23,7 +21,6 @@ Set up launch agent persistence with a specific script, using Swift:
 ```bash
 ttpforge run ttps/persistence/macos/launch-agent-persistence/launch-agent-persistence.yaml \
     --arg command_or_path="/Users/Shared/scarybackdoor.sh" \
-    --arg use_swift=true \
     --arg cleanup=true
 ```
 
@@ -32,7 +29,6 @@ Alternatively, without Swift:
 ```bash
 ttpforge run ttps/persistence/macos/launch-agent-persistence/launch-agent-persistence.yaml \
     --arg command_or_path="bash -c echo Oh uh" \
-    --arg use_swift=false \
     --arg cleanup=true
 ```
 
