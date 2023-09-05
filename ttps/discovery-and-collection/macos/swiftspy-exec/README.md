@@ -26,9 +26,9 @@ ttpforge run ttps/discovery-and-collection/macos/swiftspy-exec/swiftspy-exec.yam
 
 ## Steps
 
-1. **swiftspy-exec**: This step first compiles the SwiftSpy source file into a
-   binary and then executes it with a 20-second timeout. If there are any issues
-   with permissions, it will notify the user.
+1. **swiftspy-exec**: This step first compiles the SwiftSpy source file
+   into a binary and then executes it with a 20-second timeout. If there
+   are any issues with permissions, it will notify the user.
 
 ## Accompanying Code
 
