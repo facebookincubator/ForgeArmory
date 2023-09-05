@@ -1,0 +1,33 @@
+---
+name: Login Item
+description: |
+  This TTP adds the specified shell command or script as a Login Item.
+  If no command_or_path is supplemented, it will run calc by default.
+args:
+  - name: cleanup
+    default: true
+  - name: command_or_path
+    default: /Users/Shared/calc.sh
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1547 Boot or Logon Autostart Execution
+  subtechniques:
+    - T1547.015 Boot or Logon Autostart Execution: Login Items
+steps:
+  - name: loginitem
+    inline: |
+      set -e
+
+      echo -e "First building the source Swift into a compiled binary..."
+      swiftc loginitem.swift -o loginitem
+      echo "Next, executing the compiled loginitem binary to add the supplied input to the Login Items list."
+      ./loginitem "{{ .Args.command_or_path }}" "{{ .Args.cleanup }}"
+      echo "TTP Done!"
+    cleanup:
+      inline: |
+        if [[ "{{ .Args.cleanup }}" == "true" ]]; then
+          rm -f loginitem
+          echo "Cleanup Finished!"
+        fi
