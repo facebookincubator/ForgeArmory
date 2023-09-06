@@ -21,14 +21,13 @@ args:
     default: true
 
 steps:
-
   - name: confirm-required-tools-installed
     inline: |
       # Determine the operating system
       OS=$(uname)
       if [[ "$OS" == "Darwin" ]]; then
 
-      # Confirm that brew package manager is installed
+        # Confirm that brew package manager is installed
         if ! command -v brew &> /dev/null; then
           echo "===> Error: Brew package manager is not installed on the current system. Please install to proceed."
         else
@@ -42,6 +41,7 @@ steps:
             echo "===> Confirmed: Nmap is installed."
           fi
         fi
+
       elif [[ "$OS" == "Linux" ]]; then
 
         # Confirm that apt package manager is installed
@@ -58,10 +58,10 @@ steps:
             echo "===> Confirmed: Nmap is installed."
           fi
         fi
+
       else
         echo "Unsupported operating system."
-        exit 1
-
+        exit 27
       fi
 
   - name: run-scan
@@ -73,10 +73,12 @@ steps:
 
     cleanup:
       inline: |
+
         # Remove Nmap scanner
         OS=$(uname)
         if [[ "{{ .Args.cleanup }}" == true ]]; then
           echo "===> Uninstalling Nmap scanner..."
+
           if [[ "$OS" == "Darwin" ]]; then
             echo "===> Uninstalling Nmap"
             brew uninstall nmap
@@ -89,4 +91,4 @@ steps:
 
           fi
         fi
-
+        echo "===> Cleanup complete!"

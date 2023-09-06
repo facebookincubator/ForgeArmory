@@ -8,7 +8,7 @@ Perform a syn scan against a range of IP addresses.
 
 * ip_range (type=str): A range of IP addresses to be scanned. This range can be provided in CIDR notation (e.g, 10.0.0.0/16)
 * ports (type=str): Ports to be scanned for on each IP address. If this parameter is not provided, the default port list
-will be scanned.    
+will be scanned.
     * default ports: 20,21,22,23,25,53,80,110,125,143,443,587,2525,3306,3389
 * cleanup (type=bool): true or false. Determines whether or not the Nmap scanner will be uninstalled after execution. By default,
 the scanner is removed.
@@ -37,7 +37,7 @@ Scanning the list of default ports
         ./ttpforge run ../ForgeArmory/ttps/reconnaissance/active-scanning/scanning-ip-blocks.yaml --arg ip_range=10.0.0.0/24
     ```
 
-Scanning the list of default ports and NOT uninstalling the nmap scanner 
+Scanning the list of default ports and NOT uninstalling the nmap scanner
     ```bash
         ./ttpforge run ../ForgeArmory/ttps/reconnaissance/active-scanning/scanning-ip-blocks.yaml --arg ip_range=10.0.0.0/24 --arg cleanup=false
     ```
