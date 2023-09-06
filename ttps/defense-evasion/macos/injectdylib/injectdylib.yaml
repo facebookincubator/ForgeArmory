@@ -22,10 +22,8 @@ steps:
       echo "TTP Done!"
     cleanup:
       inline: |
-        if [[ "{{ .Args.cleanup }}" == true ]]; then
-          echo "Removing the compiled calc.dylib binary..."
-          rm calc.dylib injectdylib
-          echo "Closing the Calculator app and paper tape..."
-          osascript -e 'tell application "Calculator" to quit'
-          echo "Cleanup Finished!"
-        fi
+        echo "Removing the compiled calc.dylib binary..."
+        rm calc.dylib injectdylib
+        echo "Closing the Calculator app and paper tape..."
+        osascript -e 'tell application "Calculator" to quit'
+        echo "Cleanup Finished!"

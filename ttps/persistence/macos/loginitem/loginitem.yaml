@@ -27,7 +27,5 @@ steps:
       echo "TTP Done!"
     cleanup:
       inline: |
-        if [[ "{{ .Args.cleanup }}" == "true" ]]; then
-          rm -f loginitem
-          echo "Cleanup Finished!"
-        fi
+        rm -f loginitem
+        echo "Cleanup Finished!"

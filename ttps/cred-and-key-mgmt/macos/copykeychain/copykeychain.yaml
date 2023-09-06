@@ -32,11 +32,9 @@ steps:
       inline: |
         set -e
 
-        if [[ "{{ .Args.cleanup }}" == true ]]; then
-          echo "Sleeping for 10 seconds and then removing the copied keychain from the /tmp directory..."
-          sleep 10
-          rm /tmp/keychain-copied
-        fi
+        echo "Sleeping for 10 seconds and then removing the copied keychain from the /tmp directory..."
+        sleep 10
+        rm /tmp/keychain-copied
 
   - name: check-detection
     inline: |

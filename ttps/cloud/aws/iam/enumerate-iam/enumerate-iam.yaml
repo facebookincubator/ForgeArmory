@@ -108,13 +108,11 @@ steps:
       inline: |
         set -e
 
-        if [[ "{{ .Args.cleanup }}" == true ]]; then
-          echo "Uninstalling Python packages..."
-          cd {{ .Args.eiam_path }} && pip3 uninstall -y -r requirements.txt
-          if [[ -d "{{ .Args.eiam_path }}" ]]; then
-              echo "Cleaning up enumerate-iam repository..."
-              rm -rf {{ .Args.eiam_path }}
-          fi
+        echo "Uninstalling Python packages..."
+        cd {{ .Args.eiam_path }} && pip3 uninstall -y -r requirements.txt
+        if [[ -d "{{ .Args.eiam_path }}" ]]; then
+            echo "Cleaning up enumerate-iam repository..."
+            rm -rf {{ .Args.eiam_path }}
         fi
 
   - name: check-detection

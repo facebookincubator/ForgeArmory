@@ -26,10 +26,8 @@ steps:
       fi
     cleanup:
       inline: |
-        if [[ "{{ .Args.cleanup }}" == true ]]; then
-          echo "Removing the compiled calc.dylib binary as well as the compiled rundylib file..."
-          rm calc.dylib rundylib
-          echo "Closing the Calculator app and paper tape..."
-          osascript -e 'tell application "Calculator" to quit'
-          echo "Cleanup Finished!"
-        fi
+        echo "Removing the compiled calc.dylib binary as well as the compiled rundylib file..."
+        rm calc.dylib rundylib
+        echo "Closing the Calculator app and paper tape..."
+        osascript -e 'tell application "Calculator" to quit'
+        echo "Cleanup Finished!"

@@ -79,9 +79,13 @@ steps:
 
       USER="{{ .Args.user }}"
       new_key_id=$(create_key $USER)
-      if [[ "{{ .Args.cleanup }}" == true ]]; then
+
+    cleanup:
+      name: cleanup
+      inline: |
+        set -e
+
         delete_key $USER $new_key_id
-      fi
 
   - name: check-detection
     inline: |

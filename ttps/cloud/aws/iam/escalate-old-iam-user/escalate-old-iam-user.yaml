@@ -46,8 +46,6 @@ steps:
       name: cleanup
       inline: |
         set -e
-        if [[ "{{ .Args.cleanup }}" == true ]]; then
-          # Remove the user from the group
-          aws iam remove-user-from-group --user-name {{ .Args.user }} \
-            --group-name {{ .Args.group }}
-        fi
+        # Remove the user from the group
+        aws iam remove-user-from-group --user-name {{ .Args.user }} \
+          --group-name {{ .Args.group }}

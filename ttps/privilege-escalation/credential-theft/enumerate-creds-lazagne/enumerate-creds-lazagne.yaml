@@ -56,12 +56,10 @@ steps:
       inline: |
         set -e
 
-        if [[ "{{ .Args.cleanup }}" == true ]]; then
-          echo "Uninstalling Python packages..."
-          cd {{ .Args.lazagne_path }} && pip3 uninstall -y -r requirements.txt
+        echo "Uninstalling Python packages..."
+        cd {{ .Args.lazagne_path }} && pip3 uninstall -y -r requirements.txt
 
-          if [[ -d "{{ .Args.lazagne_path }}" ]]; then
-              echo "Cleaning up LaZagne repository..."
-              rm -rf {{ .Args.lazagne_path }}
-          fi
+        if [[ -d "{{ .Args.lazagne_path }}" ]]; then
+            echo "Cleaning up LaZagne repository..."
+            rm -rf {{ .Args.lazagne_path }}
         fi

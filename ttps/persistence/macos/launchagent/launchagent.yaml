@@ -27,12 +27,10 @@ steps:
       echo "TTP Done!"
     cleanup:
       inline: |
-        if [[ "{{ .Args.cleanup }}" == true ]]; then
-          echo "Sleeping for 15 seconds and then removing the mechanism..."
-          sleep 15
-          launchctl unload -w ~/Library/LaunchAgents/com.ttpforge.plist
-          rm -f "{{ .Args.command_or_path }}"
-          rm -f ~/Library/LaunchAgents/com.ttpforge.plist
-          rm -f launchagent
-          echo "Cleanup Finished!"
-        fi
+        echo "Sleeping for 15 seconds and then removing the mechanism..."
+        sleep 15
+        launchctl unload -w ~/Library/LaunchAgents/com.ttpforge.plist
+        rm -f "{{ .Args.command_or_path }}"
+        rm -f ~/Library/LaunchAgents/com.ttpforge.plist
+        rm -f launchagent
+        echo "Cleanup Finished!"

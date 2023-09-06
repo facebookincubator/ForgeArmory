@@ -42,6 +42,4 @@ steps:
     cleanup:
       inline: |
         set -e
-        if [[ "{{ .Args.cleanup }}" == true ]]; then
-          rm -f $HOME/prompt_execution.log
-        fi
+        rm -f $HOME/prompt_execution.log

@@ -23,7 +23,5 @@ steps:
 
     cleanup:
       inline: |
-        if [[ "{{ .Args.cleanup }}" == true ]]; then
-          echo "Deleting the compiled binary..."
-          rm -f keysearch
-        fi
+        echo "Deleting the compiled binary..."
+        rm -f keysearch

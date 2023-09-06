@@ -25,7 +25,5 @@ steps:
     inline: |
       set -e
 
-      if [[ "{{ .Args.cleanup }}" == true ]]; then
-        echo "Deleting the compiled binary..."
-        rm -f check
-      fi
+      echo "Deleting the compiled binary..."
+      rm -f check
