@@ -124,7 +124,7 @@ func SecCheck(){
             b = 1
         }
         if processes2.contains("WhatsYourSign") || fileMan.fileExists(atPath: "/Applications/WhatsYourSign.app",isDirectory: &isDir) {
-            print("\(green)[+] Objective-See Whats Your Sign, code signature information tool, found\(colorend)")
+            print("\(green)[+] Objective-See What's Your Sign, code signature information tool, found\(colorend)")
             b = 1
         }
         // Knock Knock
