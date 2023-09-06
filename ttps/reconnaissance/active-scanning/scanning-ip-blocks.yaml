@@ -73,22 +73,18 @@ steps:
 
     cleanup:
       inline: |
-
         # Remove Nmap scanner
         OS=$(uname)
-        if [[ "{{ .Args.cleanup }}" == true ]]; then
-          echo "===> Uninstalling Nmap scanner..."
+        echo "===> Uninstalling Nmap scanner..."
 
-          if [[ "$OS" == "Darwin" ]]; then
-            echo "===> Uninstalling Nmap"
-            brew uninstall nmap
-            echo "[+] DONE!"
+        if [[ "$OS" == "Darwin" ]]; then
+          echo "===> Uninstalling Nmap"
+          brew uninstall nmap
+          echo "[+] DONE!"
 
-          elif [[ "$OS" == "Linux" ]]; then
-            echo "===> Uninstalling Nmap"
-            apt uninstall nmap -y
-            echo "[+] DONE!"
-
-          fi
+        elif [[ "$OS" == "Linux" ]]; then
+          echo "===> Uninstalling Nmap"
+          apt uninstall nmap -y
+          echo "[+] DONE!"
         fi
         echo "===> Cleanup complete!"
