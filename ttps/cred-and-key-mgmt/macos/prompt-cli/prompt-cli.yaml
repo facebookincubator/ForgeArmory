@@ -9,8 +9,6 @@ mitre:
   techniques:
     - T1059.002 Command and Scripting Interpreter: AppleScript
 args:
-  - name: cleanup
-    default: true
   - name: detect
     default: true
 steps:

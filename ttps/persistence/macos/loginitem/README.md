@@ -10,6 +10,8 @@ the specified command or script runs upon user login.
 
 - **cleanup**: If set to true, the TTP will remove the Login Item and any
   related files, effectively undoing the persistence setup.
+  This step is done with Swift, which is why this particular parameter
+  is defined.
 - **command_or_path**: Specifies the path to the script or a bash command
   to be executed as a Login Item.
 

@@ -5,11 +5,6 @@
 This TTP searches for any files at `~/.ssh`, `~/.aws`, `~/.gcloud`,
 and `~/.azure`.
 
-## Arguments
-
-- **cleanup:** When set to true, the script will delete the compiled binary
-  after execution. Default value is `true`.
-
 ## Pre-requisites
 
 1. The user must have the necessary permissions to search for the specified

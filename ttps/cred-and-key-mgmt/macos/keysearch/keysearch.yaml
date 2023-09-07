@@ -9,9 +9,6 @@ mitre:
     - T1552 Unsecured Credentials
   subtechniques:
     - "T1552.001 Unsecured Credentials: Credentials In Files"
-args:
-  - name: cleanup
-    default: true
 steps:
   - name: keysearch
     inline: |

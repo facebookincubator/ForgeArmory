@@ -7,8 +7,6 @@ password entry.
 
 ## Arguments
 
-- **cleanup:** When set to true, the script will delete the log file of the
-  execution. Default value is `true`.
 - **detect:** If set to false, the script will not check the log file for
   entries indicating the execution of the fake prompt. Default value is `false`.
 
@@ -37,8 +35,6 @@ ttpforge run ttps/cred-and-key-mgmt/prompt-cli/prompt-cli.yaml
 1. **check-detection**: This step checks the log file for entries indicating
    the execution of the fake prompt and reports if any suspicious activity
    is detected.
-1. **cleanup**: If the cleanup argument is set to true, this step deletes
-   the log file `$HOME/prompt_execution.log`.
 
 ## MITRE ATT&CK Mapping
 

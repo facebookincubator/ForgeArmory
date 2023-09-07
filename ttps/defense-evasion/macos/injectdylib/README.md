@@ -5,11 +5,6 @@
 This TTP injects a custom dylib (which opens Calculator) into the
 SafariForWebkitDevelopment binary.
 
-## Arguments
-
-- **cleanup**: When true, attempt to clean the artifacts
-  created during the execution of this TTP.
-
 ## Pre-requisites
 
 1. The code must be executed on a macOS system.

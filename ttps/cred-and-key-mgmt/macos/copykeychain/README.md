@@ -6,8 +6,6 @@ This TTP copies the user's login keychain database to the `/tmp` directory.
 
 ## Arguments
 
-- **cleanup:** When set to true, the script will delete the copied keychain
-  from the `/tmp` directory after execution. Default value is `true`.
 - **detect:** If set to true, the script will check the log file for entries
   indicating the copy operation and report if any suspicious activity is
   detected. Default value is `true`.
@@ -33,8 +31,7 @@ ttpforge run ttps/cred-and-key-mgmt/copykeychain/copykeychain.yaml
    `/tmp/keychain-copied`.
 1. **log-keychain-copying**: Logs the copy operation of the login keychain
    database to the user's home directory. Contains a cleanup process that
-   removes the copied keychain after 10 seconds if the `cleanup` argument is
-   set to true.
+   removes the copied keychain after 10 seconds.
 1. **check-detection**: If the `detect` argument is set to true, this step
    checks the log file for entries indicating the copy operation and reports if
    any suspicious activity is detected.

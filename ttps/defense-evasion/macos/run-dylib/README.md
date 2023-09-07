@@ -4,11 +4,6 @@
 
 This TTP executes a C compiled dylib.
 
-## Arguments
-
-- **cleanup**: When true, attempt to clean the artifacts
-  created during the execution of this TTP.
-
 ## Pre-requisites
 
 1. The code must be executed on a macOS system.

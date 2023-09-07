@@ -19,18 +19,17 @@ func cleanupLoginItem(withPath path: String) {
     for item in loginItems {
     var resolvedURL: Unmanaged<CFURL>?
     LSSharedFileListItemResolve(item, 0, &resolvedURL, nil)
-    if let actualURL = resolvedURL?.takeRetainedValue() as URL?, actualURL.path == path {
-        if CFURLGetString(actualURL as CFURL) as String == path {
-            let result = LSSharedFileListItemRemove(items, item)
-            if result == noErr {
-                print("[+] Cleanup: \(path) has been removed from Login Items")
-            } else {
-                print("[-] Error removing \(path) from Login Items")
+        if let actualURL = resolvedURL?.takeRetainedValue() as URL?, actualURL.path == path {
+            if CFURLGetString(actualURL as CFURL) as String == path {
+                let result = LSSharedFileListItemRemove(items, item)
+                if result == noErr {
+                    print("[+] Cleanup: \(path) has been removed from Login Items")
+                } else {
+                    print("[-] Error removing \(path) from Login Items")
+                }
             }
         }
     }
-}
-
 }
 
 // Remove a file from the filesystem

@@ -6,7 +6,7 @@ This TTP will simply read from the cookies.json file if Firefox is installed.
 
 1. Firefox must be installed on the system.
 1. The user must have necessary permissions to access the Firefox cookies.
-1. The script must be run on a system that supports JXA (JavaScript for
+1. The TTP must be run on a system that supports JXA (JavaScript for
    Automation), such as macOS.
 
 ## Accompanying Code
