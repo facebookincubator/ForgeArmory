@@ -25,10 +25,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/facebookincubator/ttpforge/pkg/blocks"
+	"github.com/go-playground/validator/v10"
 	"github.com/l50/goutils/v2/dev/lint"
 	mageutils "github.com/l50/goutils/v2/dev/mage"
 	"github.com/l50/goutils/v2/sys"
+	"gopkg.in/yaml.v2"
 )
 
 func init() {
@@ -88,6 +92,61 @@ func RunPreCommit() error {
 	fmt.Println("Running all pre-commit hooks locally.")
 	if err := lint.RunPCHooks(); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// ValidateAllYAMLFiles checks if YAML in the repo is compliant with the schema.
+func ValidateAllYAMLFiles(schemaPath, searchDir string) error {
+	// Load the schema first
+	schemaContent, err := os.ReadFile(schemaPath)
+	if err != nil {
+		return fmt.Errorf("error reading schema file: %v", err)
+	}
+
+	var schema blocks.TTP
+	err = yaml.Unmarshal(schemaContent, &schema)
+	if err != nil {
+		return fmt.Errorf("error unmarshalling schema: %v", err)
+	}
+
+	validate := validator.New()
+
+	// Start directory walk to validate each YAML file
+	return filepath.WalkDir(searchDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Only consider .yaml files
+		if strings.HasSuffix(strings.ToLower(d.Name()), ".yaml") {
+			fmt.Printf("Checking: %s\n", path)
+			return inspectAndValidate(path, schema, validate)
+		}
+
+		return nil
+	})
+}
+
+func inspectAndValidate(filePath string, schema blocks.TTP, validate *validator.Validate) error {
+	fileContent, err := os.ReadFile(filePath)
+	if err != nil {
+		return fmt.Errorf("error reading file %s: %v", filePath, err)
+	}
+
+	var ttp blocks.TTP
+	err = yaml.Unmarshal(fileContent, &ttp)
+	if err != nil {
+		return fmt.Errorf("error unmarshalling file %s: %v", filePath, err)
+	}
+
+	if err = validate.Struct(ttp); err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			fmt.Printf("Error in %s - Field: %s, Tag: %s, ActualTag: %s, Value: %v\n",
+				filePath, err.Field(), err.Tag(), err.ActualTag(), err.Value())
+		}
+		return fmt.Errorf("file %s does not conform to the schema", filePath)
 	}
 
 	return nil

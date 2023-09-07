@@ -81,3 +81,9 @@ repos:
         language: script
         entry: .hooks/shfmt.sh
         files: \.sh$
+
+      - id: validate-yaml-files
+        name: Validate all committed YAML files against TTPForge schema
+        language: script
+        entry: .hooks/validate-yaml.sh
+        files: '\.yaml$'
