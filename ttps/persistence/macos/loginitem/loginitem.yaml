@@ -23,9 +23,16 @@ steps:
       echo -e "First building the source Swift into a compiled binary..."
       swiftc loginitem.swift -o loginitem
       echo "Next, executing the compiled loginitem binary to add the supplied input to the Login Items list."
-      ./loginitem "{{ .Args.command_or_path }}" "{{ .Args.cleanup }}"
+      ./loginitem "{{ .Args.command_or_path }}"
       echo "TTP Done!"
     cleanup:
       inline: |
-        rm -f loginitem
+        echo "Sleeping for 15 seconds and then running the cleanup..."
+        sleep 15
+        echo "Building the cleanuploginitem Swift source into a compiled binary..."
+        swiftc cleanuploginitem.swift -o cleanuploginitem
+        echo "Executing the compiled cleanuploginitem binary to remove the specified input from the Login Items list."
+        ./cleanuploginitem "{{ .Args.command_or_path }}"
+
+        rm -f loginitem cleanuploginitem
         echo "Cleanup Finished!"
