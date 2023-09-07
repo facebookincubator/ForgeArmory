@@ -8,13 +8,10 @@ mitre:
   techniques:
     - T1552 Unsecured Credentials
   subtechniques:
-    - T1552.001 Unsecured Credentials: Credentials In Files
+    - "T1552.001 Unsecured Credentials: Credentials In Files"
 steps:
   - name: mdfind_aws_keys
     inline: |
       echo -e "Searching for aws keys on disk using mdfind..."
       mdfind 'kMDItemTextContext == AKIA || kMDItemDisplayName = *AKIA* -onlyin ~'
       echo "[+] TTP Done!"
-    cleanup:
-      inline: |
-        echo "Cleanup not required for this TTP, as this is a simple mdfind execution."

@@ -6,7 +6,7 @@ This TTP runs different dns-sd commands for local network service discovery.
 
 ## Pre-requisites
 
-1. The user must have the necessary permissions to run the dns-sd commands.
+1. The user must have the necessary permissions to run the `dns-sd` commands.
 1. This TTP is specific to macOS.
 
 ## Examples
@@ -19,12 +19,12 @@ ttpforge run ttps/discovery-and-collection/macos/service-discovery/service-disco
 
 ## Steps
 
-1. **discover-ssh-hosts**: This step searches for hosts serving ssh via dns-sd.
+1. **discover-ssh-hosts**: This step searches for hosts serving ssh via `dns-sd`.
 1. **discover-web-hosts**: This step searches for hosts serving web services via
-   dns-sd.
+   `dns-sd`.
 1. **discover-remote-screen-sharing-hosts**: This step searches for hosts
-   serving remote screen sharing via dns-sd.
-1. **discover-smb-hosts**: This step searches for hosts serving smb via dns-sd.
+   serving remote screen sharing via `dns-sd`.
+1. **discover-smb-hosts**: This step searches for hosts serving smb via `dns-sd`.
 
 ## MITRE ATT&CK Mapping
 

@@ -21,8 +21,7 @@ ttpforge run ttps/discovery-and-collection/macos/system-info/system-info.yaml
 
 1. **system-info**: This step utilizes the `osascript` command to gather system
    information on macOS. The command returns the details of the system
-   configuration. Cleanup is not required for this TTP as it simply executes an
-   osascript command and does not drop anything to disk.
+   configuration.
 
 ## MITRE ATT&CK Mapping
 

@@ -4,11 +4,9 @@ description: |
   This TTP leverages ioreg to check and see if the macOS screen is locked. If locked, then attacker may then perform actions that modify the GUI, such as opening or closing windows.
 mitre:
   tactics:
-    - T0009 Collection
+    - TA0007 Discovery
   techniques:
-    - T1119 Automated Collection
-  subtechniques:
-    -
+    - T1016 System Network Configuration Discovery
 
 steps:
   - name: lockscreen_check
@@ -21,6 +19,3 @@ steps:
           echo "[-] Screen is currently UNLOCKED"
       fi
       echo "[+] TTP Done!"
-    cleanup:
-      inline: |
-        echo "No cleanup required for this TTP..."

@@ -46,8 +46,3 @@ steps:
       if [[ $ret -eq 124 ]]; then
            ret=0
       fi
-    cleanup:
-      inline: |
-        echo "Cleanup not required for these TTPs, as these are simple discovery commands that do not drop anything to disk."
-        echo -e "--------------------------------------------------"
-        echo "[+] TTPs Done!"
