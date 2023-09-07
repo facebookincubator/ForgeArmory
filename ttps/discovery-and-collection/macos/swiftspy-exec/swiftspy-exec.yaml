@@ -4,7 +4,7 @@ description: |
   This TTP executes SwiftSpy to monitor keyboard strokes.
 mitre:
   tactics:
-    - T0009 Collection
+    - TA0009 Collection
   techniques:
     - T1056 Input Capture
   subtechniques:
