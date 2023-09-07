@@ -1,7 +1,8 @@
 ---
 name: Leverage mdfind to search for aws credentials on disk.
 description: |
-  This TTP runs a search using mdfind to search for AKIA strings in files, which would likely indicate that the file is an aws key.
+  This TTP runs a search using mdfind to search for AKIA strings in files,
+  which would likely indicate that the file is an aws key.
 mitre:
   tactics:
     - TA0006 Credential Access
