@@ -4,15 +4,16 @@ description: |
   This TTP executes a C compiled dylib.
 mitre:
   tactics:
-    - T0002 Execution
+    - TA0002 Execution
   techniques:
-    - T1129 Shared Modules
-args:
-  - name: cleanup
-    default: true
+    - T1574 Hijack Execution Flow
+  subtechniques:
+    - "T1574.001 Hijack Execution Flow: DLL Search Order Hijacking"
 steps:
   - name: rundylib
     inline: |
+      set -e
+
       echo -e "First building the source c file into a dylib..."
       gcc -dynamiclib calc.c -o calc.dylib
       echo -e "Next building the Swift source file to a compiled binary for execution..."
@@ -26,6 +27,8 @@ steps:
       fi
     cleanup:
       inline: |
+        set -e
+
         echo "Removing the compiled calc.dylib binary as well as the compiled rundylib file..."
         rm calc.dylib rundylib
         echo "Closing the Calculator app and paper tape..."

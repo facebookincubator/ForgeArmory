@@ -38,6 +38,6 @@ a specific string in the clipboard, then retrieves and verifies that string.
 ## MITRE ATT&CK Mapping
 
 - **Tactics**:
-  - T0009 Collection
+  - TA0009 Collection
 - **Techniques**:
   - T1115 Clipboard Data

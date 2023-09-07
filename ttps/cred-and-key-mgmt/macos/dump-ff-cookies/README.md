@@ -33,6 +33,6 @@ ttpforge run ttps/cred-and-key-mgmt/dump-cookies/dump-cookies.yaml
 ## MITRE ATT&CK Mapping
 
 - **Tactics**:
-  - T0006 Credential Access
+  - TA0006 Credential Access
 - **Techniques**:
   - T1539 Steal Web Session Cookie

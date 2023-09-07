@@ -28,7 +28,7 @@ ttpforge run ttps/persistence/dotfiles/persist-zshrc.yaml
 ## MITRE ATT&CK Mapping
 
 - **Tactics**:
-  - T0003 Persistence
+  - TA0003 Persistence
 - **Techniques**:
   - T1547 Boot or Logon Autostart Execution
 - **Subtechniques**:

@@ -4,12 +4,9 @@ description: |
   This TTP leverages MDQuery API calls to stealthily check for TCC folder permissions.
 mitre:
   tactics:
-    - T0009 Collection
+    - TA0009 Collection
   techniques:
     - T1119 Automated Collection
-args:
-  - name: cleanup
-    default: true
 steps:
   - name: check
     inline: |
@@ -20,10 +17,9 @@ steps:
       echo -e "Next, executing the compiled check binary..."
       ./check
       echo "TTP Done!"
+    cleanup:
+      inline: |
+        set -e
 
-  - name: cleanup-compiled-binary
-    inline: |
-      set -e
-
-      echo "Deleting the compiled binary..."
-      rm -f check
+        echo "Deleting the compiled binary..."
+        rm -f check

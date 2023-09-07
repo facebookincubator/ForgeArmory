@@ -4,7 +4,7 @@ description: |
   This TTP dumps clipboard contents by making nspasteboard API calls.
 mitre:
   tactics:
-    - T0009 Collection
+    - TA0009 Collection
   techniques:
     - T1115 Clipboard Data
 steps:

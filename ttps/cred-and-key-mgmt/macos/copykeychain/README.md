@@ -42,6 +42,8 @@ ttpforge run ttps/cred-and-key-mgmt/copykeychain/copykeychain.yaml
 ## MITRE ATT&CK Mapping
 
 - **Tactics**:
-  - T0006 Credential Access
+  - TA0006 Credential Access
 - **Techniques**:
+  - T1555 Credentials from Password Stores
+- **Sub-techniques**:
   - T1555.001 Credentials from Password Stores: Keychain

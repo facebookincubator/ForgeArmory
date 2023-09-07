@@ -28,6 +28,6 @@ ttpforge run ttps/discovery-and-collection/macos/clipdump-api/clipdump-api.yaml
 ## MITRE ATT&CK Mapping
 
 - **Tactics**:
-  - T0009 Collection
+  - TA0009 Collection
 - **Techniques**:
   - T1115 Clipboard Data

@@ -5,11 +5,6 @@
 This TTP leverages MDQuery API calls to stealthily check for TCC folder
 permissions.
 
-## Arguments
-
-- **cleanup**: When set to true, the script will delete the compiled binary
-  after execution. Default value is `true`.
-
 ## Pre-requisites
 
 1. The code must be executed on a macOS system.
@@ -36,8 +31,6 @@ ttpforge run ttps/cred-and-key-mgmt/tcc_access_check_api/tcc_access_check_api.ya
 1. **check**: This step compiles the Swift code using `swiftc` and executes
    the compiled binary to check TCC folder permissions for the current user.
    The result includes information about which folders have been accessed.
-1. **cleanup-compiled-binary**: If the `cleanup` argument is set to true, this
-   step deletes the compiled binary.
 
 ## Accompanying Code
 

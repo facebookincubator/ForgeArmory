@@ -53,8 +53,8 @@ The `launchagent.swift` is the core of this TTP:
 ## MITRE ATT&CK Mapping
 
 - **Tactics**:
-  - T0003 Persistence
+  - TA0003 Persistence
 - **Techniques**:
   - T1543 Create or Modify System Process
 - **Subtechniques**:
-  - T1543.001 Launch Agent
+  - T1543.001 Create or Modify System Process: Launch Agent

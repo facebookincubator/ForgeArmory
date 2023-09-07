@@ -21,3 +21,10 @@ ttpforge run ttps/discovery-and-collection/macos/get-running-processes/get-runni
 ## Steps
 
 1. **Run PS**: Execute ps to view currently running processes.
+
+## MITRE ATT&CK Mapping
+
+- **Tactics**:
+  - TA0009 Collection
+- **Techniques**:
+  - T1057 Process Discovery

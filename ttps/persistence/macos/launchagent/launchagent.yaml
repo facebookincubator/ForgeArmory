@@ -2,19 +2,17 @@
 name: Launch Agent
 description: |
   This TTP creates a launch agent which executes a shell script to run a command.
-  If no command_or_path is supplemented, it will run calc by default.
+  If no `command_or_path` is supplemented, it will run `calc` by default.
 args:
-  - name: cleanup
-    default: true
   - name: command_or_path
     default: /Users/Shared/calc.sh
 mitre:
   tactics:
-    - T0003 Persistence
+    - TA0003 Persistence
   techniques:
     - T1543 Create or Modify System Process
   subtechniques:
-    - T1543.001 Create or Modify System Process: Launch Agent
+    - "T1543.001 Create or Modify System Process: Launch Agent"
 steps:
   - name: launchagent
     inline: |
@@ -27,6 +25,8 @@ steps:
       echo "TTP Done!"
     cleanup:
       inline: |
+        set -e
+
         echo "Sleeping for 15 seconds and then removing the mechanism..."
         sleep 15
         launchctl unload -w ~/Library/LaunchAgents/com.ttpforge.plist

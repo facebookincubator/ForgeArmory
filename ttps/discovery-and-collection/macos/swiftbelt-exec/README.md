@@ -33,6 +33,6 @@ ttpforge run ttps/discovery-and-collection/macos/swiftbelt-exec/swiftbelt-exec.y
 ## MITRE ATT&CK Mapping
 
 - **Tactics**:
-  - T0009 Collection
+  - TA0009 Collection
 - **Techniques**:
   - T1119 Automated Collection

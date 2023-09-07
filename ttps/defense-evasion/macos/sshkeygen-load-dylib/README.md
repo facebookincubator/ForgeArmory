@@ -4,10 +4,6 @@
 
 Loads a custom dylib (which opens Calculator) via ssh-keygen.
 
-## Arguments
-
-- **cleanup**: When set to true, it will delete the compiled dylib.
-
 ## Pre-requisites
 
 Ensure that `gcc` is installed and that you have permission to run it.
@@ -28,5 +24,11 @@ ttpforge run ttps/macOS/sshkeygen_load_dylib/sshkeygen_load_dylib.yaml
 
 1. **Load Dylib**: Execute `ssh-keygen -D` to load the dylib.
 
-1. **Cleanup**: If the `cleanup` argument is set to `true`, delete the
-   compiled dylib.
+## MITRE ATT&CK Mapping
+
+- **Tactics**:
+  - TA0005 Defense Evasion
+- **Techniques**:
+  - T1574 Hijack Execution Flow
+- **Subtechniques**:
+  - T1574.002 Hijack Execution Flow: Dynamic Linker Hijacking

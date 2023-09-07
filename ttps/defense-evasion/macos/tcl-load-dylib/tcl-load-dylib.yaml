@@ -4,9 +4,11 @@ description: |
   This TTP loads a custom dylib (which opens Calculator) by piping an echo command to tclsh.
 mitre:
   tactics:
-    - T0002 Execution
+    - TA0002 Execution
   techniques:
-    - T1129 Shared Modules
+    - T1574 Hijack Execution Flow
+  subtechniques:
+    - "T1574.001 Hijack Execution Flow: DLL Search Order Hijacking"
 steps:
   - name: tcl-load-dylib
     inline: |

@@ -50,4 +50,5 @@ paths and prints the contents if found.
   - T0006 Credential Access
 - **Techniques**:
   - T1552 Unsecured Credentials
+- **Sub-techniques**:
   - T1552.001 Unsecured Credentials: Credentials In Files

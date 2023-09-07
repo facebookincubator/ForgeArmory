@@ -5,11 +5,11 @@ description: |
   adds a line to execute a script (which opens Calc).
 mitre:
   tactics:
-    - T0003 Persistence
+    - TA0003 Persistence
   techniques:
     - T1547 Boot or Logon Autostart Execution
   subtechniques:
-    - T1547.007 Boot or Logon Autostart Execution: Re-opened Applications
+    - "T1547.007 Boot or Logon Autostart Execution: Re-opened Applications"
 steps:
   - name: zshrc
     inline: |

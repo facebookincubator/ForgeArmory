@@ -33,6 +33,8 @@ ttpforge run ttps/defense-evasion/macos/tcl-load-dylib/tcl-load-dylib.yaml
 ## MITRE ATT&CK Mapping
 
 - **Tactics**:
-  - T0002 Execution
+  - TA0002 Execution
 - **Techniques**:
-  - T1129 Shared Modules
+  - T1574 Hijack Execution Flow
+- **Sub-techniques**:
+  - T1574.001 Hijack Execution Flow: DLL Search Order Hijacking

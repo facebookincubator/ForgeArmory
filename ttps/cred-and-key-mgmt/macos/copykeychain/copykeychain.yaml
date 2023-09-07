@@ -4,9 +4,11 @@ description: |
   This TTP copies the user's login keychain database to the /tmp directory.
 mitre:
   tactics:
-    - T0006 Credential Access
+    - TA0006 Credential Access
   techniques:
-    - T1555.001 Credentials from Password Stores: Keychain
+    - T1555 Credentials from Password Stores
+  subtechniques:
+    - "T1555.001 Credentials from Password Stores: Keychain"
 args:
   - name: cleanup
     default: true
@@ -25,7 +27,7 @@ steps:
     inline: |
       set -e
 
-      # Writing a log entry to a user-writable location
+      # Create a log in a user-writable location
       echo "$(date): Copied login.keychain-db to /tmp/keychain-copied" >> $HOME/keychain_copy.log
 
     cleanup:

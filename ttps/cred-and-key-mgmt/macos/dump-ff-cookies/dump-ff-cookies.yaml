@@ -4,7 +4,7 @@ description: |
   This TTP will simply read from the cookies.json file if Firefox is installed.
 mitre:
   tactics:
-    - T0006 Credential Access
+    - TA0006 Credential Access
   techniques:
     - T1539 Steal Web Session Cookie
 steps:
