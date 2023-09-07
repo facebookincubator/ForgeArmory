@@ -87,3 +87,4 @@ repos:
         language: script
         entry: .hooks/validate-yaml.sh
         files: '\.yaml$'
+        require_serial: true

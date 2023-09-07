@@ -40,6 +40,8 @@ func init() {
 	os.Setenv("GO111MODULE", "on")
 }
 
+const maxDepth = 10
+
 // InstallDeps Installs go dependencies
 func InstallDeps() error {
 	fmt.Println("Installing dependencies.")
@@ -213,6 +215,10 @@ func inspectAndValidate(filePath string, schema map[string]interface{}, validate
 	// Only print the success message for the top-level invocation
 	if depth == 0 {
 		fmt.Println("YAML is valid according to the schema.")
+	}
+
+	if depth >= maxDepth {
+		return fmt.Errorf("maximum recursion depth reached")
 	}
 
 	return nil
