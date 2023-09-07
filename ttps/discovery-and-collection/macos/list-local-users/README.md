@@ -22,3 +22,12 @@ ttpforge run ttps/discovery/macOS/list_local_users/list_local_users.yaml
 ## Steps
 
 1. **Run dscl**: Execute dscl to view all local user accounts on the system.
+
+## MITRE ATT&CK Mapping
+
+- **Tactics**:
+  - TA0007 Discovery
+- **Techniques**:
+  - T1087 Account Discovery
+- **Sub-techniques**:
+  - T1087.001 Local Account

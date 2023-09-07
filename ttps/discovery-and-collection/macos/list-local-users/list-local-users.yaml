@@ -8,13 +8,10 @@ mitre:
   techniques:
     - T1087 Account Discovery
   subtechniques:
-    - T1087.001 Local Account
+    - "T1087.001: Local Account"
 steps:
   - name: local_users
     inline: |
       echo -e "===> Gathering local user accounts using Directory Service Command Line (DSCL)..."
       dscl . list /Users | grep -v “^_”
       echo "[+] DONE!"
-    cleanup:
-      inline: |
-        echo "Cleanup is not required for this TTP, as this TTP simply executes a DSCL command and does not drop anything to disk."
