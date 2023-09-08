@@ -8,29 +8,29 @@ the specified command or script runs upon user login.
 
 ## Arguments
 
-- **cleanup**: If set to true, the TTP will remove the Login Item and any
-  related files, effectively undoing the persistence setup.
-  This step is done with Swift, which is why this particular parameter
-  is defined.
 - **command_or_path**: Specifies the path to the script or a bash command
   to be executed as a Login Item.
 
 ## Examples
 
-Add a specific script as a Login Item using Swift:
+Run TTP with default payload (calc):
 
 ```bash
-ttpforge run ttps/persistence/macos/loginitem/loginitem.yaml \
-  --arg command_or_path="/Users/Shared/myScript.sh" \
-  --arg cleanup=true
+ttpforge run forgearmory//persistence/macos/loginitem/loginitem.yaml
 ```
 
-Alternatively, run a direct command:
+Run a direct command:
 
 ```bash
-ttpforge run ttps/persistence/macos/loginitem/loginitem.yaml \
-  --arg command_or_path="osascript -e 'display dialog \"Hello World\"'" \
-  --arg cleanup=true
+ttpforge run forgearmory//persistence/macos/loginitem/loginitem.yaml \
+  --arg command_or_path="osascript -e 'display dialog \"Hello World\"'"
+```
+
+Run TTP using a provided script:
+
+```bash
+ttpforge run forgearmory//persistence/macos/loginitem/loginitem.yaml \
+  --arg command_or_path="/Users/Shared/myScript.sh"
 ```
 
 ## Steps

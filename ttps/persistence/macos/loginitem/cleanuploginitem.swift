@@ -17,12 +17,14 @@ func cleanupLoginItem(withPath path: String) {
 
     for item in loginItems {
         var resolvedURL: Unmanaged<CFURL>?
-        LSSharedFileListItemResolve(item, 0, &resolvedURL, nil)
+        var error: Unmanaged<CFError>? = nil
+        resolvedURL = LSSharedFileListItemCopyResolvedURL(item, 0, &error)
 
         if let actualURL = resolvedURL?.takeRetainedValue() as URL? {
 
             if actualURL.path == path {
-
+                // Deprecated function, we may need to
+                // consider alternatives in the future.
                 let result = LSSharedFileListItemRemove(items, item)
                 if result == noErr {
                     print("[+] Cleanup: \(path) has been removed from Login Items")
