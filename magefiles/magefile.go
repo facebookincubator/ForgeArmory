@@ -28,10 +28,7 @@ import (
 
 	"github.com/l50/goutils/v2/dev/lint"
 	mageutils "github.com/l50/goutils/v2/dev/mage"
-	"github.com/l50/goutils/v2/docs"
-	"github.com/l50/goutils/v2/git"
 	"github.com/l50/goutils/v2/sys"
-	"github.com/spf13/afero"
 )
 
 func init() {
@@ -53,35 +50,31 @@ func InstallDeps() error {
 	return nil
 }
 
-// GeneratePackageDocs generates package documentation
-// for packages in the current directory and its subdirectories.
-func GeneratePackageDocs() error {
-	fs := afero.NewOsFs()
+func installCommitMsgHook() error {
+	// Define the path to the commit-msg hook file
+	gitDirPath := filepath.Join(".git", "hooks", "commit-msg")
 
-	repoRoot, err := git.RepoRoot()
-	if err != nil {
-		return fmt.Errorf("failed to get repo root: %v", err)
+	// Check if the hook file already exists
+	if _, err := os.Stat(gitDirPath); os.IsNotExist(err) {
+		fmt.Println("Installing commit-msg pre-commit hook.")
+		cmd := "pre-commit"
+		args := []string{"install", "--hook-type", "commit-msg"}
+		if _, err := sys.RunCommand(cmd, args...); err != nil {
+			return err
+		}
+	} else if err != nil {
+		return fmt.Errorf("error checking for commit-msg hook: %v", err)
 	}
-	sys.Cd(repoRoot)
-
-	repo := docs.Repo{
-		Owner: "facebookincubator",
-		Name:  "forgearmory",
-	}
-
-	excludedPkgs := []string{"main"}
-	template := filepath.Join(repoRoot, "magefiles", "tmpl", "README.md.tmpl")
-	if err := docs.CreatePackageDocs(fs, repo, template, excludedPkgs...); err != nil {
-		return fmt.Errorf("failed to create package docs: %v", err)
-	}
-
-	fmt.Println("Package docs created.")
 
 	return nil
 }
 
 // RunPreCommit runs all pre-commit hooks locally
 func RunPreCommit() error {
+	if err := installCommitMsgHook(); err != nil {
+		return err
+	}
+
 	fmt.Println("Updating pre-commit hooks.")
 	if err := lint.UpdatePCHooks(); err != nil {
 		return err
