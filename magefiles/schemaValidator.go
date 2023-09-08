@@ -244,10 +244,6 @@ func validateEdits(yamlData map[string]interface{}) error {
 				if _, exists := editMap["new"]; !exists {
 					return fmt.Errorf("an edit item is missing the 'new' field")
 				}
-
-				if _, exists := editMap["regexp"]; !exists {
-					return fmt.Errorf("an edit item is missing the 'regexp' field")
-				}
 			}
 		}
 	}

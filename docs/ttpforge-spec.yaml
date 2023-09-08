@@ -112,7 +112,6 @@ definitions:
     required:
       - old
       - new
-      - regexp
 
   Spec:
     type: object
