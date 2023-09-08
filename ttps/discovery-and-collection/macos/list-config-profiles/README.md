@@ -16,7 +16,7 @@ Run the following to list all configuration profiles on the macOS system.
 After execution, you will see a list of installed configuration profiles:
 
 ```bash
-ttpforge run ttps/discovery-and-collection/macos/list-config-profiles/list-config-profiles.yaml
+ttpforge run forgearmory//discovery-and-collection/macos/list-config-profiles/list-config-profiles.yaml
 ```
 
 ## Steps

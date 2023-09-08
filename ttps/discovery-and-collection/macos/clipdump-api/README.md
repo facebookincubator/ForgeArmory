@@ -21,7 +21,7 @@ This TTP dumps clipboard contents by making nspasteboard API calls.
 You can run the TTP using the following example:
 
 ```bash
-ttpforge run ttps/discovery-and-collection/macos/clipdump-api/clipdump-api.yaml
+ttpforge run forgearmory//discovery-and-collection/macos/clipdump-api/clipdump-api.yaml
 ```
 
 ## Steps

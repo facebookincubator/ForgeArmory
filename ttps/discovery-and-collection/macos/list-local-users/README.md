@@ -7,21 +7,21 @@ user accounts.
 
 ## Pre-requisites
 
-Ensure that dscl is installed on the target system and that you have the
+Ensure that `dscl` is installed on the target system and that you have the
 necessary permissions to run it.
 
 ## Examples
 
-Utilize dscl to view all local user accounts on the system. This TTP does
+Utilize `dscl` to view all local user accounts on the system. This TTP does
 not produce artifacts, so it is not necessary to run the clean up afterward:
 
 ```bash
-ttpforge run ttps/discovery/macOS/list_local_users/list_local_users.yaml
+ttpforge run forgearmory//discovery-and-collection/macos/list-local-users/list-local-users.yaml
 ```
 
 ## Steps
 
-1. **Run dscl**: Execute dscl to view all local user accounts on the system.
+1. **Run dscl**: Execute `dscl` to view all local user accounts on the system.
 
 ## MITRE ATT&CK Mapping
 

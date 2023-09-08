@@ -15,7 +15,7 @@ This TTP uses the osascript binary to dump clipboard contents.
 You can run the TTP using the following example:
 
 ```bash
-ttpforge run ttps/discovery-and-collection/macos/clipdump-api/clipdump-api.yaml
+ttpforge run forgearmory//discovery-and-collection/macos/clipdump-cli/clipdump-cli.yaml
 ```
 
 ## Steps
