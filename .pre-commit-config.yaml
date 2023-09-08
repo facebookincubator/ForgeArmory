@@ -47,7 +47,7 @@ repos:
       - id: codespell
         entry: |
           codespell -q 3 -f
-          -S ".git,.github,go.*,ttps/*"
+          -S ".git,.github,*go.*,ttps/*"
 
   - repo: local
     hooks:
