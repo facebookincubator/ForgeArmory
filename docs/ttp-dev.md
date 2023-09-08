@@ -183,3 +183,13 @@ steps:
       inline: |
         echo "No cleanup needed, as this TTP simply dumped clipboard contents to stdout."
 ```
+
+### Pre-Commit Hooks
+
+Every so often, we introduce pre-commit hooks to ensure that
+the developer experience is easy and has a low barrier to entry.
+
+However, some hooks may introduce unnecessary overhead.
+To address this, all new pre-commit hooks will undergo a one-month
+trial period. If they hinder the developer experience during this time,
+we will remove them.

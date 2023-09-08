@@ -19,6 +19,13 @@ setup() {
 
 	# Stage the created files and directories
 	git add .
+	git commit -m "Initial dummy commit"
+
+	# Modify one of the files to introduce a change
+	echo "dummy content" >>test_file_with_underscore.yaml
+
+	# Stage the changes
+	git add test_file_with_underscore.yaml
 }
 
 teardown() {
@@ -32,19 +39,28 @@ teardown() {
 	# Run the pre-commit script using the initial directory to get the correct path
 	"$INITIAL_DIR"/.hooks/check-underscores-in-name.sh
 
-	# Check if files with dashes exist and are staged
+	# Debug: List all the files after running the script
+	ls -al
+
+	# Check if files with dashes exist
 	[ -f test-file-with-underscore.yaml ]
-	git diff --cached --name-only | grep "test-file-with-underscore.yaml"
+
+	# Check if files with dashes are staged
+	run git diff --cached --name-only
+	[[ "$output" == *"test-file-with-underscore.yaml"* ]]
 }
 
 @test "Check if old filenames with underscores are not staged" {
-	# Run the pre-commit script
+	# Run the pre-commit script using the initial directory to get the correct path
 	"$INITIAL_DIR"/.hooks/check-underscores-in-name.sh
 
-	# Check if the old filenames/directories with underscores are not staged
-	run git diff --cached --name-only
-	[[ "$output" != *"test_file_with_underscore.yaml"* ]]
+	# Check the status of files
+	run git status --porcelain
+	trimmed_output=$(echo "$output" | tr -d ' ') # Remove whitespaces
+	echo "Trimmed Git Status Output: $trimmed_output"
 
-	run git diff --cached --name-only
-	[[ "$output" != *"test_directory_with_underscore"* ]]
+	# Ensure the old file is marked for deletion and the new file is added
+	[[ $trimmed_output =~ Dtest_file_with_underscore.yaml ]]
+	[[ $trimmed_output =~ Atest-file-with-underscore.yaml ]]
+
 }
