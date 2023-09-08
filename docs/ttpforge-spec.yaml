@@ -108,7 +108,7 @@ definitions:
       new:
         type: string
       regexp:
-        type: string
+        type: boolean
     required:
       - old
       - new
