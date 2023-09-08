@@ -21,7 +21,7 @@ This TTP executes SwiftSpy to monitor keyboard strokes.
 You can run the TTP using the following example:
 
 ```bash
-ttpforge run ttps/discovery-and-collection/macos/swiftspy-exec/swiftspy-exec.yaml
+ttpforge run forgearmory//discovery-and-collection/macos/swiftspy-exec/swiftspy-exec.yaml
 ```
 
 ## Steps

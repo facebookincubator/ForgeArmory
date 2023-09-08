@@ -15,7 +15,7 @@ This TTP uses the `osascript` binary to gather system information on macOS.
 You can run the TTP using the following example:
 
 ```bash
-ttpforge run ttps/discovery-and-collection/macos/system-info/system-info.yaml
+ttpforge run forgearmory//discovery-and-collection/macos/system-info/system-info.yaml
 ```
 
 ## Steps

@@ -21,7 +21,7 @@ This TTP executes SwiftBelt to gather host information on macOS.
 You can run the TTP using the following example:
 
 ```bash
-ttpforge run ttps/discovery-and-collection/macos/swiftbelt-exec/swiftbelt-exec.yaml
+ttpforge run forgearmory//discovery-and-collection/macos/swiftbelt-exec/swiftbelt-exec.yaml
 ```
 
 ## Steps

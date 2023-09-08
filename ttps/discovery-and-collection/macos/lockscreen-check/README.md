@@ -16,7 +16,7 @@ Run the following to check the lock state of the macOS screen. The output
 will confirm if the screen is either locked or unlocked:
 
 ```bash
-ttpforge run ttps/discovery-and-collection/macos/lockscreen-check/lockscreen-check.yaml
+ttpforge run forgearmory//discovery-and-collection/macos/lockscreen-check/lockscreen-check.yaml
 ```
 
 ## Steps

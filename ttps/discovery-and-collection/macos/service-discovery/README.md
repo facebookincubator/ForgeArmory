@@ -14,7 +14,7 @@ This TTP runs different dns-sd commands for local network service discovery.
 You can run the TTP using the following example:
 
 ```bash
-ttpforge run ttps/discovery-and-collection/macos/service-discovery/service-discovery.yaml
+ttpforge run forgearmory//discovery-and-collection/macos/service-discovery/service-discovery.yaml
 ```
 
 ## Steps
