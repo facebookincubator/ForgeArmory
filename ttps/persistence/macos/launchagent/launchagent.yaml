@@ -20,7 +20,7 @@ steps:
 
       echo -e "First building the source Swift into a compiled binary..."
       swiftc launchagent.swift -o launchagent
-      echo "Next, executing the compiled launchagent binary. This will drop the script at the specified path and then dropping ~/Library/LaunchAgents/com.ttpforge.plist to call the script and immediately loading it with launchctl..."
+      echo "Next, executing the compiled launchagent binary. This will drop the script at the specified path and then dropping ~/Library/LaunchAgents/com.ttpforgelaunchagent.plist to call the script and immediately loading it with launchctl..."
       ./launchagent "{{ .Args.command_or_path }}"
       echo "TTP Done!"
     cleanup:
@@ -29,8 +29,8 @@ steps:
 
         echo "Sleeping for 15 seconds and then removing the mechanism..."
         sleep 15
-        launchctl unload -w ~/Library/LaunchAgents/com.ttpforge.plist
+        launchctl unload -w ~/Library/LaunchAgents/com.ttpforgelaunchagent.plist
         rm -f "{{ .Args.command_or_path }}"
-        rm -f ~/Library/LaunchAgents/com.ttpforge.plist
+        rm -f ~/Library/LaunchAgents/com.ttpforgelaunchagent.plist
         rm -f launchagent
         echo "Cleanup Finished!"

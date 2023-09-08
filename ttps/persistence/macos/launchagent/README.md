@@ -12,18 +12,24 @@ specified script or command upon system boot or user login.
 
 ## Examples
 
-Setup persistence with a script:
+Run TTP with default payload (calc):
 
 ```bash
-ttpforge run ttps/persistence/macos/launch-agent-persistence/launch-agent-persistence.yaml \
-    --arg command_or_path="/Users/Shared/scarybackdoor.sh"
+ttpforge run forgearmory//persistence/macos/launchagent/launchagent.yaml
 ```
 
 Run a direct command:
 
 ```bash
-ttpforge run ttps/persistence/macos/launch-agent-persistence/launch-agent-persistence.yaml \
+ttpforge run forgearmory//persistence/macos/launchagent/launchagent.yaml \
     --arg command_or_path="osascript -e 'display dialog \"Hello World\"'"
+```
+
+Run TTP using a provided script:
+
+```bash
+ttpforge run forgearmory//persistence/macos/launchagent/launchagent.yaml \
+    --arg command_or_path="/Users/Shared/scarybackdoor.sh"
 ```
 
 ## Steps
@@ -31,8 +37,8 @@ ttpforge run ttps/persistence/macos/launch-agent-persistence/launch-agent-persis
 1. **launchagent**:
   - Build the `launchagent.swift` source into a compiled binary.
   - Execute the compiled binary. It creates the script at the specified
-    path and the `~/Library/LaunchAgents/com.ttpforge.plist` to invoke the
-    script. It then loads this agent with `launchctl`.
+    path and the `~/Library/LaunchAgents/com.ttpforgelaunchagent.plist` to
+    invoke the script. It then loads this agent with `launchctl`.
   - Run a cleanup step that will:
     1. Delay for 15 seconds before starting the cleanup process.
     1. Use `launchctl` to unload the `.plist`.
