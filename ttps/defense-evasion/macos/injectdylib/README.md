@@ -22,7 +22,7 @@ SafariForWebkitDevelopment binary.
 You can run the TTP using the following example:
 
 ```bash
-ttpforge run ttps/dynamic-execution-and-control/injectdylib/injectdylib.yaml
+ttpforge run forgearmory//defense-evasion/macos/injectdylib/injectdylib.yaml
 ```
 
 ## Steps
