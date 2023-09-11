@@ -15,7 +15,7 @@ this TTP will delete the generated `calc.dylib` file if cleanup is
 set to true:
 
 ```bash
-ttpforge run ttps/macOS/sshkeygen_load_dylib/sshkeygen_load_dylib.yaml
+ttpforge run forgearmory//defense-evasion/macos/sshkeygen-load-dylib/sshkeygen-load-dylib.yaml
 ```
 
 ## Steps

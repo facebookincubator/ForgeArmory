@@ -21,7 +21,7 @@ compiler and loaded using tclsh.
 You can run the TTP using the following example:
 
 ```bash
-ttpforge run ttps/defense-evasion/macos/tcl-load-dylib/tcl-load-dylib.yaml
+ttpforge run forgearmory//defense-evasion/macos/tcl-load-dylib/tcl-load-dylib.yaml
 ```
 
 ## Steps

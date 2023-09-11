@@ -16,7 +16,7 @@ complete, this TTP will re-enable automatic system security updates if cleanup
 is set to true:
 
 ```bash
-ttpforge run ttps/defense-evasion/macos/disable-system-updates/disable-system-updates.yaml
+ttpforge run forgearmory//defense-evasion/macos/disable-system-updates/disable-system-updates.yaml
 ```
 
 ## Steps

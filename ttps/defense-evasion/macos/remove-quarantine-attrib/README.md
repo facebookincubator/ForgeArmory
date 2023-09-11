@@ -22,6 +22,7 @@ ttpforge run forgearmory//defense-evasion/macos/remove-quarantine-attrib/remove-
 
 ## Steps
 
+1. **setup**: This step creates a zip file for the TTP to use.
 1. **xattr-remove-attrib**: This step uses `xattr` to list and remove the
    com.apple.quarantine attribute from the included `Test.app` bundle.
 1. **cat-remove-attrib**: This step uses `cat` to remove the
