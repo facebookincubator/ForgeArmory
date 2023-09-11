@@ -40,5 +40,6 @@ steps:
       inline: |
         set -e
 
-        rm TTPBundledFiles*
+        rm TTPBundledFiles2.zip
+        rm -rf Test.app
         echo "[+] Cleanup done!"
