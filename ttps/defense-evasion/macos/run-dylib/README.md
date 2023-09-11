@@ -20,7 +20,7 @@ This TTP executes a C compiled dylib.
 You can run the TTP using the following example:
 
 ```bash
-ttpforge run ttps/defense-evasion/macos/run-dylib/run-dylib.yaml
+ttpforge run forgearmory//defense-evasion/macos/run-dylib/run-dylib.yaml
 ```
 
 ## Steps

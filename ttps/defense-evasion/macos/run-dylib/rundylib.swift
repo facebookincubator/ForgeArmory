@@ -8,7 +8,7 @@ let dispatch = DispatchQueue.global(qos: .background)
         if (myhandle != nil){
                 dispatch.async{
                     DispatchQueue.main.async {
-                        let x = dlsym(myhandle, "_main")//for calling main in C built dylibs, use _main
+                        let x = dlsym(myhandle, "_main") //for calling main in C built dylibs, use _main
                 if (x != nil){
                        print(x)
                }

@@ -12,8 +12,6 @@ mitre:
 steps:
   - name: rundylib
     inline: |
-      set -e
-
       echo -e "First building the source c file into a dylib..."
       gcc -dynamiclib calc.c -o calc.dylib
       echo -e "Next building the Swift source file to a compiled binary for execution..."
@@ -27,8 +25,6 @@ steps:
       fi
     cleanup:
       inline: |
-        set -e
-
         echo "Removing the compiled calc.dylib binary as well as the compiled rundylib file..."
         rm calc.dylib rundylib
         echo "Closing the Calculator app and paper tape..."
