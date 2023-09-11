@@ -17,7 +17,7 @@ from a file.
 You can run the TTP using the following example:
 
 ```bash
-ttpforge run ttps/defense-evasion/macos/remove-quarantine-attrib/remove-quarantine-attrib.yaml
+ttpforge run forgearmory//defense-evasion/macos/remove-quarantine-attrib/remove-quarantine-attrib.yaml
 ```
 
 ## Steps
