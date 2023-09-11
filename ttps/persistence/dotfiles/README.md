@@ -16,7 +16,7 @@ a line to execute a script (which opens Calc).
 You can run the TTP using the following example:
 
 ```bash
-ttpforge run ttps/persistence/dotfiles/persist-zshrc.yaml
+ttpforge run forgearmory//persistence/dotfiles/persist-zshrc.yaml
 ```
 
 ## Steps
