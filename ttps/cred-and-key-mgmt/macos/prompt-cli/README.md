@@ -22,7 +22,7 @@ password entry.
 You can run the TTP using the following example:
 
 ```bash
-ttpforge run ttps/cred-and-key-mgmt/prompt-cli/prompt-cli.yaml
+ttpforge run forgearmory//cred-and-key-mgmt/macos/prompt-cli/prompt-cli.yaml
 ```
 
 ## Steps

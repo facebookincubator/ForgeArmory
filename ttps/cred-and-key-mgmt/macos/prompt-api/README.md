@@ -22,7 +22,7 @@ authentication prompt.
 You can run the TTP using the following example:
 
 ```bash
-ttpforge run ttps/cred-and-key-mgmt/prompt-api/prompt-api.yaml
+ttpforge run forgearmory//cred-and-key-mgmt/macos/prompt-api/prompt-api.yaml
 ```
 
 ## Steps

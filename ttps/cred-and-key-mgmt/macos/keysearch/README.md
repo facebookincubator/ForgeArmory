@@ -25,7 +25,7 @@ and `~/.azure`.
 You can run the TTP using the following example:
 
 ```bash
-ttpforge run ttps/cred-and-key-mgmt/keysearch/keysearch.yaml
+ttpforge run forgearmory//cred-and-key-mgmt/macos/keysearch/keysearch.yaml
 ```
 
 ## Steps

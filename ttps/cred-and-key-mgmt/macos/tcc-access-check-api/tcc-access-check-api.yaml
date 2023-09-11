@@ -13,7 +13,7 @@ steps:
       set -e
 
       echo -e "First, building the swift source file for this TTP and then executing the compiled binary..."
-      swiftc tcc_access_check_api.swift -o check
+      swiftc tcc-access-check-api.swift -o check
       echo -e "Next, executing the compiled check binary..."
       ./check
       echo "TTP Done!"

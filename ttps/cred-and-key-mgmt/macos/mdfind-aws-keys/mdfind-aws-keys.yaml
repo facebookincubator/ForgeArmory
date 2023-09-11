@@ -14,5 +14,5 @@ steps:
   - name: mdfind_aws_keys
     inline: |
       echo -e "Searching for aws keys on disk using mdfind..."
-      mdfind 'kMDItemTextContext == AKIA || kMDItemDisplayName = *AKIA* -onlyin ~'
+      mdfind "kMDItemTextContent == '*AKIA*' || kMDItemDisplayName == '*AKIA*' -onlyin ~"
       echo "[+] TTP Done!"

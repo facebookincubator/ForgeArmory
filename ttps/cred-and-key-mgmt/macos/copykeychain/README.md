@@ -21,7 +21,7 @@ This TTP copies the user's login keychain database to the `/tmp` directory.
 You can run the TTP using the following example:
 
 ```bash
-ttpforge run ttps/cred-and-key-mgmt/copykeychain/copykeychain.yaml
+ttpforge run forgearmory//cred-and-key-mgmt/macos/copykeychain/copykeychain.yaml
 ```
 
 ## Steps

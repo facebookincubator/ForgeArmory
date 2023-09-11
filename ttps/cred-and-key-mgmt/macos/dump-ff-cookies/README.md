@@ -21,7 +21,7 @@ the cookies.
 You can run the TTP using the following example:
 
 ```bash
-ttpforge run ttps/cred-and-key-mgmt/dump-cookies/dump-cookies.yaml
+ttpforge run forgearmory//cred-and-key-mgmt/macos/dump-ff-cookies/dump-ff-cookies.yaml
 ```
 
 ## Steps
