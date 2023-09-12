@@ -174,3 +174,28 @@ steps:
         sudo defaults write /Library/Preferences/com.apple.SoftwareUpdate.plist CriticalUpdateInstall -bool YES
         echo "[+] DONE!"
 ```
+
+Example without implementation block artifacts: No changes were made to the
+target system. This is reported in the success log.
+
+```yaml
+steps:
+  - name: clipdump_cli
+    inline: |
+   echo -e "===> Dumping clipboard to stdout..."
+      pbpaste
+      echo "[+] DONE!"
+    cleanup:
+      inline: |
+        echo "No cleanup needed, as this TTP simply dumped clipboard contents to stdout."
+```
+
+### Pre-Commit Hooks
+
+Every so often, we introduce pre-commit hooks to ensure that
+the developer experience is easy and has a low barrier to entry.
+
+However, some hooks may introduce unnecessary overhead.
+To address this, all new pre-commit hooks will undergo a one-month
+trial period. If they hinder the developer experience during this time,
+we will remove them.

@@ -1,0 +1,129 @@
+---
+definitions:
+  TTP:
+    type: object
+    properties:
+      name:
+        type: string
+      description:
+        type: string
+      mitre:
+        $ref: "#/definitions/Mitre"
+      steps:
+        type: array
+        items:
+          oneOf:
+            - $ref: "#/definitions/SubTTPStep"
+            - $ref: "#/definitions/BasicStep"
+            - $ref: "#/definitions/EditStep"
+      args:
+        type: array
+        items:
+          $ref: "#/definitions/Spec"
+    required:
+      - name
+      - description
+      - steps
+
+  Mitre:
+    type: object
+    properties:
+      tactics:
+        type: array
+        items:
+          type: string
+      techniques:
+        type: array
+        items:
+          type: string
+      subtechniques:
+        type: array
+        items:
+          type: string
+
+  BasicStep:
+    type: object
+    properties:
+      name:
+        type: string
+      inline:
+        type: string
+      cleanup:
+        $ref: "#/definitions/CleanupAct"
+      args:
+        type: array
+        items:
+          type: string
+    required:
+      - name
+      - inline
+
+  CleanupAct:
+    type: object
+    properties:
+      inline:
+        type: string
+    required:
+      - inline
+
+  SubTTPStep:
+    type: object
+    properties:
+      name:
+        type: string
+      ttp:
+        type: string
+      args:
+        type: object
+        additionalProperties:
+          type: string
+    required:
+      - name
+      - ttp
+
+  EditStep:
+    type: object
+    properties:
+      name:
+        type: string
+      edit_file:
+        type: string
+      backup_file:
+        type: string
+      edits:
+        type: array
+        items:
+          $ref: "#/definitions/Edit"
+    required:
+      - name
+      - edit_file
+      - backup_file
+      - edits
+
+  Edit:
+    type: object
+    properties:
+      old:
+        type: string
+      new:
+        type: string
+      regexp:
+        type: boolean
+    required:
+      - old
+      - new
+
+  Spec:
+    type: object
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+      default:
+        type: string
+      description:
+        type: string
+    required:
+      - name
+      - type
