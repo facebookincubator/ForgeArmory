@@ -1,0 +1,17 @@
+---
+name: List macOS configuration profiles.
+description: |
+  This TTP simply lists all configuration profile names using the profiles
+  binary. This can be useful for an attacker to determine what configuration
+  profiles are installed on the target host.
+mitre:
+  tactics:
+    - TA0009 Collection
+  techniques:
+    - T1602 Data From Configuration Repository
+steps:
+  - name: list_config_profiles
+    inline: |
+      echo -e "Searching for configuration profiles using the profiles binary..."
+      profiles -C
+      echo "[+] TTP Done!"

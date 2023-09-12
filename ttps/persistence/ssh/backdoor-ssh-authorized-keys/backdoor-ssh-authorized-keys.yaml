@@ -37,6 +37,4 @@ steps:
     inline: |
       set -e
 
-      if [[ "{{ .Args.cleanup }}" == true ]]; then
-        mv "{{ .Args.ssh_authorized_keys }}.bak" "{{ .Args.ssh_authorized_keys }}"
-      fi
+      mv "{{ .Args.ssh_authorized_keys }}.bak" "{{ .Args.ssh_authorized_keys }}"

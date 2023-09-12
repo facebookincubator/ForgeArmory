@@ -1,0 +1,36 @@
+---
+name: Launch Agent
+description: |
+  This TTP creates a launch agent which executes a shell script to run a command.
+  If no `command_or_path` is supplemented, it will run `calc` by default.
+args:
+  - name: command_or_path
+    default: /Users/Shared/calc.sh
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1543 Create or Modify System Process
+  subtechniques:
+    - "T1543.001 Create or Modify System Process: Launch Agent"
+steps:
+  - name: launchagent
+    inline: |
+      set -e
+
+      echo -e "First building the source Swift into a compiled binary..."
+      swiftc launchagent.swift -o launchagent
+      echo "Next, executing the compiled launchagent binary. This will drop the script at the specified path and then dropping ~/Library/LaunchAgents/com.ttpforgelaunchagent.plist to call the script and immediately loading it with launchctl..."
+      ./launchagent "{{ .Args.command_or_path }}"
+      echo "TTP Done!"
+    cleanup:
+      inline: |
+        set -e
+
+        echo "Sleeping for 15 seconds and then removing the mechanism..."
+        sleep 15
+        launchctl unload -w ~/Library/LaunchAgents/com.ttpforgelaunchagent.plist
+        rm -f "{{ .Args.command_or_path }}"
+        rm -f ~/Library/LaunchAgents/com.ttpforgelaunchagent.plist
+        rm -f launchagent
+        echo "Cleanup Finished!"

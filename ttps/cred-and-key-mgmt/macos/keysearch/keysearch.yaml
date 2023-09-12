@@ -1,0 +1,24 @@
+---
+name: Key search
+description: |
+  This TTP searches for any files at ~/.ssh, ~/.aws, ~/.gcloud, and ~/.azure.
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1552 Unsecured Credentials
+  subtechniques:
+    - "T1552.001 Unsecured Credentials: Credentials In Files"
+steps:
+  - name: keysearch
+    inline: |
+      echo -e "First, building the swift source file for this TTP and then executing the compiled binary..."
+      swiftc keysearch.swift -o keysearch
+      echo -e "Next, executing the compiled keysearch binary..."
+      ./keysearch
+      echo "TTP Done!"
+
+    cleanup:
+      inline: |
+        echo "Deleting the compiled binary..."
+        rm -f keysearch

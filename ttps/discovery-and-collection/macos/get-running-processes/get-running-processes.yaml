@@ -1,0 +1,16 @@
+---
+name: Gather macOS running processes.
+description: |
+  This TTP uses ps to gather information about running processes on the system.
+mitre:
+  tactics:
+    - TA0009 Collection
+  techniques:
+    - T1057 Process Discovery
+
+steps:
+  - name: run-ps
+    inline: |
+      echo -e "===> Gathering running processes using ps..."
+      ps aux
+      echo "[+] TTP Done!"

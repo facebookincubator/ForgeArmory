@@ -1,0 +1,43 @@
+---
+name: macOS cli prompt
+description: |
+  This TTP uses the osascript binary to launch a fake prompt requesting password entry.
+mitre:
+  tactics:
+    - T1059 Command and Scripting Interpreter
+    - TA0006 Credential Access
+  techniques:
+    - T1059.002 Command and Scripting Interpreter: AppleScript
+args:
+  - name: detect
+    default: true
+steps:
+  - name: prompt-cli
+    inline: |
+      set -e
+      echo -e "==> Launching a fake authentication prompt via the osascript binary..."
+      echo -e "The fake prompt will timeout after 10 seconds."
+      timeout 10 osascript -e "set popup to display dialog \"Keychain Access wants to use the login keychain\" & return & return & \"Please enter the keychain password\" & return default answer \"\" with icon file \"System:Library:CoreServices:CoreTypes.bundle:Contents:Resources:FileVaultIcon.icns\" with title \"Authentication Needed\" with hidden answer"
+      echo "TTP Done!"
+
+  - name: log-prompt-execution
+    inline: |
+      set -e
+      echo "$(date): Executed fake authentication prompt via osascript binary." >> $HOME/prompt_execution.log
+
+  - name: check-detection
+    inline: |
+      set -e
+      if [[ "{{ .Args.detect }}" == true ]]; then
+        # Check the log file for entries indicating the execution of the fake prompt
+        if grep -q "Executed fake authentication prompt" $HOME/prompt_execution.log; then
+          echo "Suspicious activity detected: A fake authentication prompt has been executed."
+        else
+          echo "No suspicious activity detected."
+        fi
+      fi
+
+    cleanup:
+      inline: |
+        set -e
+        rm -f $HOME/prompt_execution.log
