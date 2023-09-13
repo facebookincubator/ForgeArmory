@@ -16,6 +16,7 @@ definitions:
             - $ref: "#/definitions/SubTTPStep"
             - $ref: "#/definitions/BasicStep"
             - $ref: "#/definitions/EditStep"
+            - $ref: "#/definitions/FetchURIStep"
       args:
         type: array
         items:
@@ -127,3 +128,22 @@ definitions:
     required:
       - name
       - type
+
+  FetchURIStep:
+    type: object
+    properties:
+      fetch_uri:
+        type: string
+      retries:
+        type: string
+      location:
+        type: string
+      proxy:
+        type: string
+      overwrite:
+        type: boolean
+      cleanup:
+        $ref: "#/definitions/CleanupAct"
+    required:
+      - fetch_uri
+      - location
