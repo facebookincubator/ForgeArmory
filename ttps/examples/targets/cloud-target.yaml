@@ -1,0 +1,33 @@
+---
+name: cloud
+description: |
+  Example to specify a cloud target for a TTP (specifically AWS in this case)
+targets:
+  cloud:
+    - provider: "aws"
+      region: "us-west-1"
+    - provider: "gcp"
+      region: "us-west1-a"
+    - provider: "azure"
+      region: "eastus"
+
+steps:
+  - name: ensure-aws-creds-present
+    inline: |
+      set -e
+
+      if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+        echo "error: AWS_DEFAULT_REGION must be set."
+        exit 1
+      fi
+
+      if [[ -n "${AWS_ACCESS_KEY_ID}" && -n "${AWS_SECRET_ACCESS_KEY}" ]]; then
+        if [[ -z "${AWS_SESSION_TOKEN}" ]]; then
+          echo "warning: AWS_SESSION_TOKEN is not set with AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
+        fi
+      elif [[ -z "${AWS_PROFILE}" ]]; then
+        echo "error: AWS credentials are not set, exiting."
+        exit 1
+      fi
+
+      echo "You have AWS credentials set, well done!"

@@ -1,10 +1,10 @@
-# TTPs
+# TTP Examples - Output
 
-These TTPs illustrate how to pass outputs between different steps.
+This TTP illustrates how to pass outputs between different steps.
 
 ## step-outputs.yaml
 
-Run this TTP as follows:
+Run the TTP as follows:
 
 ```bash
 ttpforge run examples/outputs/step-outputs.yaml
