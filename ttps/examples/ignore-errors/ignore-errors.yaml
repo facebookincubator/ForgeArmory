@@ -1,0 +1,78 @@
+---
+name: ignore-errorsure
+description: |
+  Illustrates how to create a step that will allow the TTP to continue,
+  even if an error occurs.
+steps:
+  - name: basic-step-expected-to-fail
+    ignore_errors: true
+    inline: |
+      echo "this will fail"
+      exit 1
+
+  - name: basic-step-post-error
+    inline: |
+      echo -e "We still reach this step despite there being an error"
+      echo -e "in the previous inline step."
+
+  - name: file-step-expected-to-fail
+    ignore_errors: true
+    file: ignore-errors-file-example.sh
+
+  - name: file-step-post-error
+    inline: |
+      echo -e "We still reach this step despite there being an error"
+      echo -e "in the previous file step."
+
+  - name: edit-step-expected-to-fail
+    ignore_errors: true
+    edit_file: ignore-errors-edit-example.txt
+    backup_file: "my-backup.txt"
+    edits:
+      - old: I_DONT_EXIST_IN_THE_FILE
+        new: REPLACED_BY_EDIT
+        ignore_errors: true
+      - old: (?ms:^result = await myclass\.multi_line_function_call\(.*?\)$)
+        new: "# replaced with comment"
+        regexp: true
+      - old: (?P<fn_call>(?ms:^another_multline_function_call\(.*?\)$))
+        new: "/*${fn_call}*/"
+        regexp: true
+
+  - name: edit-step-post-error
+    inline: |
+      echo -e "We still reach this step despite there being an error"
+      echo -e "in the previous edit step."
+    cleanup:
+      inline: rm my-backup.txt
+
+  - name: subttp-step-with-error
+    ttp: examples/ignore-errors/my-sub-ttps/ttp1.yaml
+    ignore_errors: true
+  - name: second_sub_ttp
+    ttp: examples/ignore-errors/my-sub-ttps/ttp2.yaml
+    args:
+      arg1: testing
+
+  - name: subttp-step-post-error
+    inline: |
+      echo -e "We still reach this step despite there being an error"
+      echo -e "in one of the subttp steps."
+
+  - name: fetchURI-step-no-error
+    fetch_uri: https://google.com
+    location: ./google.txt
+    overwrite: true
+    cleanup:
+      inline: rm google.txt
+
+  - name: fetchURI-step-with-error
+    fetch_uri: http://not-a-real-siteabc123456.com
+    location: ./bla.txt
+    overwrite: true
+    ignore_errors: true
+
+  - name: fetchuri-step-post-error
+    inline: |
+      echo -e "We still reach this step despite there being an error"
+      echo -e "in the fetchuri step."
