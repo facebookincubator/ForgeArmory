@@ -30,7 +30,7 @@ INFO    [*] Finished validating Sub TTP
 INFO    [*] Validating Sub TTP: second_sub_ttp
 INFO    [*] Finished validating Sub TTP
 INFO    [+] Finished validating steps
-INFO    [+] Running current TTP: ignore-errorsure
+INFO    [+] Running current TTP: ignore-errors
 INFO    [+] Running current step: basic-step-expected-to-fail
 INFO    ========= Executing ==========
 this will fail

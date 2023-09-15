@@ -1,0 +1,11 @@
+---
+name: fetchuri_step_example
+description: Illustrates how to employ the FetchURI step.
+
+steps:
+  - name: fetch-google-and-store-in-file
+    fetch_uri: https://google.com
+    location: ./google.txt
+    overwrite: true
+    cleanup:
+      inline: rm google.txt

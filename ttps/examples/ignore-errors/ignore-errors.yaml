@@ -1,5 +1,5 @@
 ---
-name: ignore-errorsure
+name: ignore-errors
 description: |
   Illustrates how to create a step that will allow the TTP to continue,
   even if an error occurs.
