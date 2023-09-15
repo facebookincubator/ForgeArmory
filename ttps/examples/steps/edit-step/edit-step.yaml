@@ -2,7 +2,12 @@
 name: edit_step_example
 description: edits a file in various ways
 steps:
-  - name: edit_target_file
+  - name: target-file-pre-edit
+    inline: |
+      set -e
+
+      cat file-to-edit.txt
+  - name: edit-target-file
     edit_file: "file-to-edit.txt"
     backup_file: "my-backup.txt"
     edits:
@@ -14,3 +19,13 @@ steps:
       - old: (?P<fn_call>(?ms:^another_multline_function_call\(.*?\)$))
         new: "/*${fn_call}*/"
         regexp: true
+  - name: target-file-post-edit
+    inline: |
+      set -e
+
+      cat file-to-edit.txt
+    cleanup:
+      inline: |
+        set -e
+
+        mv my-backup.txt file-to-edit.txt

@@ -1,15 +1,21 @@
-# TTP Examples - MITRE ATT&CK Mapping
+# MITRE ATT&CK Mapping for TTPs
 
-## mitre.yaml
+Understand the process of mapping a TTP to the MITRE ATT&CK framework,
+a globally recognized cybersecurity matrix.
 
-If you want to execute the example we provide that shows how to map
-a TTP to MITRE ATT&CK, you can run the following command:
+---
+
+## Running `mitre.yaml` Demonstration
+
+To see the TTP mapping in action with the MITRE ATT&CK framework, execute:
 
 ```bash
-ttpforge run forgearmory//examples/targets/mitre-target.yaml
+ttpforge run forgearmory//examples/mitre/mitre.yaml
 ```
 
-Expected output:
+---
+
+## Expected Output
 
 ```text
 INFO    [*] Validating Steps

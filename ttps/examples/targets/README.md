@@ -1,21 +1,23 @@
-# TTP Examples - Targets
+# Specifying Targets for TTPs
 
-This TTP illustrates how to specify targets for a TTP.
+Gain insights on how to define specific targets for a TTP, be it a cloud service,
+an operating system, or a certain architecture.
 
 ---
 
-## cloud-target.yaml
+## Running `cloud-target.yaml` Demonstration
 
-If you want to execute the example we provide to specify a cloud target,
-you can run the following command:
+To demonstrate the specification of a cloud target, execute:
 
 ```bash
 ttpforge run forgearmory//examples/targets/cloud-target.yaml
 ```
 
-Expected output if cloud credentials are set:
+---
 
-```bash
+## Expected Output (With Cloud Credentials)
+
+```text
 INFO    [*] Validating Steps
 INFO    [+] Finished validating steps
 INFO    [+] Running current TTP: cloud
@@ -28,36 +30,50 @@ INFO    [*] Completed TTP
 INFO    [*] No Cleanup Steps Found
 ```
 
-Expected output if cloud credentials are not set:
+## Expected Output (Without Cloud Credentials)
 
-```bash
+```text
 INFO    [*] Validating Steps
 INFO    [+] Finished validating steps
 INFO    [+] Running current TTP: cloud
 INFO    [+] Running current step: ensure-aws-creds-present
 INFO    ========= Executing ==========
-error: AWS credentials are not set, exiting.
+error: AWS_DEFAULT_REGION must be set.
 ERROR   [*] Error executing TTP: exit status 1
 INFO    [*] Completed TTP
 INFO    [*] No Cleanup Steps Found
 ERROR   failed to run command:
-        failed to run TTP at /Users/$USER/.ttpforge/repos/forgearmory/
-        ttps/examples/targets/cloud-target.yaml: exit status 1
+        failed to run TTP at /Users/$USER/.ttpforge/repos/forgearmory/ttps/
+        examples/targets/cloud-target.yaml:
+        exit status 1
 ```
 
 ---
 
-## os-and-arch-target.yaml
+## Running `os-and-arch-target.yaml` Demonstration
 
-If you want to execute the example we provide that shows how to map
-operating systems and/or architecture to a TTP,
-you can run the following command:
+To visualize the mapping of operating systems and architectures to a TTP, execute:
 
 ```bash
 ttpforge run forgearmory//examples/targets/os-and-arch-target.yaml
 ```
 
-Expected output:
+---
+
+## Expected Output
 
 ```text
+INFO    [*] Validating Steps
+INFO    [+] Finished validating steps
+INFO    [+] Running current TTP: os-and-arch-target
+INFO    [+] Running current step: friendly-message
+INFO    ========= Executing ==========
+You are running a TTP that works for the following operating systems: [linux macos]
+and architectures: [x86_64 arm64].
+It can be used for the following cloud providers
+at the specified regions as well: [aws:us-west-1 gcp:us-west1-a azure:eastus].
+INFO    ========= Done ==========
+INFO    [+] Finished running step: friendly-message
+INFO    [*] Completed TTP
+INFO    [*] No Cleanup Steps Found
 ```
