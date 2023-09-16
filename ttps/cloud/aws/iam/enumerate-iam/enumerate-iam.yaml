@@ -5,7 +5,6 @@ description: |
   brute force using the
   [enumerate-iam](https://github.com/andresriancho/enumerate-iam) tool.
 args:
-  - name: cleanup
   - name: detect
   - name: eiam_path
   - name: extended_scan

@@ -12,8 +12,6 @@ This script uses AWS CLI commands to exfiltrate secrets from AWS Secrets Manager
 - **target_secret_id**: The ID of the secret that
   you want to steal. If this is set to "all", the
   script will attempt to steal all secrets.
-- **cleanup**: When set to true, the script will
-  delete the pillaged secrets after execution.
 
 ## Pre-requisites
 
@@ -30,19 +28,18 @@ You can run the script using the following examples:
 Steal a specific secret, detect if the action was logged, and clean up afterwards:
 
 ```bash
-ttpforge -c config.yaml run ttps/cloud/aws/secretsmanager/steal-secretsmanager-secret.yaml \
+ttpforge run forgearmory//cloud/aws/secretsmanager/steal-secretsmanager-secret.yaml \
     --arg target_secret_id=ssh_key \
-    --arg cleanup=true \
     --arg detect=true
 ```
 
 Steal all secrets, detect if the action was logged, but do not clean up afterwards:
 
 ```bash
-ttpforge -c config.yaml run ttps/cloud/aws/secretsmanager/steal-secretsmanager-secret.yaml \
+ttpforge run forgearmory//cloud/aws/secretsmanager/steal-secretsmanager-secret.yaml \
     --arg target_secret_id=all \
-    --arg cleanup=false \
-    --arg detect=true
+    --arg detect=true \
+    --no-cleanup
 ```
 
 ## Steps
@@ -54,10 +51,9 @@ ttpforge -c config.yaml run ttps/cloud/aws/secretsmanager/steal-secretsmanager-s
    the provided AWS credentials.
 
 1. **Steal Secret:** This step runs the AWS CLI command to retrieve the
-   secret or secrets specified by target_secret_id.
-
-1. **Cleanup:** If cleanup is set to true, this step will delete
-   the pillaged secrets.
+   secret or secrets specified by target_secret_id. Unless `--no-cleanup`
+   is specified, the cleanup step will uninstall the Python packages
+   required by the `enumerate-iam` tool and clean up the cloned repository.
 
 1. **Check Detection:** If detect is set to true, this step will look
    for specific API calls in the CloudTrail logs within a certain time

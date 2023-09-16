@@ -14,9 +14,6 @@ tool to determine what permissions an IAM role has through brute force.
 - **extended_scan**: When set to true, the script will use the
   extended AWS APIs to enumerate permissions.
   Note that this will take longer but will provide more accurate results.
-- **cleanup**: When set to true, the script will uninstall the
-  Python packages and clean up the enumerate-iam repository
-  after execution.
 
 ## Pre-requisites
 
@@ -39,8 +36,7 @@ it cleans up the artifacts:
 ttpforge -c config.yaml run ttps/cloud/aws/iam/enumerate-iam/enumerate-iam.yaml \
     --arg detect=true \
     --arg eiam_path=/tmp/enumerate-iam \
-    --arg extended_scan=false \
-    --arg cleanup=true
+    --arg extended_scan=false
 ```
 
 Run the `enumerate-iam` tool with extended APIs at a specified path,
@@ -53,7 +49,7 @@ ttpforge -c config.yaml run ttps/cloud/aws/iam/enumerate-iam/enumerate-iam.yaml 
     --arg detect=true \
     --arg eiam_path=/tmp/enumerate-iam \
     --arg extended_scan=true \
-    --arg cleanup=false
+    --no-
 ```
 
 ## Steps
@@ -65,11 +61,9 @@ ttpforge -c config.yaml run ttps/cloud/aws/iam/enumerate-iam/enumerate-iam.yaml 
    latest AWS API endpoints.
 
 1. **Run enumerate-iam**: This step runs the enumerate-iam script using
-   the provided AWS credentials.
-
-1. **Cleanup**: If `cleanup` is set to true, this step will uninstall
-   the Python packages required by the enumerate-iam tool and clean up the
-   cloned repository.
+   the provided AWS credentials. Unless `--no-cleanup` is specified,
+   the cleanup step will uninstall the Python packages required by the
+   `enumerate-iam` tool and clean up the cloned repository.
 
 1. **Check Detection**: If `detect` is set to true, this step will look
    for specific API calls in the CloudTrail logs within a certain time
