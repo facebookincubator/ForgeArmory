@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.1
 
 require (
-	github.com/go-playground/validator/v10 v10.15.3
+	github.com/go-playground/validator/v10 v10.15.4
 	github.com/l50/goutils/v2 v2.1.0
 	github.com/spf13/afero v1.9.5
 	github.com/xeipuuv/gojsonschema v1.2.0
