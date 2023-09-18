@@ -2,16 +2,18 @@
 
 ![Meta TTP](https://img.shields.io/badge/Meta_TTP-blue)
 
-This script uses AWS CLI commands to exfiltrate secrets from AWS Secrets Manager.
+This TTP uses AWS CLI commands to exfiltrate secrets from AWS Secrets Manager.
 
 ## Arguments
 
-- **detect**: If set to true, the script will
+- **detect**: If set to true, the TTP will
   query CloudTrail to determine if the secret
-  retrieval was logged.
-- **target_secret_id**: The ID of the secret that
-  you want to steal. If this is set to "all", the
-  script will attempt to steal all secrets.
+  retrieval was logged. Defaults to `true`.
+- **target_secret_id**: Specifies the ID of the target secret in Secrets
+  Manager. If set to `all`, it will retrieve all secrets accessible within
+  the specified AWS region (provided by setting `$AWS_DEFAULT_REGION`).
+- **artifact_output_dir**: The directory where the stolen secrets will be
+  stored. Defaults to `$HOME/.ttpforge/artifacts/steal-secretsmanager-secret`.
 
 ## Pre-requisites
 
@@ -23,39 +25,34 @@ This script uses AWS CLI commands to exfiltrate secrets from AWS Secrets Manager
 
 ## Examples
 
-You can run the script using the following examples:
-
-Steal a specific secret, detect if the action was logged, and clean up afterwards:
+Retrieve a specific secret from Secrets Manager:
 
 ```bash
-ttpforge run forgearmory//cloud/aws/secretsmanager/steal-secretsmanager-secret.yaml \
-    --arg target_secret_id=ssh_key \
-    --arg detect=true
+ttpforge run forgearmory//cloud/aws/secretsmanager/steal-secretsmanager-secret/steal-secretsmanager-secret.yaml \
+    --arg target_secret_id="my-secret-id"
 ```
 
-Steal all secrets, detect if the action was logged, but do not clean up afterwards:
+Retrieve all secrets from Secrets Manager and do not
+clean up the output files:
 
 ```bash
-ttpforge run forgearmory//cloud/aws/secretsmanager/steal-secretsmanager-secret.yaml \
+ttpforge run forgearmory//cloud/aws/secretsmanager/steal-secretsmanager-secret/steal-secretsmanager-secret.yaml \
     --arg target_secret_id=all \
-    --arg detect=true \
     --no-cleanup
 ```
 
 ## Steps
 
-1. **Setup**: This step checks if the necessary tools and environment
-   variables are available.
+1. **Setup**: Checks if the AWS credentials are set and if the AWS CLI
+   tool is present.
 
-1. **Run enumerate-iam**: This step runs the enumerate-iam script using
-   the provided AWS credentials.
+1. **Steal Secret**: If `target_secret_id` is set to `all`, it retrieves
+   all secrets accessible in Secrets Manager for the specified region. If a
+   specific secret ID is provided, it retrieves only that secret. The
+   stolen secrets are stored in the directory specified by
+   `artifact_output_dir`.
 
-1. **Steal Secret:** This step runs the AWS CLI command to retrieve the
-   secret or secrets specified by target_secret_id. Unless `--no-cleanup`
-   is specified, the cleanup step will uninstall the Python packages
-   required by the `enumerate-iam` tool and clean up the cloned repository.
-
-1. **Check Detection:** If detect is set to true, this step will look
+1. **Check Detection:** If `detect` is set to `true`, this step will look
    for specific API calls in the CloudTrail logs within a certain time
    window. If it finds specific API calls (GetSecretValue, ListSecrets)
    from the same IP address, it will output the details.
