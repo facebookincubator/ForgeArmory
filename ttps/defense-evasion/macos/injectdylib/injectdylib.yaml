@@ -23,6 +23,6 @@ steps:
         rm calc.dylib injectdylib
         echo "Closing the Calculator app and paper tape..."
         osascript -e 'tell application "Calculator" to quit'
-        echo "Closing the Safari..."
+        echo "Closing Safari..."
         osascript -e 'tell application "Safari" to quit'
         echo "Cleanup Finished!"
