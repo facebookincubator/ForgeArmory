@@ -8,8 +8,6 @@ args:
     default: "${HOME}/.ssh/authorized_keys"
   - name: rogue_key
     description: "The rogue public SSH key to be added"
-  - name: cleanup
-    default: true
 
 steps:
   - name: ensure-authorized_keys-present
@@ -32,9 +30,8 @@ steps:
       set -e
 
       echo "{{ .Args.rogue_key }}" >> "{{ .Args.ssh_authorized_keys }}"
+    cleanup:
+      inline: |
+        set -e
 
-  - name: cleanup
-    inline: |
-      set -e
-
-      mv "{{ .Args.ssh_authorized_keys }}.bak" "{{ .Args.ssh_authorized_keys }}"
+        mv "{{ .Args.ssh_authorized_keys }}.bak" "{{ .Args.ssh_authorized_keys }}"

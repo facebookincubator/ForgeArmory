@@ -66,7 +66,7 @@ log the results in a custom logfile, and get detection information:
 ## Steps
 
 1. **Preparation**: Ensure a valid set of AWS credentials and that the target
-   IAM user has less than 2 access keys. The script provided can be used to
+   IAM user has less than 2 access keys. the TTP provided can be used to
    enumerate users and verify access keys.
 
 2. **Target User Identification**: Identify the IAM user for the new access key

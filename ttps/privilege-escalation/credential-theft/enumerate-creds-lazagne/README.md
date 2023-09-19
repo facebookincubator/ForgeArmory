@@ -9,7 +9,7 @@ extracting credentials stored on disk and in memory of a target system.
 
 - **lazagne_path**: Defines the path where LaZagne will be installed and run.
 
-- **cleanup**: When true, the script attempts to clean the artifacts
+- **cleanup**: When true, the TTP attempts to clean the artifacts
   created during the execution of this TTP.
 
 ## Pre-requisites

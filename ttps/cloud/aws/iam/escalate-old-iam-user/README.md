@@ -91,11 +91,11 @@ Remove `old-and-forgotten` IAM user from the `priv-group` privileged group:
    have not used access keys in over 90 days.
 
 2. **Add or Remove from Group**: Depending on the parameters,
-   the script will either add the identified IAM user to the specified
+   the TTP will either add the identified IAM user to the specified
    privileged group or remove them from the group.
 
 3. **Validate Changes**: Check that the changes have been made as intended
    within the AWS environment.
 
-4. **Cleanup**: If the `cleanup` argument is set to true, the script will
+4. **Cleanup**: If the `cleanup` argument is set to true, the TTP will
    remove the IAM user from the group.

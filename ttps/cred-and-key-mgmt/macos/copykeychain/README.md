@@ -6,7 +6,7 @@ This TTP copies the user's login keychain database to the `/tmp` directory.
 
 ## Arguments
 
-- **detect:** If set to true, the script will check the log file for entries
+- **detect:** If set to true, the TTP will check the log file for entries
   indicating the copy operation and report if any suspicious activity is
   detected. Default value is `true`.
 

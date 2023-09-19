@@ -7,7 +7,7 @@ password entry.
 
 ## Arguments
 
-- **detect:** If set to false, the script will not check the log file for
+- **detect:** If set to false, the TTP will not check the log file for
   entries indicating the execution of the fake prompt. Default value is `false`.
 
 ## Pre-requisites

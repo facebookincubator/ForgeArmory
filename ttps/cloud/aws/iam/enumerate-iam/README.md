@@ -7,11 +7,11 @@ tool to determine what permissions an IAM role has through brute force.
 
 ## Arguments
 
-- **detect**: If set to true, the script will
+- **detect**: If set to true, the TTP will
   query CloudTrail to determine if the IAM enumeration was logged.
 - **eiam_path**: Specifies the location to clone and manage the enumerate-iam
   tool.
-- **extended_scan**: When set to true, the script will use the
+- **extended_scan**: When set to true, the TTP will use the
   extended AWS APIs to enumerate permissions.
   Note that this will take longer but will provide more accurate results.
 
@@ -27,7 +27,7 @@ tool to determine what permissions an IAM role has through brute force.
 
 ## Examples
 
-You can run the script using the following examples:
+You can run the TTP using the following examples:
 
 Execute the `enumerate-iam` tool at a specified path. Post execution,
 it cleans up the artifacts:
@@ -57,7 +57,7 @@ ttpforge -c config.yaml run ttps/cloud/aws/iam/enumerate-iam/enumerate-iam.yaml 
 1. **Setup**: This step checks if the necessary tools and environment
    variables are available. It also checks if the enumerate-iam tool is
    already present on the system; if not, it will clone the tool from
-   GitHub. If `extended_scan` is set to true, the script will clone the
+   GitHub. If `extended_scan` is set to true, the TTP will clone the
    latest AWS API endpoints.
 
 1. **Run enumerate-iam**: This step runs the enumerate-iam script using

@@ -8,7 +8,7 @@ specified script or command upon system boot or user login.
 ## Arguments
 
 - **command_or_path**:
-  Path to the script or bash command for the launch agent to execute.
+  Path to the TTP or bash command for the launch agent to execute.
 
 ## Examples
 
@@ -36,9 +36,9 @@ ttpforge run forgearmory//persistence/macos/launchagent/launchagent.yaml \
 
 1. **launchagent**:
   - Build the `launchagent.swift` source into a compiled binary.
-  - Execute the compiled binary. It creates the script at the specified
+  - Execute the compiled binary. It creates the TTP at the specified
     path and the `~/Library/LaunchAgents/com.ttpforgelaunchagent.plist` to
-    invoke the script. It then loads this agent with `launchctl`.
+    invoke the TTP. It then loads this agent with `launchctl`.
   - Run a cleanup step that will:
     1. Delay for 15 seconds before starting the cleanup process.
     1. Use `launchctl` to unload the `.plist`.
