@@ -16,9 +16,6 @@ args:
   - name: ports
     type: string
     default: 20,21,22,23,25,53,80,110,125,143,443,587,2525,3306,3389
-  - name: cleanup
-    type: bool
-    default: true
 
 steps:
   - name: confirm-required-tools-installed
