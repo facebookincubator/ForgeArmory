@@ -6,14 +6,19 @@ This TTP uses AWS CLI commands to exfiltrate secrets from AWS Secrets Manager.
 
 ## Arguments
 
-- **detect**: If set to true, the TTP will
-  query CloudTrail to determine if the secret
-  retrieval was logged. (Default: true)
+- **detect**: If set to true, the TTP will query CloudTrail to determine
+  if the secret retrieval was logged.
+
+  Default: true
+
 - **target_secret_id**: Specifies the ID of the target secret in Secrets
   Manager. If set to `all`, it will retrieve all secrets accessible within
   the specified AWS region (provided by setting `$AWS_DEFAULT_REGION`).
+
 - **artifact_output_dir**: The directory where the stolen secrets will be
-  stored. Defaults to `$HOME/.ttpforge/artifacts/steal-secretsmanager-secret`.
+  stored.
+
+  Default: `$HOME/.ttpforge/artifacts/steal-secretsmanager-secret`
 
 ## Pre-requisites
 
@@ -21,6 +26,7 @@ This TTP uses AWS CLI commands to exfiltrate secrets from AWS Secrets Manager.
    provided either as environment variables (`AWS_ACCESS_KEY_ID`,
    `AWS_SECRET_ACCESS_KEY`, and optionally `AWS_SESSION_TOKEN`) or
    via an `AWS_PROFILE`.
+
 1. The AWS CLI is installed.
 
 ## Examples
@@ -50,7 +56,8 @@ ttpforge run forgearmory//cloud/aws/secretsmanager/steal-secretsmanager-secret/s
    all secrets accessible in Secrets Manager for the specified region. If a
    specific secret ID is provided, it retrieves only that secret. The
    stolen secrets are stored in the directory specified by
-   `artifact_output_dir`.
+   `artifact_output_dir`. Unless `--no-cleanup` is set, all of the
+   retrieved information is deleted.
 
 1. **Check Detection:** If `detect` is set to `true`, this step will look
    for specific API calls in the CloudTrail logs within a certain time
