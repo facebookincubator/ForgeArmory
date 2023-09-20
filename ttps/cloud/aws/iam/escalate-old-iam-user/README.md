@@ -7,11 +7,17 @@ Add previously dormant IAM user to a privileged group or remove them from that g
 ## Arguments
 
 - **user**: Target IAM user.
+
 - **group**: Target IAM group to add to the IAM user.
 
 ## Pre-requisites
 
-1. A valid set of AWS credentials.
+1. A valid set of AWS credentials. They can be provided through environment
+   variables: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
+   `AWS_SESSION_TOKEN`, or `AWS_PROFILE`.
+
+1. The AWS CLI is installed.
+
 1. Create a list of enumerated dormant IAM user accounts:
 
   ```bash

@@ -11,7 +11,8 @@ Perform a syn scan against a range of IP addresses.
 
 - **ports (string)**: Ports to be scanned for on each IP address. If this
   parameter is not provided, the default port list will be scanned.
-  (Default: 20,21,22,23,25,53,80,110,125,143,443,587,2525,3306,3389)
+
+  Default: 20,21,22,23,25,53,80,110,125,143,443,587,2525,3306,3389
 
 ## Pre-requisites
 

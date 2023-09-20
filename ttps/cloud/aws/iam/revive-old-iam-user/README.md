@@ -7,16 +7,20 @@ Add a new access key to a previously dormant IAM user.
 ## Arguments
 
 - **detect:** When set to true, query cloudtrail to determine if the
-  TTP was logged. (Default: true)
+  TTP was logged.
+
+  Default: true
+
 - **user:** Target IAM user for the new access key.
 
 ## Pre-requisites
 
-1. A valid set of AWS credentials. The AWS credentials can be
-   provided either as environment variables (`AWS_ACCESS_KEY_ID`,
-   `AWS_SECRET_ACCESS_KEY`, and optionally `AWS_SESSION_TOKEN`) or
-   via an `AWS_PROFILE`.
+1. A valid set of AWS credentials. They can be provided through environment
+   variables: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
+   `AWS_SESSION_TOKEN`, or `AWS_PROFILE`.
+
 1. The AWS CLI is installed.
+
 1. Enumerate user accounts with less than 2 access keys:
 
   ```bash
@@ -58,4 +62,5 @@ ttpforge run forgearmory//cloud/aws/iam/revive-old-iam-user/revive-old-iam-user.
    step also includes the cleanup of any created access key.
 
 1. **Check Detection**: If `detect` is true, query cloudtrail to
-   see if the TTP was logged. This step checks for recent `CreateAccessKey` and `GenerateDataKey` events.
+   see if the TTP was logged. This step checks for recent `CreateAccessKey`
+   and `GenerateDataKey` events.

@@ -11,6 +11,7 @@ startup).
 
 - **command**: Specifies the command that will be executed upon
   sourcing `.zshrc`.
+
   Default: `uname -a > /tmp/system-info.txt`
 
 ## Pre-requisites

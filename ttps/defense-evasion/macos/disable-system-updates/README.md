@@ -22,15 +22,14 @@ ttpforge run forgearmory//defense-evasion/macos/disable-system-updates/disable-s
 ## Steps
 
 1. **Disable Updates**: Execute defaults to disable automatic system security
-   updates.
+   updates. Unless `--no-cleanup` is set, the settings required to
+   enable automatic system security updates will be re-enabled.
 
-1. **Cleanup**: If the `cleanup` argument is set to `true`, execute defaults
-   to enable automatic system security updates.
+## MITRE ATT&CK Mapping
 
-mitre:
-  tactics:
-    - TA0003 Persistence
-  techniques:
-    - T1543 Create or Modify System Process
-  subtechniques:
-    - "T1543.001 Create or Modify System Process: Launch Agent"
+- **Tactics**:
+  - TA0005 Defense Evasion
+- **Techniques**:
+  - T1562 Impair Defenses
+- **Subtechniques**:
+  - T1562.001 Impair Defenses: Disable or Modify Tools

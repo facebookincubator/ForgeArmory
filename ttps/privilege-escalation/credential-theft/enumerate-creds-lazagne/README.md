@@ -8,7 +8,8 @@ extracting credentials stored on disk and in memory of a target system.
 ## Arguments
 
 - **lazagne_path**: Specifies the path where LaZagne will be installed and run.
-  (Default: `/tmp/lazagne`)
+
+  Default: `/tmp/lazagne`
 
 ## Pre-requisites
 
@@ -26,8 +27,6 @@ up any associated artifacts:
 ```bash
 ttpforge run forgearmory//privilege-escalation/credential-theft/enumerate-creds-lazagne/enumerate-creds-lazagne.yaml
 ```
-
-[Insert any additional examples here, if necessary.]
 
 ## Steps
 

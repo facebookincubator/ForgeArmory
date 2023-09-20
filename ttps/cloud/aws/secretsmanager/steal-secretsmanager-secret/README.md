@@ -22,10 +22,9 @@ This TTP uses AWS CLI commands to exfiltrate secrets from AWS Secrets Manager.
 
 ## Pre-requisites
 
-1. A valid set of AWS credentials. The AWS credentials can be
-   provided either as environment variables (`AWS_ACCESS_KEY_ID`,
-   `AWS_SECRET_ACCESS_KEY`, and optionally `AWS_SESSION_TOKEN`) or
-   via an `AWS_PROFILE`.
+1. A valid set of AWS credentials. They can be provided through environment
+   variables: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
+   `AWS_SESSION_TOKEN`, or `AWS_PROFILE`.
 
 1. The AWS CLI is installed.
 

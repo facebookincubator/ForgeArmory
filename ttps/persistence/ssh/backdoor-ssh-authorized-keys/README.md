@@ -14,10 +14,6 @@ persistence on a target system.
 - **rogue_key**: This argument provides the
   rogue public SSH key to be added.
 
-- **cleanup**: When set to true, it will restore the original
-  authorized_keys file from a backup created during execution
-  of the TTP.
-
 ## Pre-requisites
 
 Ensure an authorized_keys file is present for the user at the path
