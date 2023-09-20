@@ -5,7 +5,7 @@ description: |
   extracting credentials stored on disk and in memory of a target system.
 args:
   - name: lazagne_path
-  - name: cleanup
+    default: /tmp/lazagne
 
 steps:
   - name: setup
