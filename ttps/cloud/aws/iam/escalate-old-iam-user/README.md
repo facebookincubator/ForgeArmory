@@ -8,7 +8,6 @@ Add previously dormant IAM user to a privileged group or remove them from that g
 
 - **user**: Target IAM user.
 - **group**: Target IAM group to add to the IAM user.
-- **cleanup**: When set to true, remove the IAM user from the group.
 
 ## Pre-requisites
 
@@ -65,24 +64,14 @@ Add previously dormant IAM user to a privileged group or remove them from that g
 
 ## Examples
 
-Add `old-and-forgotten` IAM user to the `priv-group` privileged group:
+Add `old-and-forgotten` IAM user to the `priv-group` privileged group and
+skip the cleanup step, which would remove the user from the group:
 
 ```bash
-./ttpforge -c config.yaml \
-      run ttps/cloud/aws/iam/escalate-old-iam-user/escalate-old-iam-user.yaml \
-      --arg user=old-and-forgotten \
-      --arg group=priv-group \
-      --arg cleanup=false
-```
-
-Remove `old-and-forgotten` IAM user from the `priv-group` privileged group:
-
-```bash
-./ttpforge -c config.yaml \
-      run ttps/cloud/aws/iam/escalate-old-iam-user/escalate-old-iam-user.yaml \
-      --arg user=old-and-forgotten \
-      --arg group=priv-group \
-      --arg cleanup=true
+ttpforge run forgearmory//cloud/aws/iam/escalate-old-iam-user/escalate-old-iam-user.yaml \
+  --arg user=old-and-forgotten \
+  --arg group=priv-group \
+  --no-cleanup
 ```
 
 ## Steps
@@ -90,12 +79,11 @@ Remove `old-and-forgotten` IAM user from the `priv-group` privileged group:
 1. **Identify Dormant Users**: Using the provided script, scan for users that
    have not used access keys in over 90 days.
 
-2. **Add or Remove from Group**: Depending on the parameters,
+1. **Add or Remove from Group**: Depending on the parameters,
    the TTP will either add the identified IAM user to the specified
-   privileged group or remove them from the group.
+   privileged group or remove them from the group. Unless `--no-cleanup` is
+   specified, the cleanup step will remove the added user from the input
+   group.
 
-3. **Validate Changes**: Check that the changes have been made as intended
+1. **Validate Changes**: Check that the changes have been made as intended
    within the AWS environment.
-
-4. **Cleanup**: If the `cleanup` argument is set to true, the TTP will
-   remove the IAM user from the group.
