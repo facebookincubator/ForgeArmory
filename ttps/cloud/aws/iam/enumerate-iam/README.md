@@ -8,12 +8,13 @@ tool to determine what permissions an IAM role has through brute force.
 ## Arguments
 
 - **detect**: If set to true, the TTP will
-  query CloudTrail to determine if the IAM enumeration was logged.
+  query CloudTrail to determine if the IAM enumeration was logged. (Default: true)
 - **eiam_path**: Specifies the location to clone and manage the enumerate-iam
-  tool.
+  tool. (Default: /tmp/enumerate-iam)
 - **extended_scan**: When set to true, the TTP will use the
   extended AWS APIs to enumerate permissions.
   Note that this will take longer but will provide more accurate results.
+  (Default: false)
 
 ## Pre-requisites
 
@@ -33,10 +34,9 @@ Execute the `enumerate-iam` tool at a specified path. Post execution,
 it cleans up the artifacts:
 
 ```bash
-ttpforge -c config.yaml run ttps/cloud/aws/iam/enumerate-iam/enumerate-iam.yaml \
-    --arg detect=true \
-    --arg eiam_path=/tmp/enumerate-iam \
-    --arg extended_scan=false
+ttpforge run forgearmory//cloud/aws/iam/enumerate-iam/enumerate-iam.yaml \
+  --arg eiam_path=/tmp/enumerate-iam \
+  --arg extended_scan=false
 ```
 
 Run the `enumerate-iam` tool with extended APIs at a specified path,
@@ -44,12 +44,11 @@ skip the cleanup step, log results to a custom file, and get detection
 data. This will take more time due to the use of extended APIs:
 
 ```bash
-ttpforge -c config.yaml run ttps/cloud/aws/iam/enumerate-iam/enumerate-iam.yaml \
-    -l brute-force-iam-permissions.log \
-    --arg detect=true \
-    --arg eiam_path=/tmp/enumerate-iam \
-    --arg extended_scan=true \
-    --no-
+ttpforge run forgearmory//cloud/aws/iam/enumerate-iam/enumerate-iam.yaml \
+  --arg detect=true \
+  --arg eiam_path=/tmp/enumerate-iam \
+  --arg extended_scan=true \
+  --no-cleanup
 ```
 
 ## Steps
