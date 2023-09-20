@@ -6,19 +6,18 @@ Add a new access key to a previously dormant IAM user.
 
 ## Arguments
 
-- detect: When set to true, query cloudtrail to determine if the
-  TTP was logged.
-
-- cleanup: When set to true, attempt to clean up the artifacts created
-  while running this TTP.
-
-- user: Target IAM user for the new access key.
+- **detect:** When set to true, query cloudtrail to determine if the
+  TTP was logged. (Default: true)
+- **user:** Target IAM user for the new access key.
 
 ## Pre-requisites
 
-1. A valid set of AWS credentials.
-
-2. Enumerate user accounts with less than 2 access keys:
+1. A valid set of AWS credentials. The AWS credentials can be
+   provided either as environment variables (`AWS_ACCESS_KEY_ID`,
+   `AWS_SECRET_ACCESS_KEY`, and optionally `AWS_SESSION_TOKEN`) or
+   via an `AWS_PROFILE`.
+1. The AWS CLI is installed.
+1. Enumerate user accounts with less than 2 access keys:
 
   ```bash
   #!/bin/bash
@@ -41,49 +40,22 @@ Add a new access key to a previously dormant IAM user.
 
 ## Examples
 
-Create a new access key for the svc-mfghwteste-wef102-upload-user IAM user:
+Create a new access key for the `target-user` IAM user:
 
 ```bash
-./ttpforge -c config.yaml \
-      run ttps/cloud/aws/iam/revive-old-iam-user/revive-old-iam-user.yaml \
-      --arg user=mountainpass-budgetchecker \
-      --arg cleanup=true \
-      --arg detect=false
-```
-
-Create a new access key for the mountainpass-file-inject IAM user,
-log the results in a custom logfile, and get detection information:
-
-```bash
-./ttpforge -c config.yaml \
-      -l revive-old-iam-user.log \
-      run ttps/cloud/aws/iam/revive-old-iam-user/revive-old-iam-user.yaml \
-      --arg user=mountainpass-budgetchecker \
-      --arg cleanup=true \
-      --arg detect=true
+ttpforge run forgearmory//cloud/aws/iam/revive-old-iam-user/revive-old-iam-user.yaml \
+  --arg user=target-user
 ```
 
 ## Steps
 
-1. **Preparation**: Ensure a valid set of AWS credentials and that the target
-   IAM user has less than 2 access keys. the TTP provided can be used to
-   enumerate users and verify access keys.
+1. **Ensure AWS Credentials**: Validates if the required AWS credentials are set.
 
-2. **Target User Identification**: Identify the IAM user for the new access key
-   using the `user` argument.
+1. **Ensure AWS CLI**: Validates that the AWS Command Line Interface is present
+   and executable.
 
-3. **Detection Query (Optional)**: If `detect` is true, query cloudtrail to
-   see if the TTP was logged.
+1. **Add Access Key**: Create a new access key for the target IAM user. This
+   step also includes the cleanup of any created access key.
 
-4. **Access Key Creation**: Create a new access key for the specified IAM user
-   by interacting with AWS's IAM service.
-
-5. **Logging (Optional)**: Ensure appropriate log configurations if specific
-   logging is required, such as in a custom logfile.
-
-6. **Cleanup (Optional)**: If `cleanup` is true, clean up any artifacts created
-   during the TTP's execution.
-
-7. **Verification**: Optionally verify that the new access key is successfully
-   added to the target IAM user, confirming its presence and correct
-   configuration.
+1. **Check Detection**: If `detect` is true, query cloudtrail to
+   see if the TTP was logged. This step checks for recent `CreateAccessKey` and `GenerateDataKey` events.

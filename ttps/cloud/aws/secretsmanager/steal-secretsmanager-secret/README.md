@@ -8,7 +8,7 @@ This TTP uses AWS CLI commands to exfiltrate secrets from AWS Secrets Manager.
 
 - **detect**: If set to true, the TTP will
   query CloudTrail to determine if the secret
-  retrieval was logged. Defaults to `true`.
+  retrieval was logged. (Default: true)
 - **target_secret_id**: Specifies the ID of the target secret in Secrets
   Manager. If set to `all`, it will retrieve all secrets accessible within
   the specified AWS region (provided by setting `$AWS_DEFAULT_REGION`).
