@@ -6,10 +6,11 @@ steps:
     inline: |
       set -e
 
+      echo -e "Target file pre-edit:"
       cat file-to-edit.txt
   - name: edit-target-file
     edit_file: "file-to-edit.txt"
-    backup_file: "my-backup.txt"
+    backup_file: "/tmp/my-backup.txt"
     edits:
       - old: REPLACE_ME
         new: REPLACED_BY_EDIT
@@ -23,9 +24,10 @@ steps:
     inline: |
       set -e
 
-      cat file-to-edit.txt
+      echo -e "Target file post-edit:"
+      cat $HOME/.ttpforge/repos/forgearmory/ttps/examples/steps/edit-step/file-to-edit.txt
     cleanup:
       inline: |
         set -e
 
-        mv my-backup.txt file-to-edit.txt
+        mv /tmp/my-backup.txt $HOME/.ttpforge/repos/forgearmory/ttps/examples/steps/edit-step/file-to-edit.txt
