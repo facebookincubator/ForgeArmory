@@ -2,7 +2,10 @@
 name: Create .zshrc persistence
 description: |
   This TTP checks to see if ~/.zshrc is present and if not creates it and
-  adds a line to execute a script (which opens Calc).
+  adds a line to execute a specified command or script.
+args:
+  - name: command
+    default: "uname -a > /tmp/system-info.txt"
 mitre:
   tactics:
     - TA0003 Persistence
@@ -17,7 +20,7 @@ steps:
         echo "No ~/.zshrc file found so creating an empty file"
         touch ~/.zshrc
       fi
-      echo -e "#!/bin/bash\nopen -a Calculator.app" >> /tmp/ttpforge-persist-zshrc.sh
+      echo -e "#!/bin/bash\n{{ .Args.command }}" >> /tmp/ttpforge-persist-zshrc.sh
       chmod +x /tmp/ttpforge-persist-zshrc.sh
       cp ~/.zshrc .zshrc-orig
       echo "Appending to the ~/.zshrc file..."

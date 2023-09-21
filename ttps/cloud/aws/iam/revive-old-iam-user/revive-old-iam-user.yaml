@@ -2,8 +2,8 @@
 name: revive-old-iam-user
 description: Add an access key to a previously dormant IAM user.
 args:
-  - name: cleanup
   - name: detect
+    default: true
   - name: user
 
 steps:
@@ -15,7 +15,6 @@ steps:
           echo "Error: AWS_DEFAULT_REGION must be set."
           exit 1
       fi
-
       if [[ -n "${AWS_ACCESS_KEY_ID}" && -n "${AWS_SECRET_ACCESS_KEY}" ]]; then
           if [[ -z "${AWS_SESSION_TOKEN}" ]]; then
             echo "Warning: AWS_SESSION_TOKEN is not set with AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."

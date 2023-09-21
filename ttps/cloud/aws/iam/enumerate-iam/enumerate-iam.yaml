@@ -5,10 +5,12 @@ description: |
   brute force using the
   [enumerate-iam](https://github.com/andresriancho/enumerate-iam) tool.
 args:
-  - name: cleanup
   - name: detect
+    default: true
   - name: eiam_path
+    default: /tmp/enumerate-iam
   - name: extended_scan
+    default: false
 
 steps:
   - name: ensure-aws-creds-present
@@ -74,7 +76,7 @@ steps:
           # Get latest APIs
           echo "Info: Extended scan specified - getting latest AWS API endpoints"
           git clone https://github.com/aws/aws-sdk-js.git {{ .Args.eiam_path }}/enumerate_iam/aws-sdk-js
-          pushd {{ .Args.eiam_path }} || exit 1
+          pushd {{ .Args.eiam_path }}/enumerate_iam || exit 1
           python3 generate_bruteforce_tests.py
           popd || exit 1
       fi

@@ -2,7 +2,6 @@
 name: escalate-old-iam-user
 description: Add an access key to a previously dormant IAM user.
 args:
-  - name: cleanup
   - name: user
   - name: group
 
@@ -28,7 +27,8 @@ steps:
   - name: ensure-aws-cli-present
     inline: |
       set -e
-      if ! [ -x "$(command -v aws)" ]; then
+
+      if ! [[ -x "$(command -v aws)" ]]; then
         echo 'error: AWS CLI is not installed.' >&2
       else
         echo 'AWS CLI is installed.'
@@ -38,6 +38,7 @@ steps:
   - name: add-user-to-group
     inline: |
       set -e
+
       # Add the user to the group
       aws iam add-user-to-group --user-name {{ .Args.user }} \
         --group-name {{ .Args.group }}
@@ -46,6 +47,7 @@ steps:
       name: cleanup
       inline: |
         set -e
+
         # Remove the user from the group
         aws iam remove-user-from-group --user-name {{ .Args.user }} \
           --group-name {{ .Args.group }}

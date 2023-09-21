@@ -2,28 +2,51 @@
 
 ![Meta TTP](https://img.shields.io/badge/Meta_TTP-blue)
 
-This TTP checks to see if `~/.zshrc` is present and if not creates it and adds
-a line to execute a script (which opens Calc).
+This TTP checks the presence of the `~/.zshrc` file on the target system.
+If it is absent, this TTP creates it and appends a specified command or
+script for execution whenever the `.zshrc` is sourced (typically on shell
+startup).
+
+## Arguments
+
+- **command**: Specifies the command that will be executed upon
+  sourcing `.zshrc`.
+
+  Default: `uname -a > /tmp/system-info.txt`
 
 ## Pre-requisites
 
-1. The user must have the necessary permissions to access and create the
-   `.zshrc` file.
-1. This TTP is specific to systems using the Zsh shell.
+1. The user must have the necessary permissions to access and modify
+   the `.zshrc` file.
+
+2. The TTP is specific to systems using the Z shell (`zsh`).
 
 ## Examples
 
-You can run the TTP using the following example:
+To run the TTP with its default settings:
 
 ```bash
 ttpforge run forgearmory//persistence/dotfiles/persist-zshrc.yaml
 ```
 
+To specify a custom command:
+
+```bash
+ttpforge run forgearmory//persistence/dotfiles/persist-zshrc.yaml \
+  --arg command="echo 'Hello, World!' > /tmp/hello.txt"
+```
+
 ## Steps
 
-1. **zshrc**: This step checks if `~/.zshrc` is present. If not, it creates
-   the file and appends a line to execute a script, which opens the Calculator
-   app. It also provides a cleanup step to remove any added changes.
+1. **zshrc**: This step first checks for the existence of `~/.zshrc`.
+   If it isn't found, the file is created. Subsequently, it appends a
+   specified command to the `.zshrc` file, ensuring its execution whenever
+   the file is sourced. It also creates a temporary shell script,
+   `ttpforge-persist-zshrc.sh`, to assist in the persistence. A backup of
+   the original `.zshrc` is also created as `.zshrc-orig`.
+
+   Unless `--no-cleanup` is set, the original `~/.zshrc` file is
+   restored.
 
 ## MITRE ATT&CK Mapping
 

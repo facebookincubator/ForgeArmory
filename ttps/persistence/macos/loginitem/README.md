@@ -8,7 +8,7 @@ the specified command or script runs upon user login.
 
 ## Arguments
 
-- **command_or_path**: Specifies the path to the script or a bash command
+- **command_or_path**: Specifies the path to the TTP or a bash command
   to be executed as a Login Item.
 
 ## Examples

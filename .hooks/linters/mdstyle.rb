@@ -16,8 +16,12 @@ all
 # https://github.com/markdownlint/markdownlint/blob/master/docs/creating_styles.md#parameters
 
 exclude_tag :line_length
+# Do not allow multiple consecutive blank lines.
+rule 'MD012'
+
 # Allow long lines in code blocks and tables
 rule 'MD013', line_length: 120, ignore_code_blocks: true, tables: false
+
 
 #===============================================================================
 # Exclude the rules I disagree with.
