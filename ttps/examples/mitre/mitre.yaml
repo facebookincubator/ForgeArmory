@@ -1,0 +1,19 @@
+---
+name: mitre-target
+description: |
+  Example to map a TTP to MITRE ATT&CK through tactics, techniques, and
+  subtechniques.
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1547 Boot or Logon Autostart Execution
+  subtechniques:
+    - "T1547.007 Boot or Logon Autostart Execution: Re-opened Applications"
+
+steps:
+  - name: friendly-message
+    inline: |
+      set -e
+
+      echo "You are running a TTP that is mapped to MITRE ATT&CK"

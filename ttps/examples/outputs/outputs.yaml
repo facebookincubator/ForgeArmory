@@ -2,6 +2,7 @@
 name: step_outputs_example
 description: |
   Illustrates how to pass outputs between steps
+
 steps:
   - name: raw_output
     inline: echo "this will be accessible in stdout"
