@@ -2,6 +2,8 @@
 name: add-iam-user-to-group
 description: Add input IAM user to the specified user group.
 args:
+  - name: detect
+    default: true
   - name: user
   - name: group
 mitre:
@@ -56,3 +58,40 @@ steps:
         # Remove the user from the group
         aws iam remove-user-from-group --user-name {{ .Args.user }} \
           --group-name {{ .Args.group }}
+
+  - name: check-detection
+    inline: |
+      set -e
+
+      if [ "{{ .Args.detect }}" == "true" ]; then
+        current_time() {
+            date -u +'%Y-%m-%dT%H:%M:%SZ'
+        }
+
+        ten_minutes_ago() {
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            date -v-10M -u +'%Y-%m-%dT%H:%M:%SZ'
+        else
+            date -u -d '10 minutes ago' +'%Y-%m-%dT%H:%M:%SZ'
+        fi
+        }
+
+        # Define a time window for CloudTrail lookup
+        START_TIME=$(ten_minutes_ago)
+        END_TIME=$(current_time)
+
+        # Check for `AddUserToGroup` event in the last 10 minutes
+        EVENT_NAME="AddUserToGroup"
+
+        EVENTS=$(aws cloudtrail lookup-events \
+            --lookup-attributes AttributeKey=EventName,AttributeValue=$EVENT_NAME \
+            --start-time $START_TIME --end-time $END_TIME \
+            --region us-east-1)
+
+        # If there are recent events
+        if [[ "$(echo "$EVENTS" | jq -r '.Events | length')" -gt 0 ]]; then
+            echo "Recent $EVENT_NAME events detected."
+        else
+            echo "No recent $EVENT_NAME events detected."
+        fi
+      fi

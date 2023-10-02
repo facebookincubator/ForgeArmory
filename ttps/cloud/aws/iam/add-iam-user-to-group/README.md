@@ -33,11 +33,17 @@ ttpforge run forgearmory//cloud/aws/iam/add-iam-user-to-group/add-iam-user-to-gr
 
 1. **ensure-aws-creds-present**: This step ensures AWS credentials are
    appropriately set and configured before the TTP's execution.
+
 1. **ensure-aws-cli-present**: This step checks for the presence of the AWS
    CLI on the system and provides feedback on its version.
+
 1. **add-user-to-group**: This step adds the specified user to the specified
    user group. Additionally, a cleanup step is provided to remove the user
-   from the group post-execution.
+   from the group post-execution unless `--no-cleanup` is specified.
+
+1. **check-detection**: If `detect` is true, query cloudtrail to
+   see if the TTP was logged. This step checks for recent `CreateAccessKey`
+   and `GenerateDataKey` events.
 
 ## MITRE ATT&CK Mapping
 
