@@ -144,7 +144,9 @@ steps:
         for api_call in "${API_CALLS[@]}"; do
           EVENTS=$(aws cloudtrail lookup-events \
             --lookup-attributes AttributeKey=EventName,AttributeValue=$api_call \
-            --start-time $START_TIME --end-time $END_TIME)
+            --start-time $START_TIME \
+            --end-time $END_TIME \
+            --region us-east-1)
 
           # Check if api_call event exists in the events
           if echo "$EVENTS" | jq -e '.Events[] | select(.EventName=="'$api_call'")' > /dev/null; then
