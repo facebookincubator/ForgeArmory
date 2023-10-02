@@ -75,3 +75,10 @@ ttpforge run forgearmory//cloud/aws/iam/enumerate-iam/enumerate-iam.yaml \
    for specific API calls in the CloudTrail logs within a certain time
    window. If it finds more than a threshold number of calls from the same IP
    address, it will raise an alert.
+
+## MITRE ATT&CK Mapping
+
+- **Tactics**:
+  - TA0007 Discovery
+- **Techniques**:
+  - T1082 System Information Discovery

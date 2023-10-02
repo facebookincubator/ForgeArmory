@@ -62,3 +62,10 @@ ttpforge run forgearmory//cloud/aws/secretsmanager/steal-secretsmanager-secret/s
    for specific API calls in the CloudTrail logs within a certain time
    window. If it finds specific API calls (GetSecretValue, ListSecrets)
    from the same IP address, it will output the details.
+
+## MITRE ATT&CK Mapping
+
+- **Tactics**:
+  - TA0009 Collection
+- **Techniques**:
+  - T1213 Data from Information Repositories

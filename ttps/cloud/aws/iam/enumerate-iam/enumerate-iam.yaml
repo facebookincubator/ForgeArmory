@@ -11,6 +11,11 @@ args:
     default: /tmp/enumerate-iam
   - name: extended_scan
     default: false
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1082 System Information Discovery
 
 steps:
   - name: ensure-aws-creds-present
