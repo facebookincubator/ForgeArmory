@@ -1,9 +1,14 @@
 ---
-name: escalate-old-iam-user
-description: Add an access key to a previously dormant IAM user.
+name: add-iam-user-to-group
+description: Add input IAM user to the specified user group.
 args:
   - name: user
   - name: group
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1098 Account Manipulation
 
 steps:
   - name: ensure-aws-creds-present
