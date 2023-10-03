@@ -5,6 +5,11 @@ args:
   - name: detect
     default: true
   - name: user
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1098 Account Manipulation
 
 steps:
   - name: ensure-aws-creds-present
@@ -113,7 +118,9 @@ steps:
         for event_name in "${EVENT_NAMES[@]}"; do
             EVENTS=$(aws cloudtrail lookup-events \
                 --lookup-attributes AttributeKey=EventName,AttributeValue=$event_name \
-                --start-time $START_TIME --end-time $END_TIME)
+                --start-time $START_TIME \
+                --end-time $END_TIME \
+                --region us-east-1)
 
             # If there are recent events
             if [[ "$(echo "$EVENTS" | jq -r '.Events | length')" -gt 0 ]]; then

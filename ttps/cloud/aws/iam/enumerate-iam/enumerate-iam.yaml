@@ -11,6 +11,11 @@ args:
     default: /tmp/enumerate-iam
   - name: extended_scan
     default: false
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1082 System Information Discovery
 
 steps:
   - name: ensure-aws-creds-present
@@ -144,7 +149,9 @@ steps:
         for api_call in "${API_CALLS[@]}"; do
           EVENTS=$(aws cloudtrail lookup-events \
             --lookup-attributes AttributeKey=EventName,AttributeValue=$api_call \
-            --start-time $START_TIME --end-time $END_TIME)
+            --start-time $START_TIME \
+            --end-time $END_TIME \
+            --region us-east-1)
 
           # Check if api_call event exists in the events
           if echo "$EVENTS" | jq -e '.Events[] | select(.EventName=="'$api_call'")' > /dev/null; then

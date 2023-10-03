@@ -64,3 +64,10 @@ ttpforge run forgearmory//cloud/aws/iam/revive-old-iam-user/revive-old-iam-user.
 1. **Check Detection**: If `detect` is true, query cloudtrail to
    see if the TTP was logged. This step checks for recent `CreateAccessKey`
    and `GenerateDataKey` events.
+
+## MITRE ATT&CK Mapping
+
+- **Tactics**:
+  - TA0003 Persistence
+- **Techniques**:
+  - T1098 Account Manipulation
