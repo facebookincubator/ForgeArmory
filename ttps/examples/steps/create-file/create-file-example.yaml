@@ -1,0 +1,13 @@
+---
+name: create-file-example
+description: |
+  This TTP demonstrates usage of the create-file-step
+steps:
+  - name: create-new-file
+    create_file: /tmp/file-path-you-want-to-write
+    contents: | 
+      The contents string that you specfify here
+      will be written to the new file
+    overwrite: true # should we overwrite the file if it already exists
+    cleanup: false # whether you want the new file cleaned up when the TTP is done (default true)
+    mode: 0400 # chmod-style octal permission mode
