@@ -1,3 +1,4 @@
+// @nolint
 import Foundation
 
 typealias addFunc = @convention(c) (CInt,CInt) -> CInt
