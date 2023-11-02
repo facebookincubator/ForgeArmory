@@ -1,3 +1,4 @@
+// @nolint
 import Foundation
 
 print("This TTP will create LaunchAgent persistence to call a provided shell script.")

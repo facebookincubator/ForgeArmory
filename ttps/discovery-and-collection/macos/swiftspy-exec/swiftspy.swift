@@ -1,3 +1,4 @@
+// @nolint
 import Cocoa
 import Foundation
 import IOKit.hid

@@ -1,3 +1,4 @@
+// @nolint
 import Foundation
 import Cocoa
 import SQLite3
