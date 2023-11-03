@@ -6,6 +6,7 @@
 [![Renovate](https://github.com/facebookincubator/ForgeArmory/actions/workflows/renovate.yaml/badge.svg)](https://github.com/facebookincubator/ForgeArmory/actions/workflows/renovate.yaml)
 
 This repo hosts the community-driven TTPs that Meta's TTPForge can consume.
+Our catalog presently focuses on macOS and cloud TTPs.
 
 ---
 
