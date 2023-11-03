@@ -8,7 +8,7 @@ mitre:
     - T1059 Command and Scripting Interpreter
     - TA0006 Credential Access
   techniques:
-    - T1059.002 Command and Scripting Interpreter: AppleScript
+    - T1059.002 Command and Scripting Interpreter AppleScript
 steps:
   - name: prompt-api
     inline: |
