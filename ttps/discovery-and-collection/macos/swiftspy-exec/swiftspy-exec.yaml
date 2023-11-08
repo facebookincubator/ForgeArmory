@@ -8,7 +8,7 @@ mitre:
   techniques:
     - T1056 Input Capture
   subtechniques:
-    - T1056.001 Input Capture: Keylogging
+    - T1056.001 Input Capture Keylogging
 steps:
   - name: swiftspy-exec
     inline: |
