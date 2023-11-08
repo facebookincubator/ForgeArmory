@@ -14,7 +14,7 @@ mitre:
   techniques:
     - T1547 Boot or Logon Autostart Execution
   subtechniques:
-    - T1547.015 Boot or Logon Autostart Execution: Login Items
+    - T1547.015 Boot or Logon Autostart Execution Login Items
 steps:
   - name: loginitem
     inline: |
