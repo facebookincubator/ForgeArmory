@@ -3,87 +3,45 @@
 [![License](https://img.shields.io/github/license/facebookincubator/ForgeArmory?label=License&style=flat&color=blue&logo=github)](https://github.com/facebookincubator/ForgeArmory/blob/main/LICENSE)
 [![🚨 Semgrep Analysis](https://github.com/facebookincubator/ForgeArmory/actions/workflows/semgrep.yaml/badge.svg)](https://github.com/facebookincubator/ForgeArmory/actions/workflows/semgrep.yaml)
 [![Pre-Commit](https://github.com/facebookincubator/ForgeArmory/actions/workflows/pre-commit.yaml/badge.svg)](https://github.com/facebookincubator/ForgeArmory/actions/workflows/pre-commit.yaml)
-[![Renovate](https://github.com/facebookincubator/ForgeArmory/actions/workflows/renovate.yaml/badge.svg)](https://github.com/facebookincubator/ForgeArmory/actions/workflows/renovate.yaml)
 
-This repo hosts the community-driven TTPs that Meta's TTPForge can consume.
-Our catalog presently focuses on macOS and cloud TTPs.
+ForgeArmory is a repository of attacker Tactics, Techniques, and Procedures
+(TTPs) that you can download and run with Meta's
+[TTPForge](https://github.com/facebookincubator/TTPForge) attack simulation
+engine. Our catalog presently focuses on macOS and Cloud TTPs.
 
----
+## Setup
 
-## Dependencies
+To get started,
+[install TTPForge](https://github.com/facebookincubator/TTPForge/blob/main/README.md#installation)
+and then browse the ForgeArmory
+[TTP catalog](https://github.com/facebookincubator/ForgeArmory/tree/main/ttps)
+to find cyberattacks to simulate.
 
-- [Install asdf](https://asdf-vm.com/):
+## Adding New TTPs
 
-  ```bash
-  git clone https://github.com/asdf-vm/asdf.git ~/.asdf
-  ```
+You can add new TTPs to ForgeArmory by
+[forking](https://docs.github.com/en/get-started/quickstart/fork-a-repo) this
+repository and adding your TTP YAML files to the appropriate directories in the
+[catalog](https://github.com/facebookincubator/ForgeArmory/tree/main/ttps).
+Check out the
+[TTPForge documentation](https://github.com/facebookincubator/TTPForge/blob/main/docs/foundations/README.md)
+to learn the syntax for writing TTPs and all of TTPForge's attack simulation
+features.
 
-- Install and use asdf plugins to manage go, python, and ruby for this project:
+## Submitting Pull Requests
 
-  ```bash
-  source .asdf
-  ```
+Once your TTPs are ready, feel free to send us a pull request :)
 
-  Alternatively, you can pick and choose which plugins to install:
+Our automation will run various linters/checks against new pull requests.
+Several of the linters in this project may be used as pre-commit hooks if
+desired - you can install and setup pre-commit according to the
+[official instructions](https://pre-commit.com/).
 
-  ```bash
-  # Employ asdf for this project's python:
-  source .asdf python
-  ```
-
-- [Install pre-commit](https://pre-commit.com/):
-
-  ```bash
-  python3 -m pip install --upgrade pip
-  python3 -m pip install pre-commit
-  ```
-
-- [Install Mage](https://magefile.org/):
-
-  ```bash
-  go install github.com/magefile/mage@latest
-  ```
-
----
-
-## For Contributors and Developers
-
-1. [Fork this project](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
-
-1. Install dependencies:
-
-   ```bash
-   mage installDeps
-   ```
-
-1. Update and run pre-commit hooks locally:
-
-   ```bash
-   mage runPreCommit
-   ```
-
----
-
-## Create New Release
-
-This requires the [GitHub CLI](https://github.com/cli/cli#installation)
-and [gh-changelog GitHub CLI extension](https://github.com/chelnak/gh-changelog).
-
-Install changelog extension:
+For quick ad hoc runs, you may wish to run pre-commit in a virtual environment:
 
 ```bash
-gh extension install chelnak/gh-changelog
-```
-
-Generate changelog:
-
-```bash
-NEXT_VERSION=v1.1.3
-gh changelog new --next-version "${NEXT_VERSION}"
-```
-
-Create release:
-
-```bash
-gh release create "${NEXT_VERSION}" -F CHANGELOG.md
+python3 -m venv venv
+. venv/bin/activate
+pip3 install pre-commit
+pre-commit run --all-files
 ```

@@ -1,7 +1,0 @@
----
-name: test-cleanup
-steps:
-  - name: step_one
-    inline: mkdir testDir
-    cleanup:
-      inline: rm -rf testDir
