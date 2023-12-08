@@ -2,6 +2,9 @@
 name: ssh-keygen load dylib
 description: |
   This TTP loads a custom dylib (which opens Calculator) via ssh-keygen.
+requirements:
+  platforms:
+    - os: darwin
 mitre:
   tactics:
     - TA0005 Defense Evasion

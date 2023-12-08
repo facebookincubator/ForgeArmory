@@ -3,6 +3,9 @@ name: Remove Quarantine Attribute
 description: |
   This TTP leverages xattr and cat to remove the com.apple.quarantine attribute
   from a file.
+requirements:
+  platforms:
+    - os: darwin
 mitre:
   tactics:
     - TA0005 Defense Evasion

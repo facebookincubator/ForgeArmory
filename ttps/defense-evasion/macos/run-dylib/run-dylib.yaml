@@ -2,6 +2,9 @@
 name: Run A Dylib
 description: |
   This TTP executes a C compiled dylib.
+requirements:
+  platforms:
+    - os: darwin
 mitre:
   tactics:
     - TA0002 Execution
