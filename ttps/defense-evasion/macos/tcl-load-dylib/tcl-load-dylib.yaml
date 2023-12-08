@@ -2,6 +2,9 @@
 name: Load a dylib using tclsh
 description: |
   This TTP loads a custom dylib (which opens Calculator) by piping an echo command to tclsh.
+requirements:
+  platforms:
+    - os: darwin
 mitre:
   tactics:
     - TA0002 Execution

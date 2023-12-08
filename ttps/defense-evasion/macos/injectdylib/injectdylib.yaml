@@ -2,6 +2,9 @@
 name: Inject Dylib
 description: |
   This TTP injects a custom dylib (which opens Calculator) into the SafariForWebkitDevelopment binary.
+requirements:
+  platforms:
+    - os: darwin
 mitre:
   tactics:
     - TA0005 Defense Evasion

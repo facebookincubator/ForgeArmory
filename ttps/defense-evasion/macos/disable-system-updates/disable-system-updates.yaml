@@ -2,6 +2,9 @@
 name: Disable system security updates
 description: |
   This TTP disables the automatic installation of macOS security updates.
+requirements:
+  platforms:
+    - os: darwin
 mitre:
   tactics:
     - TA0005 Defense Evasion
@@ -9,7 +12,6 @@ mitre:
     - T1562 Impair Defenses
   subtechniques:
     - "T1562.001 Impair Defenses: Disable or Modify Tools"
-
 steps:
   - name: disable-updates
     inline: |
