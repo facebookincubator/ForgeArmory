@@ -1,0 +1,38 @@
+---
+name: load-rootkit
+description: Load a Linux Kernel Module (LKM) to simulate a rootkit and confirm it has loaded.
+requirements:
+  platforms:
+    - os: linux
+  superuser: true
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1014 Rootkit
+steps:
+  - name: compile-lkm
+    inline: |
+      make
+  - name: load-lkm
+    inline: |
+      insmod rootkit.ko
+    cleanup:
+      inline: |
+        rmmod rootkit
+        rm modules.order
+        rm rootkit.ko
+        rm rootkit.mod.c
+        rm rootkit.o
+        rm Module.symvers
+        rm rootkit.mod
+        rm rootkit.mod.o
+  - name: check-success
+    inline: |
+      output="$(dmesg)"
+      if [[ "${output}" == *"LKM has loaded"* ]]; then
+        echo "TTP Ran Successfully"
+        exit 0
+      else
+        exit 1
+      fi

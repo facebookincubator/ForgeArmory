@@ -1,0 +1,47 @@
+---
+name: Systemd Service
+description: Create a rogue systemd service to run a command as the linux user.
+requirements:
+  platforms:
+    - os: linux
+  superuser: true
+args:
+  - name: user
+    default: "root"
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1543 Create or Modify System Process
+  subtechniques:
+    - T1543.002 Create or Modify System Process Systemd Service
+steps:
+  - name: create-rogue-service
+    create_file: /etc/systemd/system/evil.service
+    contents: |
+      [Unit]
+      Description=Evil service
+      After=network.target
+      StartLimitIntervalSec=0
+      [Service]
+      Type=simple
+      Restart=always
+      RestartSec=1
+      User={{ .Args.user }}
+      ExecStart=echo 'this could be something bad'
+      [Install]
+      WantedBy=multi-user.target
+    mode: 0600
+    cleanup: default
+  - name: start-rogue-service
+    inline: |
+      systemctl start evil
+    cleanup:
+      inline: |
+        systemctl stop evil
+  - name: enable-rogue-service-on-boot
+    inline: |
+      systemctl enable evil
+    cleanup:
+      inline: |
+        systemctl disable evil

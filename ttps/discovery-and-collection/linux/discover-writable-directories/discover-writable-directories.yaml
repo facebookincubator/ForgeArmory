@@ -1,0 +1,18 @@
+---
+name: discover-writable-directories
+description: Discover writable directories in the specified directory.
+requirements:
+  platforms:
+    - os: linux
+args:
+  - name: seed_dir
+    default: '.'
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1083 File and Directory Discovery
+steps:
+  - name: find-writable-directories
+    inline: |
+      find {{ .Args.seed_dir }} -writable
