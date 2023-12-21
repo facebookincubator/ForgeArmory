@@ -1,0 +1,54 @@
+---
+name: Dynamic Linker Hijacking
+description: Inject a shared object into a program using LD_PRELOAD.
+requirements:
+  platforms:
+    - os: linux
+  superuser: true
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1574 Hijack Execution Flow
+  subtechniques:
+    - T1574.006 Hijack Execution Flow Dynamic Linker Hijacking
+steps:
+  - name: setup
+    inline: |
+      if ! command -v git &> /dev/null; then
+          echo "Error: git is not installed on the current system, cannot run LD_PRELOAD-run-at-load-time"
+          exit 1
+      fi
+  - name: clone-ldpreload
+    inline: |
+      git clone https://github.com/ProfessionallyEvil/LD_PRELOAD-run-at-load-time.git
+      cd LD_PRELOAD-run-at-load-time
+      git checkout 665a62aa6d86a38541fa05d15a7309f366584a5e
+    cleanup:
+      inline: |
+        echo "Removing LD_PRELOAD-run-at-load-time git repository"
+        rm -rf LD_PRELOAD-run-at-load-time
+  - name: compile-binary
+    inline: |
+      cd LD_PRELOAD-run-at-load-time
+      make hello_world
+    cleanup:
+      inline: |
+        cd LD_PRELOAD-run-at-load-time
+        rm hello_world
+  - name: test-binary
+    inline: |
+      cd LD_PRELOAD-run-at-load-time
+      ./hello_world
+  - name: create-shared-object
+    inline: |
+      cd LD_PRELOAD-run-at-load-time
+      make inject.so
+    cleanup:
+      inline: |
+        cd LD_PRELOAD-run-at-load-time
+        rm inject.so
+  - name: inject-shared-object
+    inline: |
+      cd LD_PRELOAD-run-at-load-time
+      LD_PRELOAD=./inject.so ./hello_world

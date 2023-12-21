@@ -1,0 +1,65 @@
+---
+name: protocol-tunneling-ssh
+description: Start a webserver on the target system and create a SSH tunnel to fetch a file through that tunnel.
+requirements:
+   platforms:
+    - os: linux
+args:
+  - name: target_path
+    default: "/tmp/webserver"
+  - name: target_port
+    default: 8000
+  - name: local_port
+    default: 3333
+  - name: target_user
+    default: "root"
+  - name: target_server
+    default: "localhost"
+mitre:
+  tactics:
+    - TA0011 Command and Control
+  techniques:
+    - T1572 Protocol Tunneling
+steps:
+  - name: setup
+    inline: |
+      if ! command -v python3 &> /dev/null; then
+          echo "Error: python3 is not installed on the current system, cannot run webserver"
+          exit 1
+      fi
+      if ! command -v curl &> /dev/null; then
+          echo "Error: curl is not installed on the current system, cannot fetch file from webserver"
+          exit 1
+      fi
+  - name: create-target-directory
+    inline: |
+      mkdir "{{ .Args.target_path }}"
+    cleanup:
+      inline: |
+        rm -rf {{ .Args.target_path }}
+  - name: write-file-to-target-directory
+    inline: |
+      echo 'you found me' > "{{ .Args.target_path }}/FOUNDME"
+  - name: execute-ssh-tunneling
+    inline: |
+      cd {{ .Args.target_path }}
+      echo "Starting websever"
+      timeout 15 python3 -m http.server {{ .Args.target_port }} &
+      sleep 5
+      echo "Setting up SSH tunneling"
+      ssh -fNT -L "{{ .Args.local_port }}:localhost:{{ .Args.target_port }}" \
+        "{{ .Args.target_user }}@{{ .Args.target_server }}"
+      sleep 5
+      echo "Fetching file through SSH tunnel"
+      output="$(curl localhost:{{ .Args.local_port }})"
+      if [[ "${output}" == *"FOUNDME"* ]]; then
+        echo "TTP Ran Successfully"
+        exit 0
+      else
+        echo "TTP Ran unsuccessfully"
+        exit 1
+      fi
+    cleanup:
+      inline: |
+        echo "Killing SSH tunnel"
+        pgrep -f 'ssh -fNT' | xargs kill || exit 0

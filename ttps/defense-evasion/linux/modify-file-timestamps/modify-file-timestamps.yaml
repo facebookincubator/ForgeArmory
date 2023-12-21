@@ -1,0 +1,51 @@
+---
+name: modify-file-timestamps
+description: Modify the modify and access timestamps of a file to match another file.
+requirements:
+  platforms:
+    - os: linux
+args:
+  - name: escalate_privileges
+    default: false
+  - name: source_path
+    default: "/etc/passwd"
+  - name: destination_path
+    default: "/tmp/passwd"
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1070.006 Indicator Removal
+  subtechniques:
+    - T1070.006 Indicator Removal Timestomp
+steps:
+  - name: ensure-root-user
+    inline: |
+      if [[ {{ .Args.escalate_privileges }} -ne 0 ]]; then
+        if [[ "${EUID}" -ne 0 ]]; then
+          echo "error: TTP must be run as root."
+          exit 1
+        fi
+      else
+        echo "No need to run as root."
+      fi
+  - name: create-copy-of-target
+    inline: |
+      cp "{{ .Args.source_path }}" "{{ .Args.destination_path }}"
+    cleanup:
+      inline: |
+        echo "Cleaning up {{ .Args.destination_path }}"
+        rm "{{ .Args.destination_path }}"
+  - name: change-file-timestamps
+    inline: |
+      touch -acmr /tmp "{{ .Args.destination_path }}"
+  - name: check-success
+    inline: |
+      initial_info="$(stat {{ .Args.source_path }})"
+      new_info="$(stat "{{ .Args.destination_path }}")"
+      if [[ "${initial_info}" != "${new_info}" ]]; then
+        echo "TTP Ran Successfully"
+        exit 0
+      else
+        exit 1
+      fi

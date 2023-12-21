@@ -1,0 +1,42 @@
+---
+name: systemwide-cronjob
+description: Add a systemwide cronjob to run the specified implant.
+requirements:
+  platforms:
+    - os: linux
+  superuser: true
+args:
+  - name: implant_name
+    default: "/bin/ls"
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1053 Scheduled Task/Job
+  subtechniques:
+    - T1053.003 Scheduled Task/Job Cron
+steps:
+  - name: setup
+    inline: |
+      if ! command -v crontab &> /dev/null; then
+          echo "Error: crontab is not installed on the current system, cannot create cron job"
+          exit 1
+      fi
+  - name: create-crontab-entry
+    inline: |
+      echo "* * * * * cd ${HOME} && {{ .Args.implant_name }}" > crontab_new
+      crontab crontab_new
+    cleanup:
+      inline: |
+        echo '' > crontab_new
+        crontab crontab_new
+        rm crontab_new
+  - name: check-success
+    inline: |
+      if crontab -l | grep -q "{{ .Args.implant_name }}"; then
+          echo "Implant cron job found"
+          exit 0
+      else
+          echo "No implant cron job"
+          exit 1
+      fi

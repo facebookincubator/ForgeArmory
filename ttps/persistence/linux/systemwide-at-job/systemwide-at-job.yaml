@@ -1,0 +1,42 @@
+---
+name: systemwide-at-job
+description: Run a command at a specified time using the 'at' command.
+requirements:
+  platforms:
+    - os: linux
+  superuser: true
+args:
+  - name: implant_name
+    default: "/bin/ls"
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1053 Scheduled Task/Job
+  subtechniques:
+    - T1053.002 Scheduled Task/Job At
+steps:
+  - name: setup
+    inline: |
+      if ! command -v at &> /dev/null; then
+          echo "Error: at is not installed on the current system, cannot create at job"
+          exit 1
+      fi
+  - name: schedule-at-job
+    inline: |
+      echo "cd ${HOME} && {{ .Args.implant_name }}" | at 09:00
+    cleanup:
+      name: cleanup
+      inline: |
+        job_id="$(at -l | awk -F ' ' '{print $1}')"
+        at -r "${job_id}"
+  - name: check-success
+    inline: |
+      job_id="$(at -l | awk -F ' ' '{print $1}')"
+      if at -c "${job_id}" | grep -q "{{ .Args.implant_name }}"; then
+          echo "Implant at job found"
+          exit 0
+      else
+          echo "No implant at job"
+          exit 1
+      fi

