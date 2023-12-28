@@ -1,0 +1,172 @@
+---
+name: create-crypto-compute
+description: 
+args:
+  - name: detect
+    default: false
+  - name: vpc_id
+    default: vpc-051f5cafb9f1ee51d
+  - name: subnet_id
+    default: subnet-08ea8bc6fa8d5e9da
+  - name: security_group_id
+    default: ttpforge-exfil-instance-profile-creds-sg
+  - name: ec2_instance_id
+    default: nil
+  - name: ssh_key
+    default: nil
+    
+    steps:
+  - name: ensure-aws-creds-present
+    inline: |
+      set -e
+
+      if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+          echo "Error: AWS_DEFAULT_REGION must be set."
+          exit 1
+      fi
+
+      if [[ -n "${AWS_ACCESS_KEY_ID}" && -n "${AWS_SECRET_ACCESS_KEY}" ]]; then
+          if [[ -z "${AWS_SESSION_TOKEN}" ]]; then
+            echo "Warning: AWS_SESSION_TOKEN is not set with AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
+          fi
+      elif [[ -z "${AWS_PROFILE}" ]]; then
+          echo "Error: AWS credentials are not set, exiting."
+          exit 1
+      fi
+
+  - name: ensure-bins-present
+    inline: |
+      set -e
+
+      if ! [[ -x "$(command -v aws)" ]]; then
+        echo 'Error: AWS CLI is not installed.' >&2
+      else
+        echo -e "AWS CLI is installed: $(aws --version)"
+      fi
+
+      if ! [[ -x "$(command -v jq)" ]]; then
+        echo 'Error: jq is not installed.' >&2
+      else
+        echo -e "jq is installed: $(jq --version)"
+      fi
+
+  - name: ensure-valid-input
+    inline: |
+      set -e
+
+      # Validate ec2_instance_id
+      if [[ "{{ .Args.ec2_instance_id }}" != nil && ! "{{ .Args.ec2_instance_id }}" =~ ^i-[a-fA-F0-9]{17}$ ]]; then
+        echo "Error: Invalid EC2 instance ID: {{ .Args.ec2_instance_id }}"
+        exit 1
+      fi
+
+      # Validate vpc_id
+      if [[ "{{ .Args.vpc_id }}" != nil && ! "{{ .Args.vpc_id }}" =~ ^vpc-[a-fA-F0-9]{8,17}$ ]]; then
+        echo "Error: Invalid VPC ID: {{ .Args.vpc_id }}"
+        exit 1
+      fi
+
+      # Validate subnet_id
+      if [[ "{{ .Args.subnet_id }}" != nil && ! "{{ .Args.subnet_id }}" =~ ^subnet-[a-fA-F0-9]{8,17}$ ]]; then
+        echo "Error: Invalid Subnet ID: {{ .Args.subnet_id }}"
+        exit 1
+      fi
+
+      # Validate security_group_id
+      if [[ "{{ .Args.security_group_id }}" != "ttpforge-exfil-instance-profile-creds-sg" && ! "{{ .Args.security_group_id }}" =~ ^sg-[a-fA-F0-9]{8,17}$ ]]; then
+        echo "Error: Invalid Security Group ID: {{ .Args.security_group_id }}"
+        exit 1
+      fi
+
+      # Validate ssh_key - Just check if it exists if provided
+      # if [[ "{{ .Args.ssh_key }}" != nil && ! -f "{{ .Args.ssh_key }}" ]]; then
+      #  echo "Error: SSH key file '{{ .Args.ssh_key }}' not found."
+      #  exit 1
+      # fi
+
+      # Validate detect - It should either be true or false
+      if [[ "{{ .Args.detect }}" != "true" && "{{ .Args.detect }}" != "false" ]]; then
+        echo "Error: Invalid value for detect: {{ .Args.detect }}"
+        exit 1
+      fi
+
+  - name: get-aws-utils
+    inline: |
+      set -e
+
+      # Define the URL of aws utilities
+      aws_utils_url="https://raw.githubusercontent.com/l50/dotfiles/main/aws"
+
+      # Define the local path of aws utilities
+      aws_utils_path="/tmp/aws"
+
+      # Check if aws utilities exists locally
+      if [[ ! -f "${aws_utils_path}" ]]; then
+          # aws utilities isn't present locally, so download it
+          curl -s "${aws_utils_url}" -o "${aws_utils_path}"
+      fi
+
+  - name: get-public-ip
+    inline: 
+      set -
+
+      PUBLIC_IP=$(curl ifconfig.co)
+  - name: create-ec2-instance
+    inline: |
+      set -
+      
+       aws_utils_path="/tmp/aws"
+
+      # Source /tmp/aws
+      # shellcheck source=/dev/null
+      source "${aws_utils_path}"
+
+      # Use provided VPC ID or find the default VPC
+      if [[ "{{ .Args.vpc_id }}" != "nil" ]]; then
+          VPC_ID="{{ .Args.vpc_id }}"
+      else
+          VPC_ID=$(find_default_vpc)
+      fi
+
+      # Use provided subnet ID or find the default subnet
+      if [[ "{{ .Args.subnet_id }}" != "nil" ]]; then
+          SUBNET_ID="{{ .Args.subnet_id }}"
+      else
+          SUBNET_ID=$(find_default_subnet $VPC_ID)
+      fi
+
+      # Use provided security group ID or create a new one
+      if [[ "{{ .Args.security_group_id }}" != nil ]]; then
+          SECURITY_GROUP_ID="{{ .Args.security_group_id }}"
+      else
+          SECURITY_GROUP_ID=$(authorize_security_group_ingress "crypto-sg" "Enable SSH from Attack Machine", "$VPC_ID" "tcp" 22 "$PUBLIC_IP/32")
+      fi
+
+      # Get latest AMI ID
+      AMI_ID=ami-079db87dc4c10ac91
+      export AMI_ID
+
+      # Create EC2 instance
+      INSTANCE_ID=$(  create_ec2_instance {{ .Args.ec2_instance_id }})
+      export INSTANCE_ID
+cleanup:
+inline: |
+  set -e
+
+  aws_utils_path="/tmp/aws"
+
+  # Source /tmp/aws
+  # shellcheck source=/dev/null
+  source "${aws_utils_path}"
+
+  # Only delete the ec2 instance if we created it.
+  if [[ "{{ .Args.ec2_instance_id }}" == nil ]]; then
+    INSTANCE_TO_TERMINATE="{{ .Args.ec2_instance_id }}"
+
+    if [[ -z "$INSTANCE_TO_TERMINATE" ]]; then
+        echo "No instance ID provided for termination."
+    else
+        terminate_instance "$INSTANCE_TO_TERMINATE"
+        echo "Terminated instance $INSTANCE_TO_TERMINATE."
+    fi
+  fi
