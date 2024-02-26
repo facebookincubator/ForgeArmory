@@ -24,9 +24,6 @@ ttpforge run forgearmory//defense-evasion/linux/dynamic-linker-hijacking/dynamic
 # Escalate privileges to root
 sudo su
 
-# Set fwdproxy (if on a devserver)
-export https_proxy="fwdproxy:8080"
-
 git clone https://github.com/ProfessionallyEvil/LD_PRELOAD-run-at-load-time.git
 cd LD_PRELOAD-run-at-load-time/
 

