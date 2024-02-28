@@ -42,3 +42,12 @@ ttpforge run forgearmory//persistence/ssh/backdoor-ssh-authorized-keys/backdoor-
    allows the rogue public SSH key to be used for maintaining persistence
    on the target system. Unless `--no-cleanup` is set, the original
    `authorized_keys` file is restored.
+
+## MITRE ATT&CK Mapping
+
+- **Tactics**:
+  - TA0003 Persistence
+- **Techniques**:
+  - T1098: Account Manipulation
+- **Subtechniques**:
+  - T1098.004: Add or Modify System Process
