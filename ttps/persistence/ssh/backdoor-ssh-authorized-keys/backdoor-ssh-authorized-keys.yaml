@@ -9,6 +9,9 @@ args:
   - name: rogue_key
     description: "The rogue public SSH key to be added"
     required: true
+  - name: post_execution_wait
+    description: Time in seconds to wait after the TTP has executed.
+    default: 10
 requirements:
   platforms:
     - os: windows
@@ -29,3 +32,6 @@ steps:
     edits:
       - description: "Add input {{ .Args.rogue_key }} to {{ .Args.ssh_authorized_keys }}"
         append: "{{ .Args.rogue_key }}"
+
+  - name: sleep-after-execution
+    inline: sleep {{ .Args.post_execution_wait }}

@@ -7,22 +7,21 @@ persistence on a target system.
 
 ## Arguments
 
-- **ssh_authorized_keys**: This argument specifies the path to the
-  authorized SSH keys file. If none is provided, it defaults to
-  `$HOME/.ssh/authorized_keys`.
+- **ssh_authorized_keys**: Specifies the path to the authorized SSH keys file.
+  Defaults to `$HOME/.ssh/authorized_keys`.
+- **rogue_key**: Provides the rogue public SSH key to be added. This argument is
+  required.
+- **post_execution_wait**: Time in seconds to wait after the TTP has executed.
+  Defaults to 10 seconds.
 
-- **rogue_key**: This argument provides the
-  rogue public SSH key to be added.
+## Requirements
 
-## Pre-requisites
-
-Ensure an authorized_keys file is present for the user at the path
-specified, or at the default location (`$HOME/.ssh/authorized_keys`).
+Ensure an `authorized_keys` file is present for the user at the specified path or at the default location (`$HOME/.ssh/authorized_keys`).
 
 ## Examples
 
 Add a rogue key to the SSH authorized keys. Once execution is
-complete, the original authorized_keys file is restored:
+complete, the original `authorized_keys` file is restored:
 
 ```bash
 ttpforge run forgearmory//persistence/ssh/backdoor-ssh-authorized-keys/backdoor-ssh-authorized-keys.yaml \
@@ -32,16 +31,9 @@ ttpforge run forgearmory//persistence/ssh/backdoor-ssh-authorized-keys/backdoor-
 
 ## Steps
 
-1. **Setup**: Checks for the presence of the `authorized_keys` file at the
-   specified path or at the default location (`$HOME/.ssh/authorized_keys`).
-   If absent, an error message is displayed and the TTP exits. If present,
-   it backs up the original file for potential restoration.
+1. **Modify Authorized Keys**: This step takes the provided `rogue_key` argument and appends it to the `authorized_keys` file at the specified or default path. This allows the rogue public SSH key to be used for maintaining persistence on the target system. The original `authorized_keys` file is backed up for potential restoration.
 
-1. **Add Rogue Key**: Takes the provided `rogue_key` argument and appends it
-   to the `authorized_keys` file at the specified or default path. This
-   allows the rogue public SSH key to be used for maintaining persistence
-   on the target system. Unless `--no-cleanup` is set, the original
-   `authorized_keys` file is restored.
+2. **Sleep After Execution**: The TTP waits for the specified `post_execution_wait` time in seconds after execution. This allows for any necessary post-execution actions to complete.
 
 ## MITRE ATT&CK Mapping
 

