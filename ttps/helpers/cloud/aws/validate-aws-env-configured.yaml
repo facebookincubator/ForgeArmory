@@ -1,0 +1,35 @@
+---
+name: validate-aws-env-configured
+description: |
+  This helper is designed to validate the necessary AWS credentials and region settings for TTPForge.
+  It checks for the presence of AWS credentials and the installation of AWS CLI.
+  It also allows the user to specify the AWS account name and region to be used with TTPForge.
+args:
+  - name: region
+    description: Name of the AWS region to use with TTPForge
+    default: "us-west-2"
+
+steps:
+  - name: ensure-aws-creds-present
+    description: "Ensure AWS credentials are present."
+    inline: |
+      if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+        echo "Setting AWS_DEFAULT_REGION to input region {{ .Args.region }}."
+        export AWS_DEFAULT_REGION="{{ .Args.region }}"
+      fi
+
+      if [[ -z "${AWS_ACCESS_KEY_ID}" || -z "${AWS_SECRET_ACCESS_KEY}" ]]; then
+        if [[ -z "${AWS_PROFILE}" ]]; then
+          echo "Either AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, or AWS_PROFILE must be set."
+          exit 1
+        fi
+      fi
+
+  - name: ensure-aws-cli-present
+    description: "Ensure AWS CLI is installed."
+    inline: |
+      if ! [ -x "$(command -v aws)" ]; then
+        echo 'Error: AWS CLI is not installed.' >&2
+      else
+        echo -e "AWS CLI is installed: $(aws --version)"
+      fi

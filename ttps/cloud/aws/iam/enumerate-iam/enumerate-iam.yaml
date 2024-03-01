@@ -38,8 +38,6 @@ steps:
 
   - name: ensure-aws-cli-present
     inline: |
-      set -e
-
       if ! [ -x "$(command -v aws)" ]; then
         echo 'Error: AWS CLI is not installed.' >&2
       else
@@ -48,8 +46,6 @@ steps:
 
   - name: ensure-dependencies-present
     inline: |
-      set -e
-
       if ! command -v python3 &> /dev/null; then
           echo "Error: Python3 is not installed on the current system, cannot run enumerate-iam"
           exit 1
@@ -67,8 +63,6 @@ steps:
 
   - name: setup
     inline: |
-      set -e
-
       if [[ -d "{{ .Args.eiam_path }}" ]]; then
           echo "Info: enumerate-iam already present on the current system"
       else
@@ -124,8 +118,6 @@ steps:
 
   - name: check-detection
     inline: |
-      set -e
-
       if [[ "{{ .Args.detect }}" == true ]]; then
         current_time() {
           date -u +'%Y-%m-%dT%H:%M:%SZ'
