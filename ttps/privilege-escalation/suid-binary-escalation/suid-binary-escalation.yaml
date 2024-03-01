@@ -42,18 +42,17 @@ steps:
   - name: hunt-for-suid-bins
     inline: |
       su - {{ .Args.low_priv_user }}
-      find /usr/bin /usr/local/bin -perm -4000 2>/dev/null
+      find /usr/bin /usr/local/bin -type f -perm -4000 -executable -print 2>/dev/null
 
   - name: escalate-privilege
     description: "Use {{ .Args.vuln_bin }} SUID binary to escalate privileges of {{ .Args.low_priv_user }}"
     inline: |
       su - {{ .Args.low_priv_user }}
-      output="$({{ .Args.vuln_bin }} {{ .Args.escalation_params }})"
-      echo "Checking results"
-      if [ "$output" == "root" ]; then
-        echo "TTP Ran Successfully"
-        exit 0
-      else
-      echo "TTP failed"
+      {{ .Args.vuln_bin }} {{ .Args.escalation_params }}
+      if [ "$?" -ne 0 ]; then
+        echo "Failed to escalate privileges" >&2
         exit 1
       fi
+
+      echo "Privileges escalated successfully" >&2
+      exit 0

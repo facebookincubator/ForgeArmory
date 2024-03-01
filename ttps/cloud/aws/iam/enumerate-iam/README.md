@@ -23,25 +23,33 @@ tool to determine what permissions an IAM role has through brute force.
 
   Default: false
 
-## Pre-requisites
+## Requirements
 
-1. A valid set of AWS credentials. They can be provided through environment
-   variables: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
-   `AWS_SESSION_TOKEN`, or `AWS_PROFILE`.
+1. A valid set of AWS credentials. They can be provided through environment variables:
+
+   - `AWS_ACCESS_KEY_ID`,
+   - `AWS_SECRET_ACCESS_KEY`
+   - `AWS_SESSION_TOKEN`
+
+     OR:
+
+   - `AWS_PROFILE`.
 
 1. The AWS CLI is installed.
 
-1. The system should have `python3`, `pip3`, and `git` installed.
+1. The system should have `python3`, `pip3`, and `git`
+   installed.
 
-1. If `enumerate-iam` is not installed, the project will be cloned from
-   its GitHub repository.
+1. If `enumerate-iam` is not installed, the project is
+   cloned and configured for this TTP. Assuming
+   cleanup is run, the TTP will clean up after itself.
 
 ## Examples
 
 You can run the TTP using the following examples:
 
-Download, install, and run the `enumerate-iam` tool. Post execution,
-it cleans up the artifacts:
+Download, install, and run the `enumerate-iam` tool. Post
+execution, it cleans up the artifacts:
 
 ```bash
 ttpforge run forgearmory//cloud/aws/iam/enumerate-iam/enumerate-iam.yaml

@@ -1,0 +1,41 @@
+---
+name: config-cloud-requirements
+description: Ensure
+args:
+  - name: aws_account_name
+    description: Name of the AWS account to use with TTPForge
+  - name: aws_region
+    description: Name of the AWS region to use with TTPForge
+    default: "us-west-2"
+  - name: role
+    description: IAM role to authenticate with.
+  - name: user
+    description: IAM user to authenticate with.
+steps:
+  - name: ensure-aws-creds-present
+    description: "Ensure AWS credentials are present."
+    inline: |
+      if [[ -z "${AWS_DEFAULT_REGION}" ]]; then
+        echo "AWS_DEFAULT_REGION must be set."
+        exit 1
+      fi
+
+      if [[ -n "${AWS_ACCESS_KEY_ID}" && -n "${AWS_SECRET_ACCESS_KEY}" ]]; then
+        if [[ -z "${AWS_SESSION_TOKEN}" ]]; then
+          echo "AWS_SESSION_TOKEN must be set when using AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
+          exit 1
+        fi
+
+      elif [[ -z "${AWS_PROFILE}" ]]; then
+        echo "Either AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_SESSION_TOKEN, or AWS_PROFILE must be set."
+        exit 1
+      fi
+
+  - name: ensure-aws-cli-present
+    description: "Ensure AWS CLI is installed."
+    inline: |
+      if ! [ -x "$(command -v aws)" ]; then
+        echo 'Error: AWS CLI is not installed.' >&2
+      else
+        echo -e "AWS CLI is installed: $(aws --version)"
+      fi
