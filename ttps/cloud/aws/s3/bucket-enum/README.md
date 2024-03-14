@@ -42,13 +42,14 @@ Run the TTP using a wordlist from the [SecLists repo](https://github.com/danielm
 
 ```bash
 ttpforge run forgearmory//cloud/aws/s3/bucket-enum/bucket-enum.yaml \
-    --arg bucket_list=/data/users/jaysong/fbsource/fbcode/security/redteam/purple_team/ForgeArmory/SecLists/Usernames/top-usernames-shortlist.txt \
+    --arg bucket_list=~/SecLists/Usernames/top-usernames-shortlist.txt \
     --arg create_bucket_list=false
 ```
 
 ## Steps
 
-1. **AWS Connector**: This step validates the necessary AWS credentials and region settings for the TTP.
+1. **AWS Connector**: This step validates the necessary AWS credentials and
+   region settings for the TTP.
 
 1. **Create Bucket List**: If `create_bucket_list` is set to `true`, this
    step will create a file specified by the `bucket_list` argument and populate
@@ -59,7 +60,8 @@ ttpforge run forgearmory//cloud/aws/s3/bucket-enum/bucket-enum.yaml \
 1. **Provision**: This step installs the necessary tools for bucket enumeration,
    specifically the S3Scanner tool.
 
-1. **Bucket Discovery**: This step discovers S3 buckets using the S3Scanner tool.
+1. **Bucket Discovery**: This step discovers S3 buckets using the S3Scanner
+   tool.
 
 1. **Check Detection**: If `detect` is set to `true`, this
    step will look for
