@@ -6,15 +6,18 @@ This TTP discovers writable directories in the specified directory.
 
 ## Arguments
 
-- **seed_dir**: The starting directory to search for writable directories. Defaults to '.' if not provided.
+- **seed_dir**: The starting directory to search for writable directories.
 
-## Prerequisites
+  Default: '.'
+
+## Requirements
 
 1. The executor must have read access to the specified directory and its subdirectories.
 
 ## Examples
 
 You can run the TTP using the following example (after updating the arguments):
+
 ```bash
 ttpforge run forgearmory//discovery/linux/discover-writable-directories/discover-writable-directories.yaml \
   --arg seed_dir=/path/to/directory
@@ -22,11 +25,12 @@ ttpforge run forgearmory//discovery/linux/discover-writable-directories/discover
 
 ## Steps
 
-1. find-writable-directories: This step uses the find command to discover writable directories in the specified directory.
+1. **find-writable-directories**: This step uses the find command to discover
+   writable directories in the specified directory.
 
 ## Manual Reproduction Steps
 
-```
+```bash
 # Escalate privileges to root
 # (optional - being root gives you more info)
 sudo su

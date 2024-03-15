@@ -2,24 +2,39 @@
 
 ![Meta TTP](https://img.shields.io/badge/Meta_TTP-blue)
 
-This TTP archives files with a specific extension in the specified directory for exfiltration.
+This TTP archives files with a specific extension in the specified directory
+for exfiltration.
 
 ## Arguments
 
-- **escalate_privileges**: Whether to escalate privileges to root user before running the TTP (default: false)
-- **starting_dir**: The starting directory to search for files (default: "/usr/include/sound/")
-- **file_ext**: The file extension to archive (default: "h")
-- **tar_path**: The path to save the tar file (default: "exfil.tar")
+- **escalate_privileges**: Whether to escalate privileges to root user before
+  running the TTP
+
+  Default: false
+
+- **starting_dir**: The starting directory to search for files
+
+  Default: /usr/include/sound/
+
+- **file_ext**: The file extension to archive
+
+  Default: h
+
+- **tar_path**: The path to save the tar file
+
+  Default: exfil.tar
 
 ## Steps
 
 1. Ensure that the TTP is being run as root user, if required.
-2. Archive files with the specified extension in the specified directory using the `find` and `tar` commands.
-3. Check if the tar file was successfully created. If not, exit with an error message. Otherwise, exit with a success message.
+1. Archive files with the specified extension in the specified directory using
+   the `find` and `tar` commands.
+1. Check if the tar file was successfully created. If not, exit with an error
+   message. Otherwise, exit with a success message.
 
 ## Manual Reproduction Steps
 
-```
+```bash
 # Escalate privileges to root
 # (optional - depends on what directories you're looking in)
 sudo su

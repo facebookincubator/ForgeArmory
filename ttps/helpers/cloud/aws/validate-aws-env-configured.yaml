@@ -9,7 +9,7 @@ description: |
 args:
   - name: region
     description: Name of the AWS region to use with TTPForge
-    default: "us-west-2"
+    default: us-east-1
 
 steps:
   - name: ensure-aws-creds-present

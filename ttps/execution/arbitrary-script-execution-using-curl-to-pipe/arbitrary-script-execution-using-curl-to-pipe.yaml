@@ -6,6 +6,7 @@ description: Run an arbitrary bash script from a GitHub gist.
 requirements:
   platforms:
     - os: linux
+    - os: darwin
 args:
   - name: escalate_privileges
     default: false
@@ -25,6 +26,7 @@ steps:
           echo "Error: curl is not installed on the current system, cannot download script from Github"
           exit 1
       fi
+
   - name: ensure-root-user-if-required
     inline: |
       echo "{{ .Args.escalate_privileges }}"
@@ -36,6 +38,7 @@ steps:
       else
         echo "No need to run as root."
       fi
+
   - name: download-and-run-script
     inline: |
       curl -sL "{{ .Args.download_link }}" | bash

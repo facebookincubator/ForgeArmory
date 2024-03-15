@@ -1,11 +1,10 @@
 ---
-api_version: 2.0
-uuid: 30e792e0-a63b-4ecd-8df6-560a0421dab6
 name: discover-writable-directories
 description: Discover writable directories in the specified directory.
 requirements:
   platforms:
     - os: linux
+    - os: darwin
 args:
   - name: seed_dir
     default: '.'
