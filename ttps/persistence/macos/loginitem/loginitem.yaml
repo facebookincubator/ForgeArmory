@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: c56cc109-dd99-4719-b109-7f06556e8e8d
 name: Login Item
 description: |
   This TTP adds the specified shell command or script as a Login Item.

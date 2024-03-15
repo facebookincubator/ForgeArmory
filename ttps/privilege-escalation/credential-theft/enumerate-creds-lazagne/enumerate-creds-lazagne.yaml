@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: 6c38bb09-9db6-4aa4-8d53-d07d4b35b823
 name: enumerate-creds-lazagne
 description: |
   Employ [LaZagne](https://github.com/AlessandroZ/LaZagne) for

@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: bfa4dd17-b3e6-4361-a892-979c25cc705f
 name: Gather macOS local user accounts.
 description: |
   This TTP uses the Directory Service Command Line (DSCL) utility to gather local user accounts.

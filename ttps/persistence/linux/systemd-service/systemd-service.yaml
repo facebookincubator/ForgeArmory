@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: fd27547d-db2d-4e6e-b5ad-0eba95170ba1
 name: Systemd Service
 description: Create a rogue systemd service to run a command as the linux user.
 requirements:

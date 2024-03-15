@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: a8bbed0c-2844-43f2-8837-d7bc138467fa
 name: If Firefox is installed, dump cookie values.
 description: |
   This TTP will simply read from the cookies.json file if Firefox is installed.

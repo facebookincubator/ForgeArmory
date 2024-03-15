@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: 73c1dfcb-e082-4946-9a7d-6f661e1efd44
 name: Launch Agent
 description: |
   This TTP creates a launch agent which executes a shell script to run a command.

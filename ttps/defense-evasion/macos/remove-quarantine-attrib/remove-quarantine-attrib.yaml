@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: ac9c91e5-18e3-480d-93b8-5a83e02d99c2
 name: Remove Quarantine Attribute
 description: |
   This TTP leverages xattr and cat to remove the com.apple.quarantine attribute

@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: 2cd0cb25-4863-4937-85d6-b971eca4118b
 name: Execute SwiftBelt code to gather host information.
 description: |
   This TTP executes SwiftBelt to gather host information.

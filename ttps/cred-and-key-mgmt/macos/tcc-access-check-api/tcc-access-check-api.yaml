@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: c07ef548-3a83-48a3-b701-4620d31f2248
 name: TCC Folder Access Checker Via API Calls
 description: |
   This TTP leverages MDQuery API calls to stealthily check for TCC folder permissions.
