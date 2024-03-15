@@ -5,6 +5,7 @@
 This TTP enables the creation of an SSH tunnel to fetch a file from a remote system.
 
 ## Arguments
+
 - **target_path**: The path where the webserver will be started and the file will be written. Default is "/tmp/webserver".
 - **target_port**: The port where the webserver will listen. Default is "8000".
 - **local_port**: The local port where the SSH tunnel will be created. Default is "3333".
@@ -20,6 +21,7 @@ This TTP enables the creation of an SSH tunnel to fetch a file from a remote sys
 ## Examples
 
 You can run the TTP using the following example (after updating the arguments):
+
 ```bash
 ttpforge run forgearmory//command-and-control/protocol-tunneling-ssh.yaml \
   --arg target_path=/tmp/webserver --arg target_port=8000 --arg local_port=3333 --arg target_user=root --arg target_server=localhost
@@ -34,7 +36,7 @@ ttpforge run forgearmory//command-and-control/protocol-tunneling-ssh.yaml \
 
 ## Manual Reproduction Steps
 
-```
+```bash
 ### Target Configuration
 
 # Escalate privileges to root
@@ -52,8 +54,8 @@ timeout 60 python3 -m http.server 8080
 popd || exit
 
 ### Attacker Configuration
-TARGET_USER="jaysong"
-TARGET_SERVER="devvm3704.vll0.facebook.com"
+TARGET_USER="$USER"
+TARGET_SERVER="mysystem"
 ssh -L 8080:localhost:8080 "${TARGET_USER}@${TARGET_SERVER}"
 
 # Check the output of this command for FOUNDME
@@ -66,6 +68,6 @@ rm -rf /tmp/bla
 ## MITRE ATT&CK Mapping
 
 - **Tactics**:
-   - TA0011 Command and Control
+  - TA0011 Command and Control
 - **Techniques**:
-   - T1572 Protocol Tunneling
+  - T1572 Protocol Tunneling

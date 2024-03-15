@@ -22,6 +22,7 @@ mitre:
   techniques:
     - T1083 File and Directory Discovery
     - T1005 Data from Local System
+
 steps:
   - name: ensure-root-user-if-required
     inline: |
