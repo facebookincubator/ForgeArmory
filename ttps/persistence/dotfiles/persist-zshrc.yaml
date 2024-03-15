@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: 7face526-f0bf-4327-aee1-a72a9294fb73
 name: Create .zshrc persistence
 description: |
   This TTP checks to see if ~/.zshrc is present and if not creates it and

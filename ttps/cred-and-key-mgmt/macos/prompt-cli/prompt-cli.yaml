@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: 12420421-a3af-4722-98a2-904659c3fd9f
 name: macOS cli prompt
 description: |
   This TTP uses the osascript binary to launch a fake prompt requesting password entry.

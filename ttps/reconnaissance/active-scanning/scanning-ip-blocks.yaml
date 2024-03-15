@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: e4fd43fb-78d2-489b-802e-ade98cfb6404
 name: Scan IP Address Blocks
 description: |
   This TTP conducts scans against a range of IP addresses to identify alive hosts and open ports

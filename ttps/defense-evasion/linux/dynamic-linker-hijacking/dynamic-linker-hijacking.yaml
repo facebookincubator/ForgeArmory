@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: c86e6442-522e-4b6e-912f-c3e97ba65d87
 name: Dynamic Linker Hijacking
 description: Inject a shared object into a program using LD_PRELOAD.
 requirements:

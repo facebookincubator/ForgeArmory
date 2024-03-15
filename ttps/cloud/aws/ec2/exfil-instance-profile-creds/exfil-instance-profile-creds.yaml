@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: a04757b1-6512-448e-b3ab-f53a4d5bf30b
 name: exfil-instance-profile-creds
 description: Extract instance profile credentials from an EC2 instance.
 args:

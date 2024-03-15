@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: b0cb912b-4b21-45bc-8ae6-0a8e4f038361
 name: bucket-enum
 description: |
   Enumerate open S3 buckets using the [S3Scanner](https://github.com/sa7mon/S3Scanner) tool.

@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: d3fd6c22-4728-43ea-a94a-1043b4451d41
 name: Check if the target macOS screen is locked.
 description: |
   This TTP leverages ioreg to check and see if the macOS screen is locked.

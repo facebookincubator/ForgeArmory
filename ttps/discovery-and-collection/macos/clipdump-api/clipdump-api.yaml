@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: ee1306db-5ff4-4e71-99b6-dab5625b8737
 name: macOS clipboard dump (api)
 description: |
   This TTP dumps clipboard contents by making nspasteboard API calls.

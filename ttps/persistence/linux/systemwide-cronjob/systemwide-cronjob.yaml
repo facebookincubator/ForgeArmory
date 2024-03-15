@@ -1,4 +1,6 @@
 ---
+api_version: 2.0
+uuid: b835ce7a-a320-4b68-acde-7c8c731eac93
 name: systemwide-cronjob
 description: Add a systemwide cronjob to run the specified implant.
 requirements:
