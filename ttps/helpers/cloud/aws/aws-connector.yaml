@@ -1,4 +1,6 @@
 ---
+api_version: c5e56249-2d8e-425d-a482-fd1e19ef6bd6
+uuid: 4bd28afd-86ae-442b-96b5-b410131c4b8a
 name: config-cloud-requirements
 description: Ensure
 args:
