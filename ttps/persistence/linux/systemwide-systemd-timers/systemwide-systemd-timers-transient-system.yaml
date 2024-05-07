@@ -1,0 +1,49 @@
+---
+api_version: 2.0
+uuid: 2510e5b8-f821-42d0-b9bb-a9338b82bf81
+name: systemwide-systemd-timers-transient-system
+description: Add a systemwide systemd timers to run the specified implant. This method is transient and will not persist after reboot. 
+requirements:
+  platforms:
+    - os: linux
+  superuser: true
+args:
+  - name: systemd_unit_name
+    default: "evil"
+  - name: implant_name
+    default: "/tmp/evil-systemd-timers-transient-system.sh"
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1053 Scheduled Task/Job
+  subtechniques:
+    - T1053.006 Scheduled Task/Job Systemd Timers
+steps:
+  - name: setup
+    inline: |
+      if ! command -v systemd-run &> /dev/null; then
+          echo "Error: systemd-run is not installed on the current system"
+          exit 1
+      fi
+  - name: run-transient-systemd-timers
+    inline: |
+      systemd-run --unit={{ .Args.systemd_unit_name }} --on-calendar '*:*:0/1' /bin/sh -c '/bin/touch {{ .Args.implant_name }}'
+      sleep 70
+    cleanup:
+      inline: |
+        systemctl stop {{ .Args.systemd_unit_name }}.service
+        systemctl stop {{ .Args.systemd_unit_name }}.timer
+        systemctl daemon-reload
+  - name: check-success
+    inline: |
+      if [ -e "{{ .Args.implant_name }}" ]; then
+          echo "{{ .Args.implant_name }} exists"
+          exit 0
+      else
+          echo "{{ .Args.implant_name }} does not exist"
+          exit 1
+      fi
+    cleanup:
+      inline: |
+        rm {{ .Args.implant_name }}
