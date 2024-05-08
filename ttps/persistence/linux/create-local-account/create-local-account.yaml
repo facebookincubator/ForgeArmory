@@ -1,0 +1,35 @@
+---
+api_version: 2.0
+uuid: 7227237b-38e6-4af6-b675-2f673b039e16
+name: create-local-account
+description: Creates a local account on Linux
+requirements:
+  platforms:
+    - os: linux
+  superuser: true
+args:
+  - name: username
+    default: "evil_user"
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1136 Create Account
+  subtechniques:
+    - T1136.001 Create Account Local Account
+steps:
+  - name: add-evil-user
+    inline: |
+      useradd -M -N -r -s /bin/bash -c evil_user {{ .Args.username }}
+    cleanup:
+      inline: |
+        userdel {{ .Args.username }}
+  - name: check-success
+    inline: |
+      if id {{ .Args.username }} &>/dev/null; then
+          echo "User {{ .Args.username }} exists."
+          exit 0
+      else
+          echo "User {{ .Args.username }} does not exist."
+          exit 1
+      fi
