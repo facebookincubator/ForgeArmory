@@ -1,0 +1,166 @@
+---
+api_version: 2.0
+uuid: b0589c7d-4b5a-47ea-a3d5-b0f8a7c6e5b4
+name: create-unrestricted-security-group
+description: Create an unrestricted security group in AWS.
+args:
+  - name: detect
+    description: Detect unrestricted security group access.
+    default: true
+  - name: region
+    description: Region to create the unrestricted security group in.
+    default: us-east-1
+  - name: sg_name
+    description: Prefix name of the security group to create.
+    default: unrestricted-sg
+  - name: vpc_id
+    description: |
+      VPC ID to create the unrestricted security group in. If not provided,
+      the default VPC is used.
+    default: nil
+  - name: wait_detect_time
+    description: Time to wait for AWS GuardDuty to detect the event.
+    default: 30
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+    - TA0006 Credential Access
+  techniques:
+    - T1078 Valid Accounts
+    - T1190 Exploit Public-Facing Application
+  subtechniques:
+    - T1087.002 AWS Account
+
+steps:
+  - name: aws-connector
+    description: This step invokes the setup_cloud_env action.
+    ttp: //helpers/cloud/aws/validate-aws-env-configured.yaml
+    args:
+      region: "{{ .Args.region }}"
+
+  - name: create-unrestricted-security-group
+    description: Create an unrestricted security group in AWS.
+    inline: |
+      aws_utils_url="https://raw.githubusercontent.com/l50/dotfiles/main/aws"
+      aws_utils_path="/tmp/aws"
+
+      if [[ ! -f "${aws_utils_path}" ]]; then
+          curl -s "${aws_utils_url}" -o "${aws_utils_path}"
+      fi
+
+      source "${aws_utils_path}"
+
+      VPC_ID="{{ .Args.vpc_id }}"
+      if [[ "$VPC_ID" == "nil" ]]; then
+        VPC_ID=$(find_default_vpc)
+        if [[ -z "$VPC_ID" ]]; then
+          echo "Error: No default VPC found and no VPC ID provided."
+          exit 1
+        fi
+      fi
+
+      RANDOM_STRING=$(openssl rand -hex 6)
+      SG_NAME="{{ .Args.sg_name }}-${RANDOM_STRING}"
+
+      SECURITY_GROUP_ID=$(aws ec2 create-security-group --group-name $SG_NAME \
+        --description "Unrestricted security group" --vpc-id "$VPC_ID" --output text)
+      if [[ -z "$SECURITY_GROUP_ID" ]]; then
+          echo "Error: Failed to create security group."
+          exit 1
+      fi
+
+      aws ec2 authorize-security-group-ingress --group-id "$SECURITY_GROUP_ID" --protocol tcp --port 0-65535 --cidr 0.0.0.0/0
+      aws ec2 authorize-security-group-ingress --group-id "$SECURITY_GROUP_ID" --protocol udp --port 0-65535 --cidr 0.0.0.0/0
+      aws ec2 authorize-security-group-ingress --group-id "$SECURITY_GROUP_ID" --protocol icmp --port -1 --cidr 0.0.0.0/0
+
+      echo "Created unrestricted security group with ID: $SECURITY_GROUP_ID"
+
+    cleanup:
+      inline: |
+        aws_utils_url="https://raw.githubusercontent.com/l50/dotfiles/main/aws"
+        aws_utils_path="/tmp/aws"
+
+        if [[ ! -f "${aws_utils_path}" ]]; then
+            curl -s "${aws_utils_url}" -o "${aws_utils_path}"
+        fi
+
+        source "${aws_utils_path}"
+
+        SG_ID=$(aws ec2 describe-security-groups \
+          --filters Name=group-name,Values="{{ .Args.sg_name }}-*" \
+          --query "SecurityGroups[0].GroupId" --output text)
+
+        if [[ -n "$SG_ID" && "$SG_ID" != "None" ]]; then
+          aws ec2 revoke-security-group-ingress --group-id "$SG_ID" --protocol tcp --port 0-65535 --cidr 0.0.0.0/0
+          aws ec2 revoke-security-group-ingress --group-id "$SG_ID" --protocol udp --port 0-65535 --cidr 0.0.0.0/0
+          aws ec2 revoke-security-group-ingress --group-id "$SG_ID" --protocol icmp --port -1 --cidr 0.0.0.0/0
+          delete_security_group "$SG_ID"
+          echo "Deleted security group with ID: $SG_ID"
+        fi
+
+  - name: wait-detection
+    description: Give AWS GuardDuty and CloudTrail {{ .Args.wait_detect_time }} seconds to detect the event.
+    inline: |
+      echo "Sleeping for {{ .Args.wait_detect_time }} seconds to allow AWS GuardDuty and CloudTrail to detect the event..."
+      sleep {{ .Args.wait_detect_time }}
+
+  - name: check-detection
+    description: Check if AWS GuardDuty or CloudTrail detected the event.
+    inline: |
+      if [[ "{{ .Args.detect }}" == true ]]; then
+        current_time() {
+            date -u +'%Y-%m-%dT%H:%M:%SZ'
+        }
+
+        ten_minutes_ago() {
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                date -v-10M -u +'%Y-%m-%dT%H:%M:%SZ'
+            else
+                date -u -d '10 minutes ago' +'%Y-%m-%dT%H:%M:%SZ'
+            fi
+        }
+
+        START_TIME=$(ten_minutes_ago)
+        END_TIME=$(current_time)
+
+        FINDING_TYPE="UnauthorizedAccess:IAMUser/SecurityGroup"
+
+        DETECTORS=$(aws guardduty list-detectors --output json)
+        DETECTOR_IDS=$(echo "$DETECTORS" | jq -r '.DetectorIds[]')
+
+        for DETECTOR_ID in $DETECTOR_IDS; do
+            FINDINGS=$(aws guardduty list-findings --detector-id "$DETECTOR_ID" --output json)
+            FINDING_IDS=$(echo "$FINDINGS" | jq -r '.FindingIds[]')
+
+            if [[ -z "$FINDING_IDS" ]]; then
+                echo "No $FINDING_TYPE event detected in the last 10 minutes"
+            else
+                for FINDING_ID in $FINDING_IDS; do
+                    FINDING=$(aws guardduty get-findings --detector-id "$DETECTOR_ID" --finding-ids "$FINDING_ID" --output json)
+                    UPDATED_AT=$(echo "$FINDING" | jq -r '.Findings[0].UpdatedAt')
+
+                    if [[ "$OSTYPE" == "darwin"* ]]; then
+                        if [[ $(date -j -f '%Y-%m-%dT%H:%M:%SZ' "$END_TIME" +%s 2> /dev/null) -gt $(date -j -f '%Y-%m-%dT%H:%M:%SZ' "$START_TIME" +%s 2> /dev/null) ]]; then
+                            echo "UnauthorizedAccess finding detected!"
+                        fi
+                    else
+                        if [[ $(date -u -d "$UPDATED_AT" +%s 2> /dev/null) -gt $(date -u -d "$START_TIME" +%s 2> /dev/null) ]] \
+                            && [[ $(date -u -d "$UPDATED_AT" +%s 2> /dev/null) -lt $(date -u -d "$END_TIME" +%s 2> /dev/null) ]]; then
+                            echo "UnauthorizedAccess finding detected!"
+                        fi
+                    fi
+                done
+            fi
+        done
+
+        # Check CloudTrail for security group creation and ingress authorization
+        CREATE_SG_EVENTS=$(aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=CreateSecurityGroup --start-time $START_TIME --end-time $END_TIME --query 'Events')
+        echo "CreateSecurityGroup Events: $CREATE_SG_EVENTS"
+
+        AUTHORIZE_INGRESS_EVENTS=$(aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=AuthorizeSecurityGroupIngress --start-time $START_TIME --end-time $END_TIME --query 'Events')
+        echo "AuthorizeSecurityGroupIngress Events: $AUTHORIZE_INGRESS_EVENTS"
+      fi
