@@ -41,7 +41,7 @@ go build -o WhiteChocolateMacademiaNut
 
 # Simulate browser activity
 open -a "Google Chrome" "https://www.google.com" &
-killall "Google Chrome" 
+killall "Google Chrome"
 
 # Open Chrome with remote debugger port
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --remote-debugging-port=9222 --restore-last-session --remote-allow-origins=http://localhost/ &
