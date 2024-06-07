@@ -22,7 +22,7 @@ across all ports and protocols.
   Default: nil
 
 - **wait_detect_time**: Time to wait for AWS GuardDuty to detect the event.
-  Default: 30
+  Default: 15
 
 ## Requirements
 
