@@ -20,7 +20,7 @@ args:
     default: nil
   - name: wait_detect_time
     description: Time to wait for AWS GuardDuty to detect the event.
-    default: 30
+    default: 15
 requirements:
   platforms:
     - os: linux
@@ -98,7 +98,7 @@ steps:
           aws ec2 revoke-security-group-ingress --group-id "$SG_ID" --protocol tcp --port 0-65535 --cidr 0.0.0.0/0
           aws ec2 revoke-security-group-ingress --group-id "$SG_ID" --protocol udp --port 0-65535 --cidr 0.0.0.0/0
           aws ec2 revoke-security-group-ingress --group-id "$SG_ID" --protocol icmp --port -1 --cidr 0.0.0.0/0
-          delete_security_group "$SG_ID"
+          delete_security_groups "$SG_ID"
           echo "Deleted security group with ID: $SG_ID"
         fi
 
