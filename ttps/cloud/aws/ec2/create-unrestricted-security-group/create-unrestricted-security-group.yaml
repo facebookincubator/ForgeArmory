@@ -90,17 +90,15 @@ steps:
 
         source "${aws_utils_path}"
 
-        SG_ID=$(aws ec2 describe-security-groups \
-          --filters Name=group-name,Values="{{ .Args.sg_name }}-*" \
-          --query "SecurityGroups[0].GroupId" --output text)
+        SG_IDS=$(aws ec2 describe-security-groups \
+          --filters Name=group-name,Values="{{ .Args.sg_name }}*" \
+          --query "SecurityGroups[*].GroupId" \
+          --output text)
 
-        if [[ -n "$SG_ID" && "$SG_ID" != "None" ]]; then
-          aws ec2 revoke-security-group-ingress --group-id "$SG_ID" --protocol tcp --port 0-65535 --cidr 0.0.0.0/0
-          aws ec2 revoke-security-group-ingress --group-id "$SG_ID" --protocol udp --port 0-65535 --cidr 0.0.0.0/0
-          aws ec2 revoke-security-group-ingress --group-id "$SG_ID" --protocol icmp --port -1 --cidr 0.0.0.0/0
+        for SG_ID in $SG_IDS; do
           delete_security_groups "$SG_ID"
           echo "Deleted security group with ID: $SG_ID"
-        fi
+        done
 
   - name: wait-detection
     description: Give AWS GuardDuty and CloudTrail {{ .Args.wait_detect_time }} seconds to detect the event.
