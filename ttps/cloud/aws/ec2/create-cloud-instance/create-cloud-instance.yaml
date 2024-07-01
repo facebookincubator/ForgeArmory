@@ -1,0 +1,98 @@
+---
+api_version: 2.0
+uuid: a1c89a0b-07e2-414a-bbd1-b83e373a0b1b
+name: create_ec2_instance
+description: |
+  This TTP is used to create a new unencrypted EC2 instance in AWS configured for access via AWS Systems Manager (SSM) without requiring a key pair. It first checks if default EBS encryption is enabled and disables it if necessary. It then uses the AWS CLI to create a new instance within the specified region with default security settings that deny all inbound traffic.
+  The instance will be tagged for identification and will be terminated during the cleanup process. Default EBS encryption will be restored to its original state during cleanup if it was disabled.
+
+args:
+  - name: instance_name
+    description: Name of the EC2 instance to be created
+    default: TTPForge_rogue
+  - name: region
+    description: AWS region where the new EC2 instance will be created.
+    default: "us-west-2"
+  - name: instance_type
+    description: The type of the new EC2 instance to be created.
+    default: "t2.micro"
+  - name: ami_id
+    description: The Amazon Machine Image ID used to create the new instance.
+    default: "ami-0eb5115914ccc4bc2"
+
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1578 Modify Cloud Compute Infrastructure
+  sub technique:
+    - T1578.002 Create Cloud Instance
+    - T1578.003 Delete Cloud Instance
+
+steps:
+  - name: aws-connector
+    description: This step invokes the setup_cloud_env action.
+    ttp: //helpers/cloud/aws/validate-aws-env-configured.yaml
+    args:
+      region: "{{ .Args.region }}"
+
+  - name: check_and_disable_ebs_encryption
+    description: Checks if default EBS encryption is enabled and disables it.
+    inline: |
+      original_ebs_encryption_status=$(aws ec2 get-ebs-encryption-by-default --region {{.Args.region}} --query 'EbsEncryptionByDefault' --output text)
+      if [ "$original_ebs_encryption_status" == "True" ]; then
+        echo "Default EBS encryption is enabled, disabling..."
+        aws ec2 disable-ebs-encryption-by-default --region {{.Args.region}}
+      else
+        echo "Default EBS encryption is not enabled."
+      fi
+    cleanup:
+      inline: |
+        aws ec2 enable-ebs-encryption-by-default --region {{.Args.region}}
+
+  - name: check_default_vpc
+    description: Checks if default VPC exists, if not creates one
+    inline: |
+      echo "Checking if default-VPC exists ... "
+      check_vpc=$(aws ec2 describe-vpcs --region us-west-2 --filters Name=isDefault,Values=true --output text)
+
+      if [ -z "$check_vpc" ]; then
+        echo "Default VPC does not exist. Creating a new one...."
+        new_vpc=$(aws ec2 create-default-vpc --region us-west-2 --output text)
+        echo "New VPC $new_vpc created ..."
+      else
+        echo "Existing default VPC found .. Not doing anything"
+      fi
+
+  - name: create_ec2_instance
+    description: Creates a new unencrypted EC2 instance with specified parameters.
+    inline: |
+      echo "Creating a new EC2 instance in the region {{.Args.region}}..."
+      instance_id=$(aws ec2 run-instances --region {{.Args.region}} --image-id {{.Args.ami_id}} --instance-type {{.Args.instance_type}} --block-device-mappings '[{"DeviceName":"/dev/sdh","Ebs":{"VolumeSize":8,"DeleteOnTermination":true,"VolumeType":"gp2","Encrypted":false}}]' --query 'Instances[0].InstanceId' --output text)
+
+      if [ -z "$instance_id" ]; then
+        echo "Failed to create EC2 instance."
+        exit 1
+      else
+        echo "EC2 instance created with ID $instance_id"
+        aws ec2 create-tags --resources $instance_id --tags Key=Name,Value={{.Args.instance_name}} --region {{.Args.region}}
+      fi
+    cleanup:
+      inline: |
+        instance_id=$(aws ec2 describe-instances --region {{.Args.region}} --filters "Name=tag:Name,Values={{.Args.instance_name}}" "Name=instance-state-name,Values=pending,running" --query "Reservations[].Instances[0].InstanceId" --output text)
+
+        if [ ! -z "$instance_id" ]; then
+          echo "Checking if the instance $instance_id is in the 'running' state..."
+
+          # Keep checking the instance state every 10 seconds.
+          while [ $(aws ec2 describe-instances --instance-ids $instance_id --region {{.Args.region}} --query 'Reservations[*].Instances[*].State.Name' --output text) != "running" ]; do
+            echo "Waiting for the instance to be in the 'running' state..."
+            sleep 20
+          done
+
+          echo "Terminating the EC2 instance $instance_id..."
+          aws ec2 terminate-instances --instance-ids $instance_id --region {{.Args.region}}
+          echo "Instance $instance_id has been scheduled for termination."
+        else
+          echo "No instance was created or instance ID is unavailable, skipping termination."
+        fi
