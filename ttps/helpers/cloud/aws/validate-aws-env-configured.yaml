@@ -35,3 +35,15 @@ steps:
       else
         echo -e "AWS CLI is installed: $(aws --version)"
       fi
+
+  - name: check_jq_install
+    description: "Ensure JQ is installed. JQ is required to run some of the cloud TTPs"
+    inline: |
+      set -e
+
+      if ! [[ -x "$(command -v jq)" ]]; then
+        echo 'Error: jq is not installed.. Quitting !!' >&2
+        exit 1
+      else
+        echo -e "jq is installed: $(jq --version)"
+      fi

