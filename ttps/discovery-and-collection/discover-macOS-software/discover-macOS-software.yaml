@@ -1,0 +1,70 @@
+---
+api_version: 2.0
+uuid: b33e7aff-b216-4ad9-8dd4-10a920e054c9
+name: MacOS Installed Software
+description: |
+  This TTP will list the installed software on your macOS machine; default: ls
+  There are three boolean arguments (brew, mdfind, sp (system profiler)) that can be utilized to specify different methods to showcase installed software.
+  Additionally, the save argument can be used to output results from mdfind or system profiler to a text file.
+
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1518 Software Discovery
+
+args:
+  - name: brew
+    description: list installed software via brew
+    type: bool
+    default: false
+
+  - name: mdfind
+    description: list installed software via mdfind
+    type: bool
+    default: false
+
+  - name: sp
+    description: list installed software via system_profiler
+    type: bool
+    default: false
+
+  - name: save
+    description: save software list to output.txt
+    type: bool
+    default: false
+
+steps:
+  {{if .Args.brew }}
+  - name: brew_method
+    description: Enumerating software installed using brew.
+    inline: brew list
+
+  {{else if .Args.mdfind }}
+  - name: mdfind_method
+    {{if .Args.save}}
+    description: Enumerating software installed using mdfind and saving output to output_mdfind.txt
+    inline: mdfind "kMDItemContentType == 'com.apple.application-bundle'" > output_mdfind.txt
+    {{else}}
+    description: Enumerating software installed using mdfind.
+    inline: mdfind "kMDItemContentType == 'com.apple.application-bundle'"
+    {{end}}
+
+  {{else if .Args.sp }}
+  - name: system_profiler_method
+      {{if .Args.save}}
+    description: Enumerating software installed using system_profiler and saving output to output_sp.txt
+    inline: system_profiler SPApplicationsDataType > output_sp.txt
+      {{else}}
+    description: Enumerating software installed using system_profiler.
+    inline: system_profiler SPApplicationsDataType
+      {{end}}
+
+  {{else}}
+  - name: ls_applications_method
+    description: Enumerating software installed in Application directory.
+    inline: ls -la /Applications/
+  {{end}}
