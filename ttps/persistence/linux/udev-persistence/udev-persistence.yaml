@@ -1,0 +1,38 @@
+---
+api_version: 2.0
+uuid: 96c74a6e-ecec-4559-846e-8027e1612a33
+name: "UDEV Persistence Technique"
+description: |
+  "This technique creates a script that is executed when the /dev/random device is loaded, which is typically at boot time. This method uses udev rules to achieve persistence by triggering the script execution during system initialization, establishing a low-level method for maintaining access."
+
+args:
+  - name: target_path
+    description: The path where the script and udev rule will be created.
+    default: /dev
+
+requirements:
+  platforms:
+    - os: linux
+
+mitre:
+  tactics:
+    - "TA0003 Persistence"
+  techniques:
+    - "T1546 Event Triggered Execution"
+  subtechniques:
+    - "T1546.004 Event Triggered Execution: Unix Shell Configuration Modification"
+steps:
+  - name: create_persistence_script
+    decription: Create the script that will be executed at boot.
+    create_file: {{ .Args.target_path }}/udev.sh
+    contents:
+      touch /root/exploited
+    mode: 0600
+    cleanup: default
+
+  - name: add_udev_rule
+    description: Add a udev rule to trigger the script at boot when /dev/random is loaded.
+    create_file: "/etc/udev/rules.d/75-persistence.rules"
+    contents: ACTION=="add", ENV{MAJOR}=="1", ENV{MINOR}=="8", RUN+="/bin/sh -c '{{ .Args.target_path }}/udev.sh'"
+    cleanup:
+      remove_path: "/etc/udev/rules.d/75-persistence.rules"
