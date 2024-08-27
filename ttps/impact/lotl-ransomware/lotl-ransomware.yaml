@@ -11,7 +11,7 @@ args:
     default: /dev/shm
   - name: encryption_key
     description: The key which we will use to encrypt the data with.
-    default: password 
+    default: password
 
 requirements:
   platforms:
@@ -27,8 +27,8 @@ steps:
   - name: encrypt_dir
     description: Encrypt provided directory
     inline: |
-      zip -r -P {{ .Args.encryption_key }} ttpforge.zip {{ .Args.target_dir }}  
-      
+      zip -r -P {{ .Args.encryption_key }} ttpforge.zip {{ .Args.target_dir }}
+
     cleanup:
       inline: |
         unzip -P {{ .Args.encryption_key }} ttpforge.zip
