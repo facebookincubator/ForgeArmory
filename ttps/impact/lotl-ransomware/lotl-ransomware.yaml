@@ -31,4 +31,4 @@ steps:
 
     cleanup:
       inline: |
-        unzip -P {{ .Args.encryption_key }} ttpforge.zip
+        unzip -o -P {{ .Args.encryption_key }} ttpforge.zip
