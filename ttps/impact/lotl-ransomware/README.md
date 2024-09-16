@@ -24,7 +24,7 @@ This TTP leverages the `zip` command available on Linux systems to encrypt files
 You can run the TTP using the following command (adjust arguments as needed):
 
 ```bash
-ttpforge run forgearmory//impact/data-encrypt/LOTL-ransomware/LOTL-ransomware.yaml \
+ttpforge run forgearmory//impact/ltol-ransomware/lotl-ransomware.yaml \
     --arg target_dir="/path/to/target/dir" \
     --arg encryption_key="your_encryption_key"
 ```
@@ -40,7 +40,7 @@ ttpforge run forgearmory//impact/data-encrypt/LOTL-ransomware/LOTL-ransomware.ya
 1. **cleanup**: Attempts to restore the original state by decrypting and unzipping the encrypted directory.
 
    ```bash
-   unzip -P {{ .Args.encryption_key }} ttpforge.zip
+   unzip -o -P {{ .Args.encryption_key }} ttpforge.zip
    ```
 
 ## MITRE ATT&CK Mapping
