@@ -1,0 +1,38 @@
+---
+api_version: 2.0
+uuid: 0495fc77-3ef2-4aff-ae1b-c50fcac5fe89
+name: '`SeDebugPrivilege` token duplication'
+description: |
+  Uses PowerShell and Empire's [GetSystem module](https://github.com/BC-SECURITY/Empire/blob/v3.4.0/data/module_source/privesc/Get-System.ps1).
+  The script uses `SeDebugPrivilege` to obtain, duplicate and impersonate the token of a another process.
+  When executed successfully, the test displays the domain and name of the account it's impersonating (local SYSTEM).
+  Derived from https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1134.001/T1134.001.md#atomic-test-2---sedebugprivilege-token-duplication
+requirements:
+  platforms:
+    - os: windows
+mitre:
+  tactics:
+    - TA0004 Privilege Escalation
+  techniques:
+    - T1134 Access Token Manipulation
+  subtechniques:
+    - T1134.003 Make and Impersonate Token
+args:
+  - name: script
+    description: location of script
+    type: string
+    default: $PWD\src\Get-System.ps1
+steps:
+  - name: execute_script
+    executor: powershell
+    description: Executing script Get-System.ps1
+    inline: |
+      if (-Not(Test-Path "{{.Args.script}}")){
+        Write-Host "The script was not provided at {{.Args.script}} or EDR has quarantined/deleted it."
+        exit 1
+      }
+      else {
+        IEX (Get-Content "{{.Args.script}}" -Raw); Get-System -Technique Token
+        Start-Sleep -Second 3
+        IEX (Get-Content "{{.Args.script}}" -Raw); Get-System -RevToSelf
+      }
