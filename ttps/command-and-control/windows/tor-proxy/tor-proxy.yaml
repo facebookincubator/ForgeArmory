@@ -20,42 +20,53 @@ mitre:
 args:
   - name: torExe
     description: Location of tor.exe file
-    type: path
-    default: bin\Tor\tor.exe
+    type: string
+    default: $PWD\bin\Tor\tor.exe
   - name: sleepTime
     description: Amount in seconds to pause after starting tor
     type: int
     default: 60
 
 steps:
-  - name: tor_download
-    description: tor.exe must be installed on the machine, checking if tor.exe exists at {{.Args.torExe}}
+  - name: tor_execute
     executor: powershell
     inline: |
+      Write-Host "tor.exe must be installed on the machine, checking if tor.exe exists at {{.Args.torExe}}"
+
       if (-Not (Test-Path "{{.Args.torExe}}")) {
+        Write-Host "Downloading tor..."
         $torZip = New-TemporaryFile
         $extractPath = Split-Path (Split-Path "{{.Args.torExe}}" -Parent) -Parent
         Invoke-WebRequest "https://archive.torproject.org/tor-package-archive/torbrowser/11.0.6/tor-win32-0.4.6.9.zip" -OutFile "${torZip}.zip"
         New-Item -ItemType Directory -Path $extractPath -ErrorAction ignore | Out-Null
         expand-archive -LiteralPath "${torZip}.zip" -DestinationPath $extractPath
-        New-Item -ItemType File -Path "${extractPath}\.downloaded" -ErrorAction ignore | Out-Null
         remove-item "${torZip}.zip"
       }
-  - name: tor_execute
-    description: Starting tor.exe ...
-    executor: powershell
-    inline: |
-      start powershell { &"{{.Args.torExe}}" }
 
-      start-sleep -Seconds {{.Args.sleepTime}}
+      if (-Not (Test-Path "{{.Args.torExe}}")){
+        Write-Error "Tor was not downloaded or does not exist at {{.Args.torExe}}"
+        exit 1
+      } else {
+        Write-Host "Starting tor.exe..."
+        start powershell { &"{{.Args.torExe}}" }
+        start-sleep -Seconds {{.Args.sleepTime}}
+      }
 
     cleanup:
       executor: powershell
-      description: Stopping tor.exe ...
       inline: |
-        stop-process -name "tor" | out-null
+        try {
+          Write-Host "Attempting to stop tor process..."
+          Stop-Process -Name "tor" -ErrorAction Stop
+          Write-Host "Successfully stopped tor process."
+        } catch {
+          Write-Host "Failed to stop tor process: $_"
+        }
 
         $parentDir = Split-Path (Split-Path "{{.Args.torExe}}" -Parent) -Parent
-        if (Test-Path "${parentDir}\.downloaded"){
+        if (Test-Path "${parentDir}"){
           remove-item -r $parentDir
+        }
+        else{
+          Write-Host "Failed to remove ${parentDir} "
         }
