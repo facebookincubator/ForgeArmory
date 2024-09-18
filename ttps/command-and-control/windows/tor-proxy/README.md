@@ -7,7 +7,7 @@ This TTP is designed to launch the tor proxy service, which is what is utilized 
 Derived from [Atomic Red Team T1090.003](https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1090.003/T1090.003.md#atomic-test-2---tor-proxy-usage---windows)
 
 ## Arguments
-- **torExe**: a path variable specifying the location of tor.exe (including dependencies). Default is "bin\Tor\tor.exe".
+- **torExe**: a string variable specifying the location of tor.exe (including dependencies). Default is "$PWD\bin\Tor\tor.exe".
 - **sleepTime** : an int variable specifying the amount in seconds to pause after starting tor
 
 ## Pre-requisites
