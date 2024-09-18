@@ -8,11 +8,12 @@ Derived from [Atomic Red Team T1574.002](https://github.com/redcanaryco/atomic-r
 
 ## Arguments
 - **process_name**:  a string flag specifying the name of created calc process. Default is "CalculatorApp".
-- **gup_exe**: a path flag specifying location of GUP.exe. Default is "bin\GUP.exe".
-- **curl_dll**: a path flag specifying location of libcurl.dll. Default is "bin\libcurl.dll".
+- **gup_exe**: a string flag specifying location of GUP.exe. Default is "$PWD\bin\GUP.exe".
+- **curl_dll**: a string flag specifying location of libcurl.dll. Default is "$PWD\bin\libcurl.dll".
 
 ## Pre-requisites
 - Windows operating system equipped with powershell
+- libcurl.dll and GUP.exe must be in the same directory
 
 ## Examples
 You can run the TTP using the following example (after updating the arguments):
@@ -23,7 +24,7 @@ ttpforge run forgearmory//persistence/windows/dll-side-loading/dll-side-loading.
 ttpforge run forgearmory//persistence/windows/dll-side-loading/dll-side-loading.yaml --arg process_name=calc
 ```
 ```bash
-ttpforge run forgearmory//persistence/windows/dll-side-loading/dll-side-loading.yaml --arg gup_exe=bin\myGUP.exe --arg curl_dll=bin\mylibcurl.dll
+ttpforge run forgearmory//persistence/windows/dll-side-loading/dll-side-loading.yaml --arg gup_exe=test\myGUP.exe --arg curl_dll=test\mylibcurl.dll
 ```
 
 ## Steps
