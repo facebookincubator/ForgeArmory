@@ -1,0 +1,99 @@
+---
+api_version: 2.0
+uuid: 34a6e159-3ce4-4048-bcc9-04cd59ddcdfd
+name: Create and start VirtualBox virtual machine
+description: |
+  Create a simple VirtualBox VM and start up the machine
+  Cleanup command stops and deletes the newly created VM and associated files
+  https://www.virtualbox.org/manual/ch08.html#vboxmanage-startvm
+  https://news.sophos.com/en-us/2020/05/21/ragnar-locker-ransomware-deploys-virtual-machine-to-dodge-security/
+  https://attack.mitre.org/techniques/T1564/006/
+  Derived from: https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1564.006/T1564.006.md#atomic-test-2---create-and-start-virtualbox-virtual-machine
+requirements:
+  platforms:
+    - os: windows
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1564 Hide Artifacts
+  subtechniques:
+    - T1564.006 Run Virtual Instance
+
+args:
+  - name: vm_name
+    description: Name of the new virtual machine
+    type: string
+    default: TTP VM
+
+  - name: vb_exe
+    description: Path to the VirtualBox executable
+    type: string
+    default: $PWD\bin\VirtualBox\VirtualBox.exe
+
+  - name: vb_manage
+    description: Path to the executable for VBoxManage, the command-line interface to VirtualBox
+    type: string
+    default: $PWD\bin\VirtualBox\VBoxManage.exe
+
+  - name: vb_download
+    description: URL for the current installer for the Windows version of VirtualBox, as of March 2022
+    type: string
+    default: https://download.virtualbox.org/virtualbox/6.1.32/VirtualBox-6.1.32-149290-Win.exe
+
+  - name: vb_installer
+    description: Executable for the Virtualbox installer
+    type: string
+    default: VirtualBox-6.1.32-149290-Win.exe
+
+steps:
+  - name: setup_and_start_virtual_box
+    executor: powershell
+    inline: |
+      Write-Host "VirtualBox ({{.Args.vb_exe}}) and VBoxManage ({{.Args.vb_manage}}) must exist on disk at specified locations."
+      $parent = Split-Path "{{.Args.vb_exe}}" -Parent
+      if (-Not (Test-Path "{{.Args.vb_exe}}") -or -Not (Test-Path "{{.Args.vb_manage}}")) {
+        if (Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*VirtualBox*" }){
+          Write-Host "VirtualBox is already installed. Ensure following args are correct: vb_exe and vb_manage"
+          exit 1
+        }
+        Write-Host "VirtualBox or VBoxManage does not exist. Installing..."
+        New-Item -Type Directory $parent -ErrorAction Ignore -Force | Out-Null
+
+        try{
+          Invoke-WebRequest "{{.Args.vb_download}}" -OutFile "bin\{{.Args.vb_installer}}"
+        } catch {
+          Write-Error "VirtualBox installer download failed."
+          exit 1
+        }
+        start-process -FilePath "bin\{{.Args.vb_installer}}" -ArgumentList "--silent", "--msiparams INSTALLDIR=$parent" -Wait
+      }
+
+      &"{{.Args.vb_manage}}" createvm --name "{{.Args.vm_name}}" --register
+      Write-Host "VM: {{.Args.vm_name}} registered."
+      &"{{.Args.vb_manage}}" modifyvm "{{.Args.vm_name}}" --firmware efi
+      Write-Host "Starting VM: {{.Args.vm_name}}."
+      &"{{.Args.vb_manage}}" startvm "{{.Args.vm_name}}"
+
+
+    cleanup:
+      executor: powershell
+      inline: |
+        Write-Host "Powering off VM: {{.Args.vm_name}}."
+        &"{{.Args.vb_manage}}" controlvm "{{.Args.vm_name}}" poweroff
+        Start-Sleep -Seconds 20
+        Write-Host "Deleting VM: {{.Args.vm_name}}."
+        &"{{.Args.vb_manage}}" unregistervm "{{.Args.vm_name}}" --delete
+
+        # Uninstalling Virtual Box
+        $vbID = (Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*VirtualBox*" }).IdentifyingNumber
+        if (-Not $vbID){
+          Write-Host "Failed to uninstall VirtualBox. Cannot find VirtualBox."
+        } else {
+          Start-Process msiexec -ArgumentList "/x $vbID /passive" -Wait
+        }
+
+        # # Removing bin
+        if (Test-Path "bin") {
+          remove-item -recurse bin
+        }
