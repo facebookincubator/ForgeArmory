@@ -16,8 +16,8 @@ steps:
       if [ -d /Applications/Firefox.app ]; then
          echo "[+] Firefox is installed...
          Attempting to kill Firefox and read from cookies.sqlite db..."
-         pkill -a -i "Firefox"
-         pkill -a -i "Firefox"
+         pkill -a -i "Firefox" || true
+         pkill -a -i "Firefox" || true
          osascript JXA-Firefox.js
          echo "[+] TTP Done!"
       else
