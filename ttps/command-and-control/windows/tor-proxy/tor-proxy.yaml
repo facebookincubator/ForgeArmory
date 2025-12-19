@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: dfdada2c-f1f9-4f2a-9a02-241fc1e7393b
 name: Tor Proxy Usage - Windows
+authors:
+  - jazzyle
+  - Atomic Red Team
 description: |
   This test is designed to launch the tor proxy service, which is what is utilized in the background by the Tor Browser and other applications with add-ons in order to provide onion routing functionality.
   Upon successful execution, the tor proxy will be launched, run for 60 seconds, and then exit.

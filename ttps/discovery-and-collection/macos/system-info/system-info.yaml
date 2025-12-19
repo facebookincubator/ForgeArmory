@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: 967b803e-a4c1-4ad6-b838-8174fabeaf75
 name: Gather macOS system information.
+authors:
+  - cedowens
+  - I50
 description: |
   This TTP uses the osascript binary to gather system information.
 mitre:

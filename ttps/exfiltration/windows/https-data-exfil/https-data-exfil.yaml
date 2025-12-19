@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: 04035395-1a63-4a9f-89bd-0a18190d431d
 name: Exfiltrate data HTTPS using curl windows
+authors:
+  - jazzyle
+  - Atomic Red Team
 description: |
   Exfiltrate data HTTPS using curl to file share site file.io
   Derived from: https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1048.002/T1048.002.md#atomic-test-1---exfiltrate-data-https-using-curl-windows

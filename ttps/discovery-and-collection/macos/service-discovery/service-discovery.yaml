@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: e80f7098-69ea-4e78-9a74-184b66795cc7
 name: Local Network Service Discovery
+authors:
+  - cedowens
+  - I50
 description: |
   This TTP runs different dns-sd commands for local network service discovery.
 mitre:

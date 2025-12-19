@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: ead96c5b-0f83-4976-be5a-e7ff5ff5cdea
 name: backdoor-lambda-version-and-API
+authors:
+  - w51d
 description: |
   This TTP is used to backdoor an existing lambda function. To execute this TTP one needs to have a
   lambda function accessible via a public API gateway.

@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: a34410f5-d18d-417c-968d-176dec5047dc
 name: Gather macOS running processes.
+authors:
+  - VVX7
+  - I50
 description: |
   This TTP uses ps to gather information about running processes on the system.
 mitre:

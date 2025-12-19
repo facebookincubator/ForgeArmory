@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: 65a544be-d51e-416f-abc6-00e56c6bc911
 name: backdoor_k8s_nodes_authorized_keys
+authors:
+  - I50
 description: |
   This TTP adds a rogue public SSH key to the `authorized_keys` file on all Kubernetes nodes to maintain persistence.
   It assumes access to a Kubernetes cluster with the ability to execute commands on the nodes. The TTP makes a backup of the original `authorized_keys` file before overwriting it and restores it during the cleanup.

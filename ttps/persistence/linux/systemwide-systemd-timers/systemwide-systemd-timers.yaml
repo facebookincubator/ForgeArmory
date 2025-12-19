@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: cb34ea0e-1c42-4bed-86a6-8fc22be02748
 name: systemwide-systemd-timers
+authors:
+  - jimmy-ly00
 description: Add a systemwide systemd timers to run the specified implant.
 requirements:
   platforms:

@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: 71d77f5e-5823-496a-b982-dcb2b43aed9e
 name: exfiltrate-data
+authors:
+  - tbarabosch
 description: Exfiltrate data via a specified endpoint.
 requirements:
   platforms:

@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: c35714f1-87bf-4754-a5ba-52d4294e6186
 name: systemwide-systemd-timers-transient-user
+authors:
+  - jimmy-ly00
 description: Add a systemwide systemd timers to run the specified implant. This method is transient and will not persist after reboot.
 requirements:
   platforms:

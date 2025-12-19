@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: 96c74a6e-ecec-4559-846e-8027e1612a33
 name: "UDEV Persistence Technique"
+authors:
+  - gerbsec
 description: |
   "This technique creates a script that is executed when the /dev/random device is loaded, which is typically at boot time. This method uses udev rules to achieve persistence by triggering the script execution during system initialization, establishing a low-level method for maintaining access."
 

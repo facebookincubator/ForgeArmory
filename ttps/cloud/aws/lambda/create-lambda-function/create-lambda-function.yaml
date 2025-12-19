@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: 4b783ca9-7cf7-49c4-a74f-26c753a4b1c2
 name: create_lambda_function
+authors:
+  - w51d
 description: |
   This TTP is used to create a new Lambda function in AWS. It uses the AWS CLI to create a new function with the specified name and runtime.
   If a function with given name exists, nothing is done and the TTP is closed.

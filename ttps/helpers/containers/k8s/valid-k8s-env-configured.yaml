@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: 0d97cf95-4b73-4032-a473-e507ce471094
 name: validate-kubernetes-env-configured
+authors:
+  - I50
 description: |
   This helper is designed to validate the necessary Kubernetes configuration for TTPForge.
   It checks for the presence of the kubectl command and the current kubeconfig context.

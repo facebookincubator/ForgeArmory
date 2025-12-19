@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: 11b1b974-d720-4ab0-80c5-e539c103d0fd
 name: identify-privilege-escalation-paths-with-lse
+authors:
+  - d0n601
 description: Downloads latest Linux Smart Enumeration from Github and executes it with bash
 requirements:
   platforms:

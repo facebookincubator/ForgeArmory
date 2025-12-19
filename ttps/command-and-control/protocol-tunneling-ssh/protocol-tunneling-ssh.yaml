@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: 8ddd006b-b80f-49e8-b78b-f0a7e94cf263
 name: protocol-tunneling-ssh
+authors:
+  - tbarabosch
 description: Start a webserver on the target system and create a SSH tunnel to fetch a file through that tunnel.
 requirements:
    platforms:

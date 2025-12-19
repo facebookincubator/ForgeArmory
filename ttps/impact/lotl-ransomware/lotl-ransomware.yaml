@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: 0fc4bb3a-b864-4c33-8516-9b0654324ad9
 name: "LOTL Ransomware"
+authors:
+  - gerbsec
 description: |
   "Threat actors often need to utilize tools that are prexisting on the machine in order to perform TTPs. Often times threat actors are able to utilize something as simple as the `zip` command in order to encrypt files on a machine."
 

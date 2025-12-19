@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: a1c89a0b-07e2-414a-bbd1-b83e373a0b1b
 name: create_ec2_instance
+authors:
+  - w51d
 description: |
   This TTP is used to create a new unencrypted EC2 instance in AWS configured for access via AWS Systems Manager (SSM) without requiring a key pair. It first checks if default EBS encryption is enabled and disables it if necessary. It then uses the AWS CLI to create a new instance within the specified region with default security settings that deny all inbound traffic.
   The instance will be tagged for identification and will be terminated during the cleanup process. Default EBS encryption will be restored to its original state during cleanup if it was disabled.

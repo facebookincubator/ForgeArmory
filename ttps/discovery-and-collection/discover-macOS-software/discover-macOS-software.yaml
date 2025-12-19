@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: b33e7aff-b216-4ad9-8dd4-10a920e054c9
 name: MacOS Installed Software
+authors:
+  - jazzyle
 description: |
   This TTP will list the installed software on your macOS machine; default: ls
   There are three boolean arguments (brew, mdfind, sp (system profiler)) that can be utilized to specify different methods to showcase installed software.

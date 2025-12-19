@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: 9310dda0-5b70-4f84-80f1-2bb61c7c4163
 name: load-rootkit
+authors:
+  - tbarabosch
 description: Load a Linux Kernel Module (LKM) to simulate a rootkit and confirm it has loaded.
 requirements:
   platforms:

@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: 9f1d4cb9-e89c-4a0a-9de5-8aac63a7e8db
 name: run-bash-script-from-gist
+authors:
+  - tbarabosch
 description: Run an arbitrary bash script from a GitHub gist.
 requirements:
   platforms:

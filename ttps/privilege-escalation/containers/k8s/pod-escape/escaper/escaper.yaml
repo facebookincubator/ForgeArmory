@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: a7b0bf46-9d0e-4537-93c8-80ca97937241
 name: escaper
+authors:
+  - I50
 description: |
   This TTP demonstrates how to escape from an insecure pod to a node in a Kubernetes
   cluster using the [escaper](https://github.com/danielsagi/kube-pod-escape) tool.
