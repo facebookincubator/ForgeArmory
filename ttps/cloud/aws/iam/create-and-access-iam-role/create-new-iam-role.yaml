@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: e4d3fc6f-f923-4026-8596-15f7561b79cb
 name: create_iam_role
+authors:
+  - w51d
 description: |
   This TTP is used to create a new IAM role in AWS. It uses the AWS CLI to create a new role with the specified name.
   If a role with given name exists, nothing is done and the TTP is closed.

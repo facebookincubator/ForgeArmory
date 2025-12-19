@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: 2e9c75ec-7ace-4d05-a652-fc7279de9362
 name: Windows Screen Capture (CopyFromScreen)
+authors:
+  - jazzyle
+  - Atomic Red Team
 description: |
   Take a screen capture of the desktop through a call to the [Graphics.CopyFromScreen] .NET API.
   Graphics.CopyFromScreen]: https://docs.microsoft.com/en-us/dotnet/api/system.drawing.graphics.copyfromscreen

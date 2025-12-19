@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: 27a4e324-7605-410c-9457-52d84775fcc9
 name: Key search
+authors:
+  - cedowens
+  - I50
 description: |
   This TTP searches for any files at ~/.ssh, ~/.aws, ~/.gcloud, and ~/.azure.
 mitre:

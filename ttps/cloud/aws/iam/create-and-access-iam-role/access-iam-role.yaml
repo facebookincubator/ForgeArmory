@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: cfe67367-8968-485c-8b26-8f05afee2b8a
 name: access_new_iam_role
+authors:
+  - w51d
 description: |
   This TTP is used to access an existing backdoored IAM role from a compromised AWS account.
   If a role with given name exists, nothing is done and the TTP is closed.

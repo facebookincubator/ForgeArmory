@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: 29bb4477-88e7-44e9-a6e8-21be79ff6ebc
 name: Regasm Uninstall Method Call Test
+authors:
+  - jazzyle
+  - Atomic Red Team
 description: |
   Executes the Uninstall Method, No Admin Rights Required. Upon execution, "I shouldn't really execute either." will be displayed.
   Derived from: https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1218.009/T1218.009.md#t1218009---signed-binary-proxy-execution-regsvcsregasm

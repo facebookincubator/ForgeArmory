@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: c2d95634-2972-4545-b124-5f04dce83a2b
 name: backdoor-authorized-keys
+authors:
+  - d3sch41n
+  - I50
 description: |
   Add rogue public SSH key to `$HOME/.ssh/authorized_keys` to maintain
   persistence on a target system.

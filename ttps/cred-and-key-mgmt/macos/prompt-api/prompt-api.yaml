@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: fb25e5c8-75cd-4425-b64d-68ce8315f67c
 name: macOS api prompt
+authors:
+  - cedowens
+  - I50
 description: |
   This TTP uses the osascript library (via API calls) to launch a fake
   authentication prompt.

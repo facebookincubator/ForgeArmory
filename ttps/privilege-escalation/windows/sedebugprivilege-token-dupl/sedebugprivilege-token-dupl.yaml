@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: 0495fc77-3ef2-4aff-ae1b-c50fcac5fe89
 name: '`SeDebugPrivilege` token duplication'
+authors:
+  - jazzyle
+  - Atomic Red Team
 description: |
   Uses PowerShell and Empire's [GetSystem module](https://github.com/BC-SECURITY/Empire/blob/v3.4.0/data/module_source/privesc/Get-System.ps1).
   The script uses `SeDebugPrivilege` to obtain, duplicate and impersonate the token of a another process.

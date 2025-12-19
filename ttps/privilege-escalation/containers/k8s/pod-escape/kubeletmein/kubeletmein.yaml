@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: 678f2cf9-22dd-4d61-8ce7-d68cb3b54c31
 name: kubeletmein
+authors:
+  - I50
 description: |
   This TTP demonstrates how to gain escalated privileges on a Kubernetes node from an insecure pod.
   It creates a pod with root access, copies the [kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/)

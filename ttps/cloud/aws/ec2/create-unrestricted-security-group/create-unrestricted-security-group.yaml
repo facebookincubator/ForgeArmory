@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: b0589c7d-4b5a-47ea-a3d5-b0f8a7c6e5b4
 name: create-unrestricted-security-group
+authors:
+  - I50
 description: Create an unrestricted security group in AWS.
 args:
   - name: detect

@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: 3bc07f14-f859-4bf3-b478-067d076cd3e1
 name: exfil_from_ec2_to_internet
+authors:
+  - w51d
 description: |
   This TTP is executed on your local machine.
   Using AWS SSM, commands to generate random file of a given size are sent to EC2 instance.

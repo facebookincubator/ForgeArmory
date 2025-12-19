@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: 02f75a9c-94c6-4530-aa9b-b16dc05f1133
 name: Load a dylib using tclsh
+authors:
+  - cedowens
+  - I50
 description: |
   This TTP loads a custom dylib (which opens Calculator) by piping an echo command to tclsh.
 requirements:

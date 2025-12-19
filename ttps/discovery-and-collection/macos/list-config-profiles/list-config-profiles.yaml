@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: 2d2d8b6d-8f84-4ae6-ac8b-7343df021f1b
 name: List macOS configuration profiles.
+authors:
+  - cedowens
+  - I50
 description: |
   This TTP simply lists all configuration profile names using the profiles
   binary. This can be useful for an attacker to determine what configuration

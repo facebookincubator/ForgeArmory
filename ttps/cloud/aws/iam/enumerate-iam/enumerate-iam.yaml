@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: b8d069c2-7267-4a55-991f-8de5e4e6ac16
 name: brute-force-iam-permissions
+authors:
+  - d3sch41n
+  - I50
 description: |
   Determine what permissions an IAM role has through
   brute force using the

@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: f2d17902-e26a-4366-963a-5474fe94c457
 name: Add Executable Shortcut Link to User Startup Folder
+authors:
+  - jazzyle
+  - Atomic Red Team
 description: |
     Adds a non-malicious executable shortcut link to the current users startup directory.
     Test can be verified by going to the users startup directory and checking if the shortcut link exists.

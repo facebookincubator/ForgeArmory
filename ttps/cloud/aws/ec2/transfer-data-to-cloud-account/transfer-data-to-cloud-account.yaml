@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: ef336123-2118-4729-8143-b2ccfcd5a616
 name: transfer_ec2_ami_to_cloud_account
+authors:
+  - w51d
 description: |
   This TTP creates a test EC2 instance with an unencrypted EBS volume in the victim's AWS account.
   It then uses compromised credentials to create an AMI of this new EC2 instance. This means your sts-caller-identity must be that of the victim when executing the TTP.

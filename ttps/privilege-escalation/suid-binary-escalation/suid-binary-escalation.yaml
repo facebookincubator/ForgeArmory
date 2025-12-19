@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: c9c60fec-dfaf-4824-8e0e-26bd82ba434b
 name: suid-binary-escalation
+authors:
+  - I50
 description: |
   This TTP demonstrates how to use a SUID binary to escalate privileges.
   If no parameters outside of the low privileged user are provided, the TTP

@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: ae55a815-9a7c-4691-a51f-59e8c70016bf
 name: revive-old-iam-user
+authors:
+  - d3sch41n
+  - I50
 description: Add an access key to a previously dormant IAM user.
 args:
   - name: detect

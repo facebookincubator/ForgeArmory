@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: ea4ea068-05eb-4780-bb6d-4377111c34b3
 name: Inject Dylib
+authors:
+  - cedowens
+  - I50
 description: |
   This TTP injects a custom dylib (which opens Calculator) into the SafariForWebkitDevelopment binary.
 requirements:

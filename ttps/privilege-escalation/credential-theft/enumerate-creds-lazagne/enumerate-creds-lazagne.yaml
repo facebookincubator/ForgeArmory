@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: 6c38bb09-9db6-4aa4-8d53-d07d4b35b823
 name: enumerate-creds-lazagne
+authors:
+  - d3sch41n
+  - I50
 description: |
   Employ [LaZagne](https://github.com/AlessandroZ/LaZagne) for
   extracting credentials stored on disk and in memory of a target system.

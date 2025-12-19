@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: 34a6e159-3ce4-4048-bcc9-04cd59ddcdfd
 name: Create and start VirtualBox virtual machine
+authors:
+  - jazzyle
+  - Atomic Red Team
 description: |
   Create a simple VirtualBox VM and start up the machine
   Cleanup command stops and deletes the newly created VM and associated files

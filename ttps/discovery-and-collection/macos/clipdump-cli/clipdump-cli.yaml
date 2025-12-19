@@ -2,6 +2,9 @@
 api_version: 2.0
 uuid: f89d630a-3529-4ee8-ae1e-67a105ffc2b7
 name: macOS cli clipboard dump
+authors:
+  - cedowens
+  - I50
 description: |
   This TTP uses the osascript binary to dump clipboard contents.
 mitre:

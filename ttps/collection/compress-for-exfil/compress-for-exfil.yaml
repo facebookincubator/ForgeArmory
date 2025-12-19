@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: 0dcff7d2-69f7-4042-b5e4-b367706bd23d
 name: compress-for-exfil
+authors:
+  - tbarabosch
 description: Archive files with a specific extension in the specified directory for exfiltration.
 requirements:
   platforms:

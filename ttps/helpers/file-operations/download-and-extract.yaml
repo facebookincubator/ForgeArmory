@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: 712efcdf-8edf-43d5-8660-05c37d6073ff
 name: download-and-extract
+authors:
+  - I50
 description: |
   Downloads a file from a specified URL or the latest release from a GitHub repository.
   If the file is a .tar.gz or .zip archive, it extracts the contents.

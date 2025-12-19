@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: 29f9ab13-4c19-410f-8638-082c7f5c4127
 name: create_iam_user
+authors:
+  - w51d
 description: |
   This TTP is used to create a new IAM user in AWS. It uses the AWS CLI to create a new user with the specified name.
   If a user with given name exists, nothing is done and the TTP is closed.

@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: da3377ef-a511-4c88-bc88-0a71793957d8
 name: discover-writable-directories
+authors:
+  - I50
 description: Discover writable directories in the specified directory.
 requirements:
   platforms:

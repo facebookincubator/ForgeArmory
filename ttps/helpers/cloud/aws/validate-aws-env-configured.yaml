@@ -2,6 +2,8 @@
 api_version: 2.0
 uuid: 2097336e-4ede-455f-afaf-b22e13df7ac6
 name: validate-aws-env-configured
+authors:
+  - I50
 description: |
   This helper is designed to validate the necessary AWS credentials and region settings for TTPForge.
   It checks for the presence of AWS credentials and the installation of AWS CLI.
