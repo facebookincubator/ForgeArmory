@@ -11,11 +11,17 @@ args:
     default: true
   - name: user
   - name: group
+
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+
 mitre:
   tactics:
-    - TA0003 Persistence
+    - "TA0003 Persistence"
   techniques:
-    - T1098 Account Manipulation
+    - "T1098 Account Manipulation"
 
 steps:
   - name: ensure-aws-creds-present

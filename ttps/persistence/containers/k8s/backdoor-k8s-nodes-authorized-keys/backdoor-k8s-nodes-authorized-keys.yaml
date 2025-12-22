@@ -32,9 +32,9 @@ requirements:
     - os: darwin
 mitre:
   tactics:
-    - TA0003 Persistence
+    - "TA0003 Persistence"
   techniques:
-    - T1078 Valid Accounts
+    - "T1078 Valid Accounts"
 
 steps:
   {{ if .Args.eks_cluster }}

@@ -16,11 +16,11 @@ args:
     default: "/tmp/evil-systemd-timers-transient-system.sh"
 mitre:
   tactics:
-    - TA0003 Persistence
+    - "TA0003 Persistence"
   techniques:
-    - T1053 Scheduled Task/Job
+    - "T1053 Scheduled Task/Job"
   subtechniques:
-    - T1053.006 Scheduled Task/Job Systemd Timers
+    - "T1053.006 Scheduled Task/Job: Systemd Timers"
 steps:
   - name: setup
     inline: |

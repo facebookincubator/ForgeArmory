@@ -16,11 +16,16 @@ args:
     description: The name of the new Lambda function to be created.
     default: ttpforge-lambda-function
 
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+
 mitre:
   tactics:
-    - TA0003 Persistence
+    - "TA0003 Persistence"
   techniques:
-    - T1543 Create or Modify System Process
+    - "T1574 Hijack Execution Flow"
 
 steps:
   - name: create_temp_lambda_function

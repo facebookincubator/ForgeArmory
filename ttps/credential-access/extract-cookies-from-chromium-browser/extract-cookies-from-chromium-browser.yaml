@@ -11,9 +11,10 @@ requirements:
   superuser: false
 mitre:
   tactics:
-    - TA0006 Credential Access
+    - "TA0006 Credential Access"
   techniques:
-    - T1539 Steal Web Session Cookie
+    - "T1539 Steal Web Session Cookie"
+
 steps:
   - name: setup
     inline: |

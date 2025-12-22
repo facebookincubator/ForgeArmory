@@ -8,11 +8,15 @@ authors:
   - I50
 description: |
   This TTP conducts scans against a range of IP addresses to identify alive hosts and open ports
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
 mitre:
   tactics:
-    - TA0043 Reconnaissance
+    - "TA0043 Reconnaissance"
   techniques:
-    - T1595 Active Scanning
+    - "T1595 Active Scanning"
   subtechniques:
     - "T1595.001 Active Scanning: Scanning IP Blocks"
 

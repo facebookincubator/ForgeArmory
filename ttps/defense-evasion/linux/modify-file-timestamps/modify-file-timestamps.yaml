@@ -17,11 +17,11 @@ args:
     default: "/tmp/passwd"
 mitre:
   tactics:
-    - TA0005 Defense Evasion
+    - "TA0005 Defense Evasion"
   techniques:
-    - T1070.006 Indicator Removal
+    - "T1070 Indicator Removal"
   subtechniques:
-    - T1070.006 Indicator Removal Timestomp
+    - "T1070.006 Indicator Removal: Timestomp"
 steps:
   - name: ensure-root-user
     inline: |

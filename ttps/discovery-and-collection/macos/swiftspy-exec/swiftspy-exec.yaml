@@ -7,13 +7,16 @@ authors:
   - I50
 description: |
   This TTP executes SwiftSpy to monitor keyboard strokes.
+requirements:
+  platforms:
+    - os: darwin
 mitre:
   tactics:
-    - TA0009 Collection
+    - "TA0009 Collection"
   techniques:
-    - T1056 Input Capture
+    - "T1056 Input Capture"
   subtechniques:
-    - T1056.001 Input Capture Keylogging
+    - "T1056.001 Input Capture: Keylogging"
 steps:
   - name: swiftspy-exec
     inline: |

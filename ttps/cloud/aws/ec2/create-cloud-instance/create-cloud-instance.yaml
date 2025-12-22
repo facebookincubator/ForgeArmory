@@ -5,7 +5,8 @@ name: create_ec2_instance
 authors:
   - w51d
 description: |
-  This TTP is used to create a new unencrypted EC2 instance in AWS configured for access via AWS Systems Manager (SSM) without requiring a key pair. It first checks if default EBS encryption is enabled and disables it if necessary. It then uses the AWS CLI to create a new instance within the specified region with default security settings that deny all inbound traffic.
+  This TTP is used to create a new unencrypted EC2 instance in AWS configured for access via AWS Systems Manager (SSM) without requiring a key pair.
+  It first checks if default EBS encryption is enabled and disables it if necessary. It then uses the AWS CLI to create a new instance within the specified region with default security settings that deny all inbound traffic.
   The instance will be tagged for identification and will be terminated during the cleanup process. Default EBS encryption will be restored to its original state during cleanup if it was disabled.
 
 args:
@@ -22,14 +23,19 @@ args:
     description: The Amazon Machine Image ID used to create the new instance.
     default: "ami-0eb5115914ccc4bc2"
 
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+
 mitre:
   tactics:
-    - TA0005 Defense Evasion
+    - "TA0005 Defense Evasion"
   techniques:
-    - T1578 Modify Cloud Compute Infrastructure
-  sub technique:
-    - T1578.002 Create Cloud Instance
-    - T1578.003 Delete Cloud Instance
+    - "T1578 Modify Cloud Compute Infrastructure"
+  subtechniques:
+    - "T1578.002 Create Cloud Instance"
+    - "T1578.003 Delete Cloud Instance"
 
 steps:
   - name: aws-connector

@@ -15,9 +15,10 @@ requirements:
     - os: windows
 mitre:
   tactics:
-    - TA0009 Collection
+    - "TA0009 Collection"
   techniques:
-    - T1113 Screen Capture
+    - "T1113 Screen Capture"
+
 args:
   - name: output
     description: path where captured results will be placed

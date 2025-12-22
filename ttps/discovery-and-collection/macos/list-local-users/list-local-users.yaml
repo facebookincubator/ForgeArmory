@@ -7,13 +7,16 @@ authors:
   - I50
 description: |
   This TTP uses the Directory Service Command Line (DSCL) utility to gather local user accounts.
+requirements:
+  platforms:
+    - os: darwin
 mitre:
   tactics:
-    - TA0007 Discovery
+    - "TA0007 Discovery"
   techniques:
-    - T1087 Account Discovery
+    - "T1087 Account Discovery"
   subtechniques:
-    - "T1087.001: Local Account"
+    - "T1087.001 Account Discovery: Local Account"
 steps:
   - name: local_users
     inline: |
