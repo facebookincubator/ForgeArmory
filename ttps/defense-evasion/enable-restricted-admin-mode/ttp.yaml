@@ -1,0 +1,48 @@
+# Converted from Atomic Red Team - Modify Registry
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1112
+# Original auto_generated_guid: fe7974e5-5813-477b-a7bd-311d4f535e83
+
+---
+api_version: 2.0
+uuid: 55a919ac-f3b5-4232-a0a0-febc57a1805f
+name: Enabling Restricted Admin Mode via Command_Prompt
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Enabling Restricted Admin Mode via Command_Prompt,enables an attacker to perform a pass-the-hash attack using RDP.
+
+  See Passing the Hash with Remote Desktop - https://www.kali.org/blog/passing-hash-remote-desktop/
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1112 Modify Registry"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: backup_location
+    description: Path where registry backup will be saved
+    type: path
+    default: "C:\\Users\\Public\\backup.reg"
+
+steps:
+  - name: backup_registry
+    executor: cmd.exe
+    inline: |
+      reg export "hklm\system\currentcontrolset\control\lsa" "{{.Args.backup_location}}" /y 2>nul
+
+  - name: enable_restricted_admin_mode
+    executor: cmd.exe
+    inline: |
+      reg add "hklm\system\currentcontrolset\control\lsa" /f /v DisableRestrictedAdmin /t REG_DWORD /d 0
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg import "{{.Args.backup_location}}" 2>nul
+        del "{{.Args.backup_location}}" /f /q 2>nul

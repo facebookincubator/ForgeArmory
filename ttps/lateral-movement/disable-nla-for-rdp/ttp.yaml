@@ -1,0 +1,38 @@
+# Converted from Atomic Red Team - Remote Services: Remote Desktop Protocol
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1021.001
+# Original auto_generated_guid: 01d1c6c0-faf0-408e-b368-752a02285cb2
+
+---
+api_version: 2.0
+uuid: b70e0b35-1040-41a0-aeda-e2ae7524f067
+name: Disable NLA for RDP via Command Prompt
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Disables network-level authentication (NLA) for RDP by changing a registry key via Command Prompt
+  Disabling NLA for RDP can allow remote user interaction with the Windows sign-in screen prior to authentication. According to Microsoft, Flax Typhoon actors used this technique implementation to achieve persistence on victim systems: https://www.microsoft.com/en-us/security/blog/2023/08/24/flax-typhoon-using-legitimate-software-to-quietly-access-taiwanese-organizations/
+  See also: https://github.com/EmpireProject/Empire/blob/master/lib/modules/powershell/management/enable_rdp.py
+
+mitre:
+  tactics:
+    - "TA0008 Lateral Movement"
+  techniques:
+    - "T1021 Remote Services"
+  subtechniques:
+    - "T1021.001 Remote Desktop Protocol"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: false
+
+steps:
+  - name: disable_nla_for_rdp
+    executor: cmd.exe
+    inline: |
+      reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v UserAuthentication /d 0 /t REG_DWORD /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v UserAuthentication /d 1 /t REG_DWORD -f >nul 2>&1

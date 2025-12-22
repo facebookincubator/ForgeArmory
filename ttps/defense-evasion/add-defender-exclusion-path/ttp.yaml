@@ -1,0 +1,46 @@
+# Converted from Atomic Red Team - Impair Defenses: Disable or Modify Tools
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1562.001
+# Original auto_generated_guid: 0b19f4ee-de90-4059-88cb-63c800c683ed
+
+---
+api_version: 2.0
+uuid: 75616d1e-e6eb-420b-bd12-dfe93949426c
+name: Tamper with Windows Defender Evade Scanning - Folder
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Malware can exclude a specific path from being scanned and evading detection.
+  Upon successul execution, the file provided should be on the list of excluded path.
+  To check the exclusion list using poweshell (Get-MpPreference).ExclusionPath
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1562 Impair Defenses"
+  subtechniques:
+    - "T1562.001 Disable or Modify Tools"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: excluded_folder
+    description: This folder will be excluded from scanning
+    type: path
+    default: "C:\\Temp"
+
+steps:
+  - name: exclude_folder_from_scanning
+    executor: powershell
+    inline: |
+      $excludedpath= "{{.Args.excluded_folder}}"
+      Add-MpPreference -ExclusionPath $excludedpath
+    cleanup:
+      executor: powershell
+      inline: |
+        $excludedpath= "{{.Args.excluded_folder}}"
+        Remove-MpPreference -ExclusionPath $excludedpath

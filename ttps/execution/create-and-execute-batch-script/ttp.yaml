@@ -1,0 +1,54 @@
+# Converted from Atomic Red Team - Command and Scripting Interpreter: Windows Command Shell
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1059.003
+# Original auto_generated_guid: 9e8894c0-50bd-4525-a96c-d4ac78ece388
+
+---
+api_version: 2.0
+uuid: abab3237-1305-4741-b578-42929607a606
+name: Create and Execute Batch Script
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Creates and executes a simple batch script. Upon execution, CMD will briefly launch to run the batch script then close again.
+
+mitre:
+  tactics:
+    - "TA0002 Execution"
+  techniques:
+    - "T1059 Command and Scripting Interpreter"
+  subtechniques:
+    - "T1059.003 Windows Command Shell"
+
+requirements:
+  platforms:
+    - os: windows
+
+args:
+  - name: command_to_execute
+    description: Command to execute within script
+    type: string
+    default: "dir"
+  - name: script_path
+    description: Path to batch script file
+    type: path
+    default: "C:\\Users\\Public\\T1059.003_script.bat"
+
+steps:
+  - name: ensure_script_exists
+    executor: powershell
+    inline: |
+      if (-not (Test-Path "{{.Args.script_path}}")) {
+        New-Item "{{.Args.script_path}}" -Force | Out-Null
+      }
+
+      Set-Content -Path "{{.Args.script_path}}" -Value "{{.Args.command_to_execute}}"
+
+  - name: execute_batch_script
+    executor: powershell
+    inline: |
+      Start-Process "{{.Args.script_path}}"
+    cleanup:
+      executor: powershell
+      inline: |
+        Remove-Item "{{.Args.script_path}}" -Force -ErrorAction Ignore

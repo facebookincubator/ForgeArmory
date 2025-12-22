@@ -1,0 +1,84 @@
+# Converted from Atomic Red Team - Command and Scripting Interpreter: Visual Basic
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1059.005
+# Original auto_generated_guid: e8209d5f-e42d-45e6-9c2f-633ac4f1eefa
+
+---
+api_version: 2.0
+uuid: 64d6924f-359e-4eba-9ea6-ccd42793ce36
+name: Encoded VBS code execution
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  This module takes an encoded VBS script and executes it from within a malicious document. By default, upon successful execution
+  a message box will pop up displaying "ART T1059.005"
+
+  A note regarding this module, due to the way that this module utilizes "ScriptControl" a 64-bit version of Microsoft Office is required.
+  You can validate this by opening WinWord -> File -> Account -> About Word
+
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1059 Command and Scripting Interpreter
+  subtechniques:
+    - T1059.005 Visual Basic
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: false
+
+args:
+  - name: invoke_maldoc_script_path
+    description: Path to Invoke-MalDoc.ps1 script
+    type: path
+    default: "./Invoke-MalDoc.ps1"
+  - name: macro_file_path
+    description: Path to macro code file
+    type: path
+    default: "./T1059.005-macrocode.txt"
+
+steps:
+  - name: check_office_64bit
+    executor: powershell
+    inline: |
+      try {
+        $wdApp = New-Object -COMObject "Word.Application"
+        $path = $wdApp.Path
+        Stop-Process -Name "winword" -ErrorAction SilentlyContinue
+        if ($path.contains("(x86)")) {
+          Write-Error "64-bit version of Microsoft Office is required. Exiting..."
+          exit 1
+        }
+      } catch {
+        Write-Error "Microsoft Word is not installed or cannot be accessed. Exiting..."
+        exit 1
+      }
+
+  - name: ensure_invoke_maldoc_exists
+    executor: powershell
+    inline: |
+      if (-not (Test-Path "{{.Args.invoke_maldoc_script_path}}")) {
+        Write-Error "Invoke-MalDoc.ps1 not found at {{.Args.invoke_maldoc_script_path}}. Exiting..."
+        exit 1
+      }
+
+  - name: ensure_macro_file_exists
+    executor: powershell
+    inline: |
+      if (-not (Test-Path "{{.Args.macro_file_path}}")) {
+        Write-Error "Macro file not found at {{.Args.macro_file_path}}. Exiting..."
+        exit 1
+      }
+
+  - name: execute_encoded_vbs
+    executor: powershell
+    inline: |
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+      . "{{.Args.invoke_maldoc_script_path}}"
+      Invoke-Maldoc -macroFile "{{.Args.macro_file_path}}" -officeProduct "Word" -sub "Exec"
+    cleanup:
+      executor: powershell
+      inline: |
+        Get-WmiObject win32_process | Where-Object {$_.CommandLine -like "*mshta*"} | ForEach-Object { Stop-Process $_.ProcessID -ErrorAction SilentlyContinue } | Out-Null

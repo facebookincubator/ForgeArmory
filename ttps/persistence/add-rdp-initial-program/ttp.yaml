@@ -1,0 +1,54 @@
+# Converted from Atomic Red Team - Modify Registry
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1112
+# Original auto_generated_guid: c691cee2-8d17-4395-b22f-00644c7f1c2d
+
+---
+api_version: 2.0
+uuid: d0d37977-d4f8-401a-bdfc-0b06a102b18c
+name: Modify RDP-Tcp Initial Program Registry Entry
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  If the fInheritInitialProgram value is set to 1, the exe indicated in the InitialProgram value is automatically started on RDP connection.
+  Once the test commands are run, notepad will execute automatically on new RDP connection
+
+mitre:
+  tactics:
+    - "TA0003 Persistence"
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1112 Modify Registry"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: executable_path
+    description: Custom Executable to run
+    type: string
+    default: "C:\\Windows\\System32\\cmd.exe"
+  - name: backup_location
+    description: Path where registry backup will be saved
+    type: path
+    default: "C:\\Users\\Public\\backup.reg"
+
+
+steps:
+  - name: backup_registry
+    executor: cmd.exe
+    inline: |
+      reg export "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" "{{.Args.backup_location}}" /y 2>nul
+
+  - name: modify_rdp_initial_program
+    executor: cmd.exe
+    inline: |
+      reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v fInheritInitialProgram /t REG_DWORD /d 1 /f
+      reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v InitialProgram /t REG_SZ /d "{{.Args.executable_path}}" /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg import "{{.Args.backup_location}}" 2>nul
+        del "{{.Args.backup_location}}" /f /q 2>nul

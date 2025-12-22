@@ -1,0 +1,44 @@
+# Converted from Atomic Red Team - Command and Scripting Interpreter: Windows Command Shell
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1059.003
+# Original auto_generated_guid: d0eb3597-a1b3-4d65-b33b-2cda8d397f20
+
+---
+api_version: 2.0
+uuid: 1ff9f3cd-4f4e-4c82-bd72-d9ffff4f58c3
+name: Suspicious Execution via Windows Command Shell
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Command line executed via suspicious invocation. Example is from the 2021 Threat Detection Report by Red Canary.
+
+mitre:
+  tactics:
+    - "TA0002 Execution"
+  techniques:
+    - "T1059 Command and Scripting Interpreter"
+  subtechniques:
+    - "T1059.003 Windows Command Shell"
+
+requirements:
+  platforms:
+    - os: windows
+
+args:
+  - name: output_file
+    description: File to output to
+    type: string
+    default: "hello.txt"
+  - name: input_message
+    description: Message to write to file
+    type: string
+    default: "Hello, from CMD!"
+
+steps:
+  - name: suspicious_cmd_execution
+    executor: cmd.exe
+    inline: |
+      %LOCALAPPDATA:~-3,1%md /c echo {{.Args.input_message}} > {{.Args.output_file}} & type {{.Args.output_file}}
+    cleanup:
+      inline: |
+        rm {{.Args.output_file}}

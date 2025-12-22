@@ -1,0 +1,35 @@
+# Converted from Atomic Red Team - Credentials from Password Stores: Windows Credential Manager
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1555.004
+# Original auto_generated_guid: 9c2dd36d-5c8b-4b29-8d72-a11b0d5d7439
+
+---
+api_version: 2.0
+uuid: 4498c123-29e0-43ad-846f-1aaab7aa0521
+name: Access Saved Credentials via VaultCmd
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  List credentials currently stored in Windows Credential Manager via the native Windows utility vaultcmd.exe
+  Credential Manager stores credentials for signing into websites, applications, and/or devices that request authentication through NTLM or Kerberos
+  https://blog.malwarebytes.com/101/2016/01/the-windows-vaults/
+  https://medium.com/threatpunter/detecting-adversary-tradecraft-with-image-load-event-logging-and-eql-8de93338c16
+
+mitre:
+  tactics:
+    - "TA0006 Credential Access"
+  techniques:
+    - "T1555 Credentials from Password Stores"
+  subtechniques:
+    - "T1555.004 Windows Credential Manager"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: false
+
+steps:
+  - name: list_windows_credentials
+    executor: cmd.exe
+    inline: |
+      vaultcmd /listcreds:"Windows Credentials"

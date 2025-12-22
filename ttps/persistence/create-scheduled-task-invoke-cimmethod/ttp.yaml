@@ -1,0 +1,52 @@
+# Converted from Atomic Red Team - Scheduled Task/Job: Scheduled Task
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1053.005
+# Original auto_generated_guid: e16b3b75-dc9e-4cde-a23d-dfa2d0507b3b
+
+---
+api_version: 2.0
+uuid: 58ec806d-7370-44f7-8435-706ea33a6e85
+name: WMI Invoke-CimMethod Scheduled Task
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Create an scheduled task that executes notepad.exe after user login from XML by leveraging WMI class PS_ScheduledTask. Does the same thing as Register-ScheduledTask cmdlet behind the scenes.
+
+mitre:
+  tactics:
+    - "TA0003 Persistence"
+    - "TA0004 Privilege Escalation"
+  techniques:
+    - "T1053 Scheduled Task/Job"
+  subtechniques:
+    - "T1053.005 Scheduled Task"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: xml_path
+    description: Path to XML file for scheduled task definition
+    type: path
+    default: "./T1053_005_WMI.xml"
+
+steps:
+  - name: ensure_xml_file_exists
+    executor: powershell
+    inline: |
+      if (-not (Test-Path "{{.Args.xml_path}}")) {
+        Write-Error "XML file not found at {{.Args.xml_path}}. Exiting..."
+        exit 1
+      }
+
+  - name: create_scheduled_task_via_wmi
+    executor: powershell
+    inline: |
+      $xml = [System.IO.File]::ReadAllText("{{.Args.xml_path}}")
+      Invoke-CimMethod -ClassName PS_ScheduledTask -NameSpace "Root\Microsoft\Windows\TaskScheduler" -MethodName "RegisterByXml" -Arguments @{ Force = $true; Xml =$xml; }
+    cleanup:
+      executor: powershell
+      inline: |
+        Unregister-ScheduledTask -TaskName "T1053_005_WMI" -confirm:$false >$null 2>&1

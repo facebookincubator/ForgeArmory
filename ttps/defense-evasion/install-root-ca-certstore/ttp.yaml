@@ -1,0 +1,52 @@
+# Converted from Atomic Red Team - Subvert Trust Controls: Install Root Certificate
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1553.004
+# Original auto_generated_guid: ca20a3f1-42b5-4e21-ad3f-1049199ec2e0
+
+---
+api_version: 2.0
+uuid: 9a8eb243-d48c-4875-bd19-37c4c7a2e336
+name: Add Root Certificate to CurrentUser Certificate Store
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  The following Atomic test simulates adding a generic non-malicious certificate to the CurrentUser certificate store. This behavior generates a registry modification that adds the cloned root CA certificate in the keys outlined in the blog.
+  Keys will look like - \SystemCertificates\CA\Certificates or \SystemCertificates\Root\Certificates
+  Reference: https://posts.specterops.io/code-signing-certificate-cloning-attacks-and-defenses-6f98657fc6ec
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1553 Subvert Trust Controls"
+  subtechniques:
+    - "T1553.004 Install Root Certificate"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: script_path
+    description: Path to RemoteCertTrust.ps1 script
+    type: path
+    default: "./RemoteCertTrust.ps1"
+
+steps:
+  - name: ensure_script_exists
+    executor: powershell
+    inline: |
+      if (-not (Test-Path "{{.Args.script_path}}")) {
+        Write-Error "Script not found at {{.Args.script_path}}. Exiting..."
+        exit 1
+      }
+
+  - name: add_certificate_to_currentuser_store
+    executor: powershell
+    inline: |
+      . "{{.Args.script_path}}"
+    cleanup:
+      executor: cmd
+      inline: |
+        powershell -c "Get-ChildItem -Path Cert:\ -Recurse | Where-Object { $_.Thumbprint -eq '1F3D38F280635F275BE92B87CF83E40E40458400' } | remove-item -force"

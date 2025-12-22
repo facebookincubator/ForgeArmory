@@ -1,0 +1,47 @@
+# Converted from Atomic Red Team - Masquerading: Masquerade Task or Service
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1036.004
+# Original auto_generated_guid: f9f2fe59-96f7-4a7d-ba9f-a9783200d4c9
+
+---
+api_version: 2.0
+uuid: 4f8145e0-ee7e-4c60-b484-0a94dedafb47
+name: Creating W32Time similar named service using schtasks
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Creating W32Time similar named service (win32times) using schtasks just like threat actor dubbed "Operation Wocao"
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1036 Masquerading"
+  subtechniques:
+    - "T1036.004 Masquerade Task or Service"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: command
+    description: Command to execute
+    type: string
+    default: "powershell.exe -c whoami"
+  - name: task_name
+    description: Name of the scheduled task to create
+    type: string
+    default: "win32times"
+
+steps:
+  - name: create_masqueraded_scheduled_task
+    executor: cmd.exe
+    inline: |
+      schtasks /create /ru system /sc daily /tr "cmd /c {{.Args.command}}" /tn {{.Args.task_name}} /f
+      schtasks /query /tn {{.Args.task_name}}
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        schtasks /tn {{.Args.task_name}} /delete /f

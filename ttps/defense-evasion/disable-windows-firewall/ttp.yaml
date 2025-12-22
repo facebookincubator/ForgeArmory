@@ -1,0 +1,57 @@
+# Adapted from Atomic Red Team - Impair Defenses: Disable or Modify System Firewall
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1562.004
+# Original auto_generated_guids: 88d05800-a5e4-407e-9b53-ece4174f197f, afedc8c4-038c-4d82-b3e5-623a95f8a612
+
+---
+api_version: 2.0
+uuid: 7c5517d7-7f88-4c3a-96fc-850d11068de5
+name: Disable Windows Firewall
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Disable Microsoft Defender Firewall using either netsh command or registry modification.
+  Caution if you access remotely the host where the test runs! Especially with the cleanup command which will re-enable firewall...
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1562 Impair Defenses"
+  subtechniques:
+    - "T1562.004 Disable or Modify System Firewall"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: false
+
+args:
+  - name: method
+    description: The method to disable the firewall
+    type: string
+    choices:
+    - netsh
+    - registry
+    default: netsh
+
+steps:
+{{ if eq .Args.method "netsh" }}
+  - name: disable_firewall_netsh
+    executor: cmd.exe
+    inline: |
+      netsh advfirewall set currentprofile state off
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        netsh advfirewall set currentprofile state on >nul 2>&1
+{{ else if eq .Args.method "registry" }}
+  - name: disable_firewall_via_registry
+    executor: cmd.exe
+    inline: |
+      reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\PublicProfile" /v "EnableFirewall" /t REG_DWORD /d 0 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\PublicProfile" /v "EnableFirewall" /t REG_DWORD /d 1 /f
+{{ end }}

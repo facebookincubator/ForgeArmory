@@ -1,0 +1,66 @@
+# Adapted from Atomic Red Team - Signed Binary Proxy Execution
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1218
+# Original auto_generated_guids: c4b97eeb-5249-4455-a607-59f95485cb45, 22cfde89-befe-4e15-9753-47306b37a6e3
+
+---
+api_version: 2.0
+uuid: 64b6893a-f771-4952-9a7f-049e15175c0a
+name: Execute HTML Application (HTA) with Signed Binary
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Execute arbitrary HTA files using either mshta.exe or rundll32.exe with url.dll.
+  IcedID and Trickbot malware use these techniques for proxy execution.
+
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1218 Signed Binary Proxy Execution
+  subtechniques:
+    - T1218.005 Mshta
+    - T1218.011 Rundll32
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: false
+
+args:
+  - name: method
+    description: The method to execute HTA file
+    type: string
+    choices:
+    - mshta
+    - rundll32
+    default: mshta
+  - name: hta_file_path
+    description: Path to HTA file for execution
+    type: path
+    default: "./index.hta"
+
+steps:
+  - name: ensure_hta_exists
+    executor: powershell
+    inline: |
+      if (-not (Test-Path "{{.Args.hta_file_path}}")) {
+        Write-Error "HTA file not found at {{.Args.hta_file_path}}. Exiting..."
+        exit 1
+      }
+{{ if eq .Args.method "mshta" }}
+  - name: execute_hta_mshta
+    executor: powershell
+    inline: |
+      mshta "{{.Args.hta_file_path}}"
+    cleanup:
+      executor: powershell
+      inline: |
+        Stop-Process -Name "calculator" -Force -ErrorAction Ignore
+        Stop-Process -Name "CalculatorApp" -Force -ErrorAction Ignore
+{{ else if eq .Args.method "rundll32" }}
+  - name: execute_hta_rundll32
+    executor: cmd.exe
+    inline: |
+      rundll32.exe url.dll,OpenURL "{{.Args.hta_file_path}}"
+{{ end }}

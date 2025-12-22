@@ -1,0 +1,54 @@
+# Converted from Atomic Red Team - Create or Modify System Process: Windows Service
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1543.003
+# Original auto_generated_guid: 1f896ce4-8070-4959-8a25-2658856a70c9
+
+---
+api_version: 2.0
+uuid: d07d6254-333e-4df7-8d1c-069761749d1e
+name: Modify Service to Run Arbitrary Binary (Powershell)
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  This test will use PowerShell to temporarily modify a service to run an arbitrary executable by changing its binary path and will then revert the binary path change, restoring the service to its original state.
+
+mitre:
+  tactics:
+    - "TA0003 Persistence"
+    - "TA0004 Privilege Escalation"
+  techniques:
+    - "T1543 Create or Modify System Process"
+  subtechniques:
+    - "T1543.003 Windows Service"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: service_name
+    description: Name of the service to modify
+    type: string
+    default: "spooler"
+  - name: new_bin_path
+    description: Path of the new service binary
+    type: path
+    default: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+  - name: original_bin_path
+    description: Path of the original service binary
+    type: path
+    default: "C:\\Windows\\System32\\spoolsv.exe"
+
+steps:
+  - name: modify_and_start_service
+    executor: powershell
+    inline: |
+      Stop-Service -Name "{{.Args.service_name}}" -force -erroraction silentlycontinue | Out-Null
+      sc.exe config "{{.Args.service_name}}" binPath= "{{.Args.new_bin_path}}"
+      start-service -Name "{{.Args.service_name}}" -erroraction silentlycontinue | out-null
+    cleanup:
+      executor: powershell
+      inline: |
+        Stop-Service -Name "{{.Args.service_name}}" -force -erroraction silentlycontinue | Out-Null
+        sc.exe config "{{.Args.service_name}}" binPath= "{{.Args.original_bin_path}}"

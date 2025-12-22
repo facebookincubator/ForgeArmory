@@ -1,0 +1,64 @@
+# Adapted from Atomic Red Team - Modify Registry
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1112
+# Original auto_generated_guids: d4a6da40-618f-454d-9a9e-26af552aaeb0, 3dacb0d2-46ee-4c27-ac1b-f9886bf91a56, e246578a-c24d-46a7-9237-0213ff86fb0c, 6e0d1131-2d7e-4905-8ca5-d6172f05d03d
+
+---
+api_version: 2.0
+uuid: 12ba273b-a9b1-4c10-b69e-5753b61a2f9e
+name: Disable User Session Actions
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Disable user session actions including change password, lock workstation, logoff, and shutdown features.
+  Ransomware and other malware abuse these techniques to prevent users from performing normal session/system operations.
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1112 Modify Registry"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+steps:
+  - name: disable_change_password
+    executor: cmd.exe
+    inline: |
+      reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableChangePassword /t REG_DWORD /d 1 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableChangePassword /t REG_DWORD /d 0 /f
+
+  - name: disable_lock_workstation
+    executor: cmd.exe
+    inline: |
+      reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableLockWorkstation /t REG_DWORD /d 1 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableLockWorkstation /t REG_DWORD /d 0 /f
+
+  - name: disable_logoff_button
+    executor: cmd.exe
+    inline: |
+      reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoLogOff /t REG_DWORD /d 1 /f
+      reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v StartMenuLogOff /t REG_DWORD /d 1 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoLogOff /t REG_DWORD /d 0 /f
+        reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v StartMenuLogOff /t REG_DWORD /d 0 /f
+
+  - name: disable_shutdown_button
+    executor: cmd.exe
+    inline: |
+      reg add "HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v shutdownwithoutlogon /t REG_DWORD /d 0 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg delete "HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System" /v shutdownwithoutlogon /f
