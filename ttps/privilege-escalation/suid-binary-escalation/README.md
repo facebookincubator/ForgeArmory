@@ -24,7 +24,7 @@ and execute a vulnerable scenario.
 To execute this TTP with the default parameters, you can use the following command:
 
 ```bash
-ttpforge run forgearmory//privilege-escalation/suid-binary-escalation/suid-binary-escalation.yaml --arg low_priv_user=demo_user
+ttpforge run forgearmory//privilege-escalation/suid-binary-escalation/ttp.yaml --arg low_priv_user=demo_user
 ```
 
 This will attempt to escalate privileges using the default vulnerable
