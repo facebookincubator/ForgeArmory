@@ -7,13 +7,19 @@ authors:
   - I50
 description: |
   This TTP searches for any files at ~/.ssh, ~/.aws, ~/.gcloud, and ~/.azure.
+
+requirements:
+  platforms:
+    - os: darwin
+
 mitre:
   tactics:
-    - TA0006 Credential Access
+    - "TA0006 Credential Access"
   techniques:
-    - T1552 Unsecured Credentials
+    - "T1552 Unsecured Credentials"
   subtechniques:
-    - "T1552.001 Unsecured Credentials: Credentials In Files"
+    - "T1552.001 Credentials In Files"
+
 steps:
   - name: keysearch
     inline: |

@@ -7,11 +7,17 @@ authors:
   - I50
 description: |
   This TTP leverages MDQuery API calls to stealthily check for TCC folder permissions.
+
+requirements:
+  platforms:
+    - os: darwin
+
 mitre:
   tactics:
-    - TA0009 Collection
+    - "TA0009 Collection"
   techniques:
-    - T1119 Automated Collection
+    - "T1119 Automated Collection"
+
 steps:
   - name: check
     inline: |

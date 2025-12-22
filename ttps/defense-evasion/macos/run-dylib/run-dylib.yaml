@@ -12,9 +12,9 @@ requirements:
     - os: darwin
 mitre:
   tactics:
-    - TA0002 Execution
+    - "TA0002 Execution"
   techniques:
-    - T1574 Hijack Execution Flow
+    - "T1574 Hijack Execution Flow"
   subtechniques:
     - "T1574.001 Hijack Execution Flow: DLL Search Order Hijacking"
 steps:

@@ -7,11 +7,14 @@ authors:
   - I50
 description: |
   This TTP uses the osascript binary to dump clipboard contents.
+requirements:
+  platforms:
+    - os: darwin
 mitre:
   tactics:
-    - TA0009 Collection
+    - "TA0009 Collection"
   techniques:
-    - T1115 Clipboard Data
+    - "T1115 Clipboard Data"
 steps:
   - name: clipdump_cli
     inline: |

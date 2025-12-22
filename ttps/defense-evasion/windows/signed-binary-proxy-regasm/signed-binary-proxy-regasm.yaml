@@ -13,11 +13,11 @@ requirements:
     - os: windows
 mitre:
   tactics:
-    - TA0005 Defense Evasion
+    - "TA0005 Defense Evasion"
   techniques:
-    - T1218 System Binary Proxy Execution
+    - "T1218 System Binary Proxy Execution"
   subtechniques:
-    - T1218.009 Regsvcs/Regasm
+    - "T1218.009 System Binary Proxy Execution: Regsvcs/Regasm"
 args:
   - name: src_file
     description: location of the CSharp source file

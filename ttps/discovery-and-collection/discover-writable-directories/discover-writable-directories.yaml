@@ -14,9 +14,9 @@ args:
     default: '.'
 mitre:
   tactics:
-    - TA0007 Discovery
+    - "TA0007 Discovery"
   techniques:
-    - T1083 File and Directory Discovery
+    - "T1083 File and Directory Discovery"
 steps:
   - name: find-writable-directories
     inline: |

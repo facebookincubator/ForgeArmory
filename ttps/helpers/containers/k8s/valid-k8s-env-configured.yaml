@@ -8,6 +8,10 @@ description: |
   This helper is designed to validate the necessary Kubernetes configuration for TTPForge.
   It checks for the presence of the kubectl command and the current kubeconfig context.
   It also allows the user to specify the Kubernetes context to be used with TTPForge.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
 args:
   - name: context
     description: Name of the Kubernetes context to use with TTPForge

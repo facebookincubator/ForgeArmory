@@ -11,9 +11,9 @@ requirements:
   superuser: true
 mitre:
   tactics:
-    - TA0005 Defense Evasion
+    - "TA0005 Defense Evasion"
   techniques:
-    - T1014 Rootkit
+    - "T1014 Rootkit"
 steps:
   - name: compile-lkm
     inline: |

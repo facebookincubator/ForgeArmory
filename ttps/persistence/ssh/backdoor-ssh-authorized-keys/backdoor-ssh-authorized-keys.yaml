@@ -24,11 +24,11 @@ requirements:
     - os: darwin
 mitre:
   tactics:
-    - TA0003 Persistence
+    - "TA0003 Persistence"
   techniques:
-    - T1098 Account Manipulation
+    - "T1098 Account Manipulation"
   subtechniques:
-    - T1098.004 Add or Modify System Process
+    - "T1098.004 Account Manipulation: SSH Authorized Keys"
 
 steps:
   - name: modify-authorized_keys

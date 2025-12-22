@@ -8,14 +8,18 @@ authors:
 description: |
   This TTP checks to see if ~/.zshrc is present and if not creates it and
   adds a line to execute a specified command or script.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
 args:
   - name: command
     default: "uname -a > /tmp/system-info.txt"
 mitre:
   tactics:
-    - TA0003 Persistence
+    - "TA0003 Persistence"
   techniques:
-    - T1547 Boot or Logon Autostart Execution
+    - "T1547 Boot or Logon Autostart Execution"
   subtechniques:
     - "T1547.007 Boot or Logon Autostart Execution: Re-opened Applications"
 steps:

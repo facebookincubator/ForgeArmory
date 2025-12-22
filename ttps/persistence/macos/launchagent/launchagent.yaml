@@ -9,14 +9,17 @@ authors:
 description: |
   This TTP creates a launch agent which executes a shell script to run a command.
   If no `command_or_path` is provided, Calculator.app will be used.
+requirements:
+  platforms:
+    - os: darwin
 args:
   - name: command_or_path
     default: /Users/Shared/calc.sh
 mitre:
   tactics:
-    - TA0003 Persistence
+    - "TA0003 Persistence"
   techniques:
-    - T1543 Create or Modify System Process
+    - "T1543 Create or Modify System Process"
   subtechniques:
     - "T1543.001 Create or Modify System Process: Launch Agent"
 steps:

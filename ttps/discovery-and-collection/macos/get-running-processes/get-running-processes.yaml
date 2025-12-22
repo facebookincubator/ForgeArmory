@@ -7,11 +7,14 @@ authors:
   - I50
 description: |
   This TTP uses ps to gather information about running processes on the system.
+requirements:
+  platforms:
+    - os: darwin
 mitre:
   tactics:
-    - TA0009 Collection
+    - "TA0009 Collection"
   techniques:
-    - T1057 Process Discovery
+    - "T1057 Process Discovery"
 
 steps:
   - name: run-ps

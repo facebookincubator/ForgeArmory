@@ -7,11 +7,14 @@ authors:
   - I50
 description: |
   This TTP dumps clipboard contents by making nspasteboard API calls.
+requirements:
+  platforms:
+    - os: darwin
 mitre:
   tactics:
-    - TA0009 Collection
+    - "TA0009 Collection"
   techniques:
-    - T1115 Clipboard Data
+    - "T1115 Clipboard Data"
 steps:
   - name: clipdump-api
     inline: |

@@ -15,11 +15,18 @@ args:
     description: The name of the new IAM user to be created.
     default: purple_trojan
 
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+
 mitre:
   tactics:
-    - TA0003 Persistence
+    - "TA0003 Persistence"
   techniques:
-    - T1098 Account Manipulation
+    - "T1098 Account Manipulation"
+  subtechniques:
+    - "T1098.001 Additional Cloud Credentials"
 
 steps:
   - name: aws-connector

@@ -11,11 +11,11 @@ requirements:
   superuser: true
 mitre:
   tactics:
-    - TA0005 Defense Evasion
+    - "TA0005 Defense Evasion"
   techniques:
-    - T1574 Hijack Execution Flow
+    - "T1574 Hijack Execution Flow"
   subtechniques:
-    - T1574.006 Hijack Execution Flow Dynamic Linker Hijacking
+    - "T1574.006 Hijack Execution Flow: Dynamic Linker Hijacking"
 steps:
   - name: setup
     inline: |

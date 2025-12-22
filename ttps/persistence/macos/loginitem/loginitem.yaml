@@ -8,6 +8,9 @@ authors:
 description: |
   This TTP adds the specified shell command or script as a Login Item.
   If no command_or_path is supplemented, it will run calc by default.
+requirements:
+  platforms:
+    - os: darwin
 args:
   - name: cleanup
     default: true
@@ -15,11 +18,11 @@ args:
     default: /Users/Shared/calc.sh
 mitre:
   tactics:
-    - TA0003 Persistence
+    - "TA0003 Persistence"
   techniques:
-    - T1547 Boot or Logon Autostart Execution
+    - "T1547 Boot or Logon Autostart Execution"
   subtechniques:
-    - T1547.015 Boot or Logon Autostart Execution Login Items
+    - "T1547.015 Boot or Logon Autostart Execution: Login Items"
 steps:
   - name: loginitem
     inline: |

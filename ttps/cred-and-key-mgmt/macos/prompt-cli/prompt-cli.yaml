@@ -7,12 +7,22 @@ authors:
   - I50
 description: |
   This TTP uses the osascript binary to launch a fake prompt requesting password entry.
+
+requirements:
+  platforms:
+    - os: darwin
+
 mitre:
   tactics:
-    - T1059 Command and Scripting Interpreter
-    - TA0006 Credential Access
+    - "TA0002 Execution"
+    - "TA0006 Credential Access"
   techniques:
-    - T1059.002 Command and Scripting Interpreter AppleScript
+    - "T1059 Command and Scripting Interpreter"
+    - "T1056 Input Capture"
+  subtechniques:
+    - "T1059.002 AppleScript"
+    - "T1056.002 GUI Input Capture"
+
 args:
   - name: detect
     default: true

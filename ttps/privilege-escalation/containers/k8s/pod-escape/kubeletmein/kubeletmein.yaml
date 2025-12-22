@@ -40,12 +40,12 @@ requirements:
     - os: darwin
 mitre:
   tactics:
-    - TA0004 Privilege Escalation
-    - TA0007 Discovery
+    - "TA0004 Privilege Escalation"
+    - "TA0007 Discovery"
   techniques:
-    - T1552 Unsecured Credentials
-    - T1087 Account Discovery
-    - T1082 System Information Discovery
+    - "T1552 Unsecured Credentials"
+    - "T1087 Account Discovery"
+    - "T1082 System Information Discovery"
 
 steps:
   {{ if .Args.eks_cluster }}

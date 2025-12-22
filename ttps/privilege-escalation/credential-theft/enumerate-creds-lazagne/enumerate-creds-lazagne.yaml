@@ -8,9 +8,18 @@ authors:
 description: |
   Employ [LaZagne](https://github.com/AlessandroZ/LaZagne) for
   extracting credentials stored on disk and in memory of a target system.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
 args:
   - name: lazagne_path
     default: /tmp/lazagne
+mitre:
+  tactics:
+    - "TA0006 Credential Access"
+  techniques:
+    - "T1555 Credentials from Password Stores"
 
 steps:
   - name: setup
