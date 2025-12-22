@@ -1,0 +1,54 @@
+# Converted from Atomic Red Team - Modify Registry
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1112
+# Original auto_generated_guid: 71db768a-5a9c-4047-b5e7-59e01f188e84
+
+---
+api_version: 2.0
+uuid: 0561a4b0-491c-4978-b307-b4762cbe6ce8
+name: DisallowRun Execution Of Certain Applications
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Modify the registry of the currently logged in user using reg.exe via cmd console to prevent user running specific computer programs that could aid them in manually removing malware or detecting it
+  using security product.
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1112 Modify Registry"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: reg_key
+    description: Registry key to modify
+    default: "art"
+  - name: blocked_executable
+    description: Name of the executable to block
+    default: "regedit.exe"
+  - name: backup_location
+    description: Path where registry backup will be saved
+    type: path
+    default: "C:\\Users\\Public\\backup.reg"
+
+steps:
+  - name: backup_registry
+    executor: cmd.exe
+    inline: |
+      reg export "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" "{{.Args.backup_location}}" /y 2>nul
+
+  - name: disallow_run_applications
+    executor: cmd.exe
+    inline: |
+      reg add HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer /v DisallowRun /t REG_DWORD /d 1 /f
+      reg add HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer\DisallowRun /f /t REG_SZ /v {{.Args.reg_key}} /d {{.Args.blocked_executable}}
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg import "{{.Args.backup_location}}" 2>nul
+        del "{{.Args.backup_location}}" /f /q 2>nul

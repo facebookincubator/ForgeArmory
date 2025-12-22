@@ -1,0 +1,54 @@
+# Adapted from Atomic Red Team - Modify Registry
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1112
+# Original auto_generated_guids: 01b20ca8-c7a3-4d86-af59-059f15ed5474, d1de3767-99c2-4c6c-8c5a-4ba4586474c8
+
+---
+api_version: 2.0
+uuid: 8ce51046-b56e-4590-a80e-6fb23df733d7
+name: Disable Windows Update Features
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Disable Windows Update features including auto-update and connection to Windows Update servers.
+  Redline malware uses these techniques as part of its defense evasion strategy.
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1112 Modify Registry"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: backup_location_1
+    description: Path where registry backup 1 will be saved
+    type: path
+    default: "C:\\Users\\Public\\backup1.reg"
+  - name: backup_location_2
+    description: Path where registry backup 2 will be saved
+    type: path
+    default: "C:\\Users\\Public\\backup2.reg"
+
+steps:
+  - name: disable_auto_update
+    executor: cmd.exe
+    inline: |
+      reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" /v "NoAutoUpdate" /t REG_DWORD /d 1 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" /v "NoAutoUpdate" /f
+
+  - name: disable_windows_update_connection
+    executor: cmd.exe
+    inline: |
+      reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v "DoNotConnectToWindowsUpdateInternetLocations" /t REG_DWORD /d 1 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg delete "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v "DoNotConnectToWindowsUpdateInternetLocations" /f

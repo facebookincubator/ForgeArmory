@@ -1,0 +1,47 @@
+# Converted from Atomic Red Team - Modify Registry
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1112
+# Original auto_generated_guid: f3a6cceb-06c9-48e5-8df8-8867a6814245
+
+---
+api_version: 2.0
+uuid: 7b8c5d2e-3f4a-4b5c-8d6e-2a1b3c4d5e6f
+name: Change Powershell Execution Policy to Bypass
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Attackers need to change the powershell execution policy in order to run their malicious powershell scripts.
+  They can either specify it during the execution of the powershell script or change the registry value for it.
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1112 Modify Registry"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: false
+
+args:
+  - name: backup_location
+    description: Path where registry backup will be saved
+    type: path
+    default: "C:\\Users\\Public\\backup.reg"
+
+steps:
+  - name: backup_registry
+    executor: powershell
+    inline: |
+      reg export "HKLM\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell" "{{.Args.backup_location}}" /y 2>$null
+
+  - name: set_execution_policy_bypass
+    executor: powershell
+    inline: |
+      Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope LocalMachine
+    cleanup:
+      executor: powershell
+      inline: |
+        reg import "{{.Args.backup_location}}"
+        Remove-Item "{{.Args.backup_location}}" -Force -ErrorAction Ignore

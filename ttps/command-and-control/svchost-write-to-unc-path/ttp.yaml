@@ -1,0 +1,37 @@
+# Converted from Atomic Red Team - Ingress Tool Transfer
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1105
+# Original auto_generated_guid: fa5a2759-41d7-4e13-a19c-e8f28a53566f
+
+---
+api_version: 2.0
+uuid: d9f9c948-bd27-44b2-8a6c-c91114d044be
+name: svchost writing a file to a UNC path
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  svchost.exe writing a non-Microsoft Office file to a file with a UNC path.
+  Upon successful execution, this will rename cmd.exe as svchost.exe and move it to `c:\`, then execute svchost.exe with output to a txt file.
+
+mitre:
+  tactics:
+    - "TA0011 Command and Control"
+  techniques:
+    - "T1105 Ingress Tool Transfer"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+steps:
+  - name: svchost_unc_write
+    executor: cmd.exe
+    inline: |
+      copy C:\Windows\System32\cmd.exe C:\svchost.exe
+      C:\svchost.exe /c echo T1105 > \\localhost\c$\T1105.txt
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        del C:\T1105.txt >nul 2>&1
+        del C:\svchost.exe >nul 2>&1

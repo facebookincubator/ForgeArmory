@@ -1,0 +1,38 @@
+# Converted from Atomic Red Team - Impair Defenses: Disable or Modify System Firewall
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1562.004
+# Original auto_generated_guid: 9636dd6e-7599-40d2-8eee-ac16434f35ed
+
+---
+api_version: 2.0
+uuid: 23c558d6-965d-4d98-a0c6-6f88c5134c1a
+name: Open a local port through Windows Firewall to any profile
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  This test will attempt to open a local port defined by input arguments to any profile
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: rule_name
+    description: This is the name of the rule you wish to create
+    type: string
+    default: Open Port to Any
+  - name: local_port
+    description: This is the local port you wish to test opening
+    type: int
+    default: 3389
+
+steps:
+  - name: open_port_to_any_profile
+    executor: powershell
+    inline: |
+      netsh advfirewall firewall add rule name="{{.Args.rule_name}}" dir=in protocol=tcp localport={{.Args.local_port}} action=allow profile=any
+    cleanup:
+      executor: powershell
+      inline: |
+        netsh advfirewall firewall delete rule name="{{.Args.rule_name}}" | Out-Null

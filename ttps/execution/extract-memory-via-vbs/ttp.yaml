@@ -1,0 +1,79 @@
+# Converted from Atomic Red Team - Command and Scripting Interpreter: Visual Basic
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1059.005
+# Original auto_generated_guid: 8faff437-a114-4547-9a60-749652a03df6
+
+---
+api_version: 2.0
+uuid: 976a6bac-15e2-4132-9c1b-8d66b82876ad
+name: Extract Memory via VBA
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  This module attempts to emulate malware authors utilizing well known techniques to extract data from memory/binary files. To do this
+  we first create a string in memory then pull out the pointer to that string. Finally, it uses this pointer to copy the contents of that
+  memory location to a file stored in the specified output path.
+
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1059 Command and Scripting Interpreter
+  subtechniques:
+    - T1059.005 Visual Basic
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: false
+
+args:
+  - name: ms_product
+    description: Maldoc application Word
+    type: string
+    default: "Word"
+  - name: invoke_maldoc_script_path
+    description: Path to Invoke-MalDoc.ps1 script
+    type: path
+    default: "./Invoke-MalDoc.ps1"
+  - name: macro_file_path
+    description: Path to macro code file
+    type: path
+    default: "./T1059.005-macrocode.txt"
+
+steps:
+  - name: check_office_installed
+    executor: powershell
+    inline: |
+      try {
+        New-Object -COMObject "{{.Args.ms_product}}.Application" | Out-Null
+        $process = "{{.Args.ms_product}}"
+        if ($process -eq "Word") { $process = "winword" }
+        Stop-Process -Name $process -ErrorAction SilentlyContinue
+      } catch {
+        Write-Error "Microsoft {{.Args.ms_product}} is not installed or cannot be accessed. Exiting..."
+        exit 1
+      }
+
+  - name: ensure_invoke_maldoc_exists
+    executor: powershell
+    inline: |
+      if (-not (Test-Path "{{.Args.invoke_maldoc_script_path}}")) {
+        Write-Error "Invoke-MalDoc.ps1 not found at {{.Args.invoke_maldoc_script_path}}. Exiting..."
+        exit 1
+      }
+
+  - name: ensure_macro_file_exists
+    executor: powershell
+    inline: |
+      if (-not (Test-Path "{{.Args.macro_file_path}}")) {
+        Write-Error "Macro file not found at {{.Args.macro_file_path}}. Exiting..."
+        exit 1
+      }
+
+  - name: extract_memory_via_vba
+    executor: powershell
+    inline: |
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+      . "{{.Args.invoke_maldoc_script_path}}"
+      Invoke-Maldoc -macroFile "{{.Args.macro_file_path}}" -officeProduct "Word" -sub "Extract"

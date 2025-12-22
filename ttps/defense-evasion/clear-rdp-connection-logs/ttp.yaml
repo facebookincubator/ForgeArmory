@@ -1,0 +1,42 @@
+# Converted from Atomic Red Team - Modify Registry
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1112
+# Original auto_generated_guid: 3448824b-3c35-4a9e-a8f5-f887f68bea21
+
+---
+api_version: 2.0
+uuid: 4b57d549-7f55-45a1-aedb-8cf6aa4178f3
+name: Terminal Server Client Connection History Cleared
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  The built-in Windows Remote Desktop Connection (RDP) client (mstsc.exe) saves the remote computer name (or IP address) and the username that is used to login after each successful connection to the remote computer
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1112 Modify Registry"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+steps:
+  - name: ensure_rdp_history_exists
+    executor: powershell
+    inline: |
+      if (-not (Get-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Terminal Server Client\Default\" -Name "MR9" -ErrorAction SilentlyContinue)) {
+        New-Item -path "HKCU:\SOFTWARE\Microsoft\" -name "Terminal Server Client"  -ErrorAction Ignore
+        New-Item -path "HKCU:\SOFTWARE\Microsoft\Terminal Server Client\" -name "Default" -ErrorAction Ignore
+        New-Itemproperty -path "HKCU:\SOFTWARE\Microsoft\Terminal Server Client\Default" -name "MR9" -value "127.0.0.1"  -PropertyType "String" -ErrorAction Ignore
+        New-Item -path "HKCU:\SOFTWARE\Microsoft\Terminal Server Client\" -name "Servers" -ErrorAction Ignore
+        New-Item -path "HKCU:\SOFTWARE\Microsoft\Terminal Server Client\Servers" -name "Redcanary" -ErrorAction Ignore
+      }
+
+  - name: clear_rdp_history
+    executor: cmd.exe
+    inline: |
+      reg delete "HKEY_CURRENT_USER\Software\Microsoft\Terminal Server Client\Default" /va /f
+      reg delete "HKEY_CURRENT_USER\Software\Microsoft\Terminal Server Client\Servers" /f

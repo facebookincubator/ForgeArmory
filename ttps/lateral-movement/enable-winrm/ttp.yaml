@@ -1,0 +1,38 @@
+# Converted from Atomic Red Team - Remote Services: Windows Remote Management
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1021.006
+# Original auto_generated_guid: 9059e8de-3d7d-4954-a322-46161880b9cf
+
+---
+api_version: 2.0
+uuid: bdd48f80-9e7c-4b89-a84f-50ff011431e3
+name: Enable Windows Remote Management
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Powershell Enable WinRM
+
+  Upon successful execution, powershell will "Enable-PSRemoting" allowing for remote PS access.
+
+mitre:
+  tactics:
+    - "TA0008 Lateral Movement"
+  techniques:
+    - "T1021 Remote Services"
+  subtechniques:
+    - "T1021.006 Windows Remote Management"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+steps:
+  - name: enable_psremoting
+    executor: powershell
+    inline: |
+      Enable-PSRemoting -Force
+    cleanup:
+      executor: powershell
+      inline: |
+        Disable-PSRemoting -Force

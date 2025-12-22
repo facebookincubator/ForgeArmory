@@ -1,0 +1,46 @@
+# Converted from Atomic Red Team - Modify Registry
+# Source: https://www.atomicredteam.io/atomic-red-team/atomics/T1112
+# Original auto_generated_guid: 5f8e36de-37ca-455e-b054-a2584f043c06
+
+---
+api_version: 2.0
+uuid: 1afc721a-cc48-4654-aed5-a69fa9642615
+name: Disable Windows Remote Desktop Protocol
+authors:
+  - isaac_fletcher
+  - Atomic Red Team
+description: |
+  Modify the registry of the machine to disable remote desktop protocol.
+
+mitre:
+  tactics:
+    - "TA0005 Defense Evasion"
+  techniques:
+    - "T1112 Modify Registry"
+
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+
+args:
+  - name: backup_location
+    description: Path where registry backup will be saved
+    type: path
+    default: "C:\\Users\\Public\\backup.reg"
+
+steps:
+  - name: backup_registry
+    executor: cmd.exe
+    inline: |
+      reg export "HKLM\System\CurrentControlSet\Control\Terminal Server" "{{.Args.backup_location}}" /y 2>nul
+
+  - name: disable_rdp
+    executor: cmd.exe
+    inline: |
+      reg add "HKLM\System\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 1 /f
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        reg import "{{.Args.backup_location}}" 2>nul
+        del "{{.Args.backup_location}}" /f /q 2>nul
