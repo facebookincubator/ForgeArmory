@@ -14,11 +14,11 @@ args:
     default: "root"
 mitre:
   tactics:
-    - TA0003 Persistence
+    - "TA0003 Persistence"
   techniques:
-    - T1543 Create or Modify System Process
+    - "T1543 Create or Modify System Process"
   subtechniques:
-    - T1543.002 Create or Modify System Process Systemd Service
+    - "T1543.002 Create or Modify System Process: Systemd Service"
 steps:
   - name: create-rogue-service
     create_file: /etc/systemd/system/evil.service

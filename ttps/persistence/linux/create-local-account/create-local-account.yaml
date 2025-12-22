@@ -14,11 +14,11 @@ args:
     default: "evil_user"
 mitre:
   tactics:
-    - TA0003 Persistence
+    - "TA0003 Persistence"
   techniques:
-    - T1136 Create Account
+    - "T1136 Create Account"
   subtechniques:
-    - T1136.001 Create Account Local Account
+    - "T1136.001 Create Account: Local Account"
 steps:
   - name: add-evil-user
     inline: |

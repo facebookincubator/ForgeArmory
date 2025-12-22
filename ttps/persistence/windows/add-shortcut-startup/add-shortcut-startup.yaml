@@ -16,11 +16,12 @@ requirements:
 
 mitre:
   tactics:
-    - TA0003 Persistence / TA0004 Privilege Escalation
+    - "TA0003 Persistence"
+    - "TA0004 Privilege Escalation"
   techniques:
-    - T1547 Boot or Logon Autostart Execution
+    - "T1547 Boot or Logon Autostart Execution"
   subtechniques:
-    - T1547.001 Registry Run Keys / Startup Folder
+    - "T1547.001 Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder"
 
 args:
   - name: shortcut

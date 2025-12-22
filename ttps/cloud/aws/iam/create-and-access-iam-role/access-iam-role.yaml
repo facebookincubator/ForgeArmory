@@ -18,12 +18,18 @@ args:
   - name: backdoor_account_id
     description: AWS account ID which has been backdoored for access via attacker controled IAM role
 
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
 
 mitre:
   tactics:
-    - TA0003 Persistence
+    - "TA0003 Persistence"
   techniques:
-    - T1098 Account Manipulation
+    - "T1098 Account Manipulation"
+  subtechniques:
+    - "T1098.001 Additional Cloud Credentials"
 
 steps:
   - name: aws-connector

@@ -16,11 +16,19 @@ args:
     default: /tmp/enumerate-iam
   - name: extended_scan
     default: false
+
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+
 mitre:
   tactics:
-    - TA0007 Discovery
+    - "TA0007 Discovery"
   techniques:
-    - T1082 System Information Discovery
+    - "T1087 Account Discovery"
+  subtechniques:
+    - "T1087.004 Cloud Account"
 
 steps:
   - name: ensure-aws-creds-present

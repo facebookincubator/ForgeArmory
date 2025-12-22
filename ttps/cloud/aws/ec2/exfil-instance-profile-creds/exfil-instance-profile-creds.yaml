@@ -19,6 +19,19 @@ args:
   - name: ssh_key
     default: nil
 
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+
+mitre:
+  tactics:
+    - "TA0006 Credential Access"
+  techniques:
+    - "T1552 Unsecured Credentials"
+  subtechniques:
+    - "T1552.005 Cloud Instance Metadata API"
+
 steps:
   - name: ensure-aws-creds-present
     inline: |

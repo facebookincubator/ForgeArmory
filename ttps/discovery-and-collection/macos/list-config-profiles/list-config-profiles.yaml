@@ -9,11 +9,14 @@ description: |
   This TTP simply lists all configuration profile names using the profiles
   binary. This can be useful for an attacker to determine what configuration
   profiles are installed on the target host.
+requirements:
+  platforms:
+    - os: darwin
 mitre:
   tactics:
-    - TA0009 Collection
+    - "TA0009 Collection"
   techniques:
-    - T1602 Data From Configuration Repository
+    - "T1602 Data From Configuration Repository"
 steps:
   - name: list_config_profiles
     inline: |

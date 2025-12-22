@@ -9,11 +9,14 @@ description: |
   This TTP leverages ioreg to check and see if the macOS screen is locked.
   If locked, then attacker may then perform actions that modify the GUI,
   such as opening or closing windows.
+requirements:
+  platforms:
+    - os: darwin
 mitre:
   tactics:
-    - TA0007 Discovery
+    - "TA0007 Discovery"
   techniques:
-    - T1016 System Network Configuration Discovery
+    - "T1016 System Network Configuration Discovery"
 
 steps:
   - name: lockscreen_check

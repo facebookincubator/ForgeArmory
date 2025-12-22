@@ -16,11 +16,11 @@ args:
     default: https://gist.githubusercontent.com/l50/2dd5d552c0336e6e8fd7704fd0d194de/raw/0cd2d4d0be1cac1899fc45ff23df8a1ed9ea0409/gistfile1.txt
 mitre:
   tactics:
-    - TA0003 Execution
+    - "TA0002 Execution"
   techniques:
-    - T1059 Command and Scripting Interpreter
+    - "T1059 Command and Scripting Interpreter"
   subtechniques:
-    - T1059.004 Command and Scripting Interpreter Unix Shell
+    - "T1059.004 Command and Scripting Interpreter: Unix Shell"
 steps:
   - name: setup
     inline: |

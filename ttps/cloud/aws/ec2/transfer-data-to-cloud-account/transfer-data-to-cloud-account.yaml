@@ -19,12 +19,16 @@ args:
   - name: attacker_account_id
     description: Attacker AWS account ID that will be used to create and expose AMI of the compromised EC2 instance.
 
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+
 mitre:
   tactics:
-    - TA0010 Exfiltration
+    - "TA0010 Exfiltration"
   techniques:
-    - T1537 Transfer Data to Cloud Account
-
+    - "T1537 Transfer Data to Cloud Account"
 
 steps:
   - name: create_test_ec2_instance

@@ -15,20 +15,20 @@ args:
     default: https://raw.githubusercontent.com/rebootuser/LinEnum/65475312171107e9373dd8b06c9757610f0653d8/LinEnum.sh
 mitre:
   tactics:
-    - TA0003 Execution
-    - TA0007 Discovery
+    - "TA0002 Execution"
+    - "TA0007 Discovery"
   techniques:
-    - T1059 Command and Scripting Interpreter
-    - T1087 Account Discovery
-    - T1083 File and Directory Discovery
-    - T1057 Process Discovery
-    - T1069 Permission Groups Discovery
-    - T1518 Software Discovery
-    - T1082 System Information Discovery
-    - T1033 System Owner/User Discovery
-    - T1007 System Service Discovery
+    - "T1059 Command and Scripting Interpreter"
+    - "T1087 Account Discovery"
+    - "T1083 File and Directory Discovery"
+    - "T1057 Process Discovery"
+    - "T1069 Permission Groups Discovery"
+    - "T1518 Software Discovery"
+    - "T1082 System Information Discovery"
+    - "T1033 System Owner/User Discovery"
+    - "T1007 System Service Discovery"
   subtechniques:
-    - T1059.004 Command and Scripting Interpreter Unix Shell
+    - "T1059.004 Command and Scripting Interpreter: Unix Shell"
 
 steps:
   - name: setup

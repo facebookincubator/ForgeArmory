@@ -14,11 +14,11 @@ args:
     default: "/bin/ls"
 mitre:
   tactics:
-    - TA0003 Persistence
+    - "TA0003 Persistence"
   techniques:
-    - T1053 Scheduled Task/Job
+    - "T1053 Scheduled Task/Job"
   subtechniques:
-    - T1053.002 Scheduled Task/Job At
+    - "T1053.002 Scheduled Task/Job: At"
 steps:
   - name: setup
     inline: |

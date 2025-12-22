@@ -17,11 +17,11 @@ requirements:
     - os: windows
 mitre:
   tactics:
-    - TA0005 Defense Evasion
+    - "TA0005 Defense Evasion"
   techniques:
-    - T1564 Hide Artifacts
+    - "T1564 Hide Artifacts"
   subtechniques:
-    - T1564.006 Run Virtual Instance
+    - "T1564.006 Hide Artifacts: Run Virtual Instance"
 
 args:
   - name: vm_name

@@ -14,11 +14,12 @@ requirements:
     - os: windows
 mitre:
   tactics:
-    - TA0003 Persistence / TA0004 Privilege Escalation
+    - "TA0003 Persistence"
+    - "TA0004 Privilege Escalation"
   techniques:
-    - T1574 Hijack Execution Flow
+    - "T1574 Hijack Execution Flow"
   subtechniques:
-    - T1574.002 DLL Side-Loading
+    - "T1574.002 Hijack Execution Flow: DLL Side-Loading"
 
 args:
   - name: process_name

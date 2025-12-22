@@ -19,11 +19,13 @@ args:
     default: "exfil.tar"
 mitre:
   tactics:
-    - TA0007 Discovery
-    - TA0009 Collection
+    - "TA0007 Discovery"
+    - "TA0009 Collection"
   techniques:
-    - T1083 File and Directory Discovery
-    - T1005 Data from Local System
+    - "T1083 File and Directory Discovery"
+    - "T1005 Data from Local System"
+  subtechniques:
+    - "T1560.001 Archive via Utility"
 
 steps:
   - name: ensure-root-user-if-required

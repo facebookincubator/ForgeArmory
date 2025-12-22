@@ -7,11 +7,14 @@ authors:
   - I50
 description: |
   This TTP executes SwiftBelt to gather host information.
+requirements:
+  platforms:
+    - os: darwin
 mitre:
   tactics:
-    - TA0009 Collection
+    - "TA0009 Collection"
   techniques:
-    - T1119 Automated Collection
+    - "T1119 Automated Collection"
 steps:
   - name: swiftbelt-exec
     inline: |

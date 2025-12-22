@@ -14,9 +14,9 @@ requirements:
     - os: darwin
 mitre:
   tactics:
-    - TA0007 Discovery
+    - "TA0007 Discovery"
   techniques:
-    - T1518 Software Discovery
+    - "T1518 Software Discovery"
 
 args:
   - name: brew

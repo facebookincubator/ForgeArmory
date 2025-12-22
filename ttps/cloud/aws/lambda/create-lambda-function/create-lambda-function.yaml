@@ -19,11 +19,18 @@ args:
     description: Name of the AWS region to use with TTPForge
     default: us-east-1
 
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+
 mitre:
   tactics:
-    - TA0003 Persistence
+    - "TA0003 Persistence"
   techniques:
-    - T1098 Account Manipulation
+    - "T1098 Account Manipulation"
+  subtechniques:
+    - "T1098.001 Additional Cloud Credentials"
 
 steps:
   - name: aws-connector

@@ -28,11 +28,11 @@ requirements:
   superuser: true
 mitre:
   tactics:
-    - TA0004 Privilege Escalation
+    - "TA0004 Privilege Escalation"
   techniques:
-    - T1548 Abuse Elevation Control Mechanism
+    - "T1548 Abuse Elevation Control Mechanism"
   subtechniques:
-    - T1548.001 Abuse Elevation Control Mechanism Setuid and Setgid
+    - "T1548.001 Abuse Elevation Control Mechanism: Setuid and Setgid"
 
 steps:
   - name: create-vuln-bin
