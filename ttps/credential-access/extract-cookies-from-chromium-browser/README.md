@@ -14,7 +14,7 @@ This TTP extracts cookies from Chromium-based browsers from a target system usin
 
 You can run the TTP using the following example:
 ```bash
-ttpforge run forgearmory//credential-access/extract-cookies-from-chromium-browser/extract-cookies-from-chromium-browser.yaml
+ttpforge run forgearmory//credential-access/extract-cookies-from-chromium-browser/ttp.yaml
 ```
 
 ## Steps

@@ -16,7 +16,7 @@ This TTP dumps the memory of a process for a target user as root. It uses the `m
 
 You can run the TTP using the following example:
 ```bash
-ttpforge run forgearmory//credential-access/extract-secrets-from-memory/extract-secrets-from-memory.yaml
+ttpforge run forgearmory//credential-access/extract-secrets-from-memory/ttp.yaml
 ```
 
 ## Steps

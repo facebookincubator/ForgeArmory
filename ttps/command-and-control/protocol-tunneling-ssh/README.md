@@ -23,7 +23,7 @@ This TTP enables the creation of an SSH tunnel to fetch a file from a remote sys
 You can run the TTP using the following example (after updating the arguments):
 
 ```bash
-ttpforge run forgearmory//command-and-control/protocol-tunneling-ssh.yaml \
+ttpforge run forgearmory//command-and-control/protocol-tunneling-ssh/ttp.yaml \
   --arg target_path=/tmp/webserver --arg target_port=8000 --arg local_port=3333 --arg target_user=root --arg target_server=localhost
 ```
 

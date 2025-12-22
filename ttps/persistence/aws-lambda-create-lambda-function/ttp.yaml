@@ -1,0 +1,170 @@
+---
+api_version: 2.0
+uuid: 4b783ca9-7cf7-49c4-a74f-26c753a4b1c2
+name: create_lambda_function
+authors:
+  - w51d
+description: |
+  This TTP is used to create a new Lambda function in AWS. It uses the AWS CLI to create a new function with the specified name and runtime.
+  If a function with given name exists, nothing is done and the TTP is closed.
+  If a function does not exist a new function is created. It is also deleted during cleanup.
+  A public API gateway is also created to invoke this function. This enables use to invoke the function from the internet.
+  `--no-cleanup` options should be explicitly specified if we do not want the new function created to be deleted.
+
+args:
+  - name: lambda_function_name
+    description: The name of the new Lambda function to be created.
+    default: ttpforge-lambda-function
+  - name: region
+    description: Name of the AWS region to use with TTPForge
+    default: us-east-1
+
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+
+mitre:
+  tactics:
+    - "TA0003 Persistence"
+  techniques:
+    - "T1098 Account Manipulation"
+  subtechniques:
+    - "T1098.001 Additional Cloud Credentials"
+
+steps:
+  - name: aws-connector
+    description: This step invokes the verifies aws creds are present and aws cli is available.
+    ttp: //utils/aws-validate-aws-env-configured/ttp.yaml
+    args:
+      region: "{{ .Args.region }}"
+
+  - name: create_temp_iam_role
+    description: Create a temp IAM role that will be used by the lambda function.
+    inline: |
+      echo "Creating temp IAM role..."
+
+      role_name="{{.Args.lambda_function_name}}-role"
+      aws iam create-role --role-name $role_name --assume-role-policy-document file://trust-policy.json
+      echo "Temp IAM role created: $role_name"
+
+    cleanup:
+      inline: |
+        echo "Deleting temp IAM role..."
+
+        role_name="{{.Args.lambda_function_name}}-role"
+        aws iam delete-role --role-name $role_name
+
+  - name: create_s3_bucket
+    description: Create a S3 bucket with a random string name.
+    inline: |
+      echo "Creating S3 bucket..."
+
+      bucket_suffix=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
+      bucket_name="{{.Args.lambda_function_name}}-${bucket_suffix}"
+
+      aws s3 mb s3://$bucket_name
+      echo "S3 bucket created: $bucket_name"
+    cleanup:
+      inline: |
+        echo "Deleting S3 bucket..."
+        bucket_name=$(aws s3 ls | grep {{.Args.lambda_function_name}} | awk '{print $3}')
+        echo $bucket_name
+
+        aws s3 rb s3://$bucket_name --force
+
+  - name: upload_lambda_code
+    description: Upload the lambda code to the newly created S3 bucket.
+    inline: |
+      echo "Uploading lambda code to S3 bucket..."
+
+      bucket_name=$(aws s3 ls | grep {{.Args.lambda_function_name}} | awk '{print $3}')
+      echo $bucket_name
+
+      zip -r lambda-function.zip lambda-function.py
+      aws s3 cp lambda-function.zip s3://$bucket_name
+
+      echo "Lambda code uploaded to S3 bucket: $bucket_name"
+
+    cleanup:
+      inline: |
+        echo "Deleting created lambda function zip file..."
+        rm -rf lambda-function.zip
+
+  - name: create_lambda_function
+    description: Check if the specified Lambda function exists. If not create a new one.
+    inline: |
+      echo "Checking if function {{.Args.lambda_function_name}} exists..."
+      role_name="{{.Args.lambda_function_name}}-role"
+      role_arn=$(aws iam get-role --role-name $role_name --query 'Role.Arn' --output text)
+      bucket_name=$(aws s3 ls | grep {{.Args.lambda_function_name}} | awk '{print $3}')
+
+      function_exists=$(aws lambda list-functions --query 'Functions[?FunctionName==`{{.Args.lambda_function_name}}`]' 2>&1)
+      if [ -n "$function_exists" ] && [ "$function_exists" = "[]" ]; then
+        echo -  "Function does not exist. Creating a new function..."
+        aws lambda create-function --function-name {{.Args.lambda_function_name}} --runtime "python3.9" --handler lambda-function.lambda_handler --role $role_arn --code S3Bucket=$bucket_name,S3Key=lambda-function.zip
+        echo "New Lambda function created: {{.Args.lambda_function_name}}"
+        sleep 5
+      else
+        echo "Function {{.Args.lambda_function_name}} already exists."
+      fi
+    cleanup:
+      inline: |
+        echo "Deleting Lambda function..."
+        aws lambda delete-function --function-name {{.Args.lambda_function_name}}
+        echo "Lambda function deleted: {{.Args.lambda_function_name}}"
+
+  - name: create_api_and_invoke
+    description: Invoke the newly created Lambda function and display the output. This is a public API, that means anyone on the internet can invoke this lambda function
+    inline: |
+      echo "Creating REST API Gateway..."
+
+      # Create a new REST API
+      rest_api_id=$(aws apigateway create-rest-api --name {{.Args.lambda_function_name}}-api --query 'id' --output text)
+
+      # Get the root resource id
+      root_resource_id=$(aws apigateway get-resources --rest-api-id $rest_api_id --query 'items[?path==`/`].id' --output text)
+
+      # Create a GET method for the new resource
+      aws apigateway put-method --rest-api-id $rest_api_id --resource-id $root_resource_id --http-method GET --authorization-type "NONE" > /dev/null 2>&1
+
+      # Add necessary permissions to the new resource method
+      lambda_func_arn=$(aws lambda get-function --function-name {{.Args.lambda_function_name}} --query 'Configuration.FunctionArn' --output text)
+      account_id=$(aws sts get-caller-identity --query Account --output text)
+      account_region=$(aws configure get region)
+      statement_id=apigateway-$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)-{{.Args.lambda_function_name}}
+      source_arn="arn:aws:execute-api:$account_region:$account_id:$rest_api_id/*/GET/"
+
+      aws lambda add-permission --function-name $lambda_func_arn --source-arn $source_arn \
+      --principal apigateway.amazonaws.com --statement-id $statement_id --action lambda:InvokeFunction > /dev/null 2>&1
+
+
+      # Connect the GET method to the Lambda function (define integration)
+      lambda_invocation_uri="arn:aws:apigateway:$account_region:lambda:path/2015-03-31/functions/$lambda_func_arn/invocations"
+      aws apigateway put-integration --rest-api-id $rest_api_id --resource-id $root_resource_id \
+      --http-method GET --type AWS --integration-http-method POST --uri $lambda_invocation_uri > /dev/null 2>&1
+
+
+      # Specify an INTEGRATION RESPONSE for a method response code of 200 and allow Passthrough content handling
+      aws apigateway put-integration-response --rest-api-id $rest_api_id --resource-id $root_resource_id \
+      --http-method GET --status-code 200 --response-templates '{"application/json":"$input.path('\'$.body\'')"}' > /dev/null 2>&1
+
+      # Specify a METHOD response for HTTP status code 200
+      aws apigateway put-method-response --rest-api-id $rest_api_id --resource-id $root_resource_id \
+      --http-method GET --status-code 200 > /dev/null 2>&1
+
+      # Deploy the API
+      aws apigateway create-deployment --rest-api-id $rest_api_id --stage-name prod  > /dev/null 2>&1
+
+      # Get the invoke URL and curl it
+      invoke_url="https://$rest_api_id.execute-api.$account_region.amazonaws.com/prod"
+      echo "Invoke URL: $invoke_url"
+      sleep 10
+      curl $invoke_url
+
+    cleanup:
+      inline: |
+        echo "Deleting REST API Gateway..."
+        rest_api_id=$(aws apigateway get-rest-apis --query 'items[?name==`{{.Args.lambda_function_name}}-api`].id' --output text)
+        aws apigateway delete-rest-api --rest-api-id $rest_api_id
+        echo "REST API Gateway deleted: $rest_api_id"

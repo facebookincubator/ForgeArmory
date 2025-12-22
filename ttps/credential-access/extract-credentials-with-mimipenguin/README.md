@@ -13,7 +13,7 @@ This TTP enables the extraction of credentials from a target system using the mi
 
 You can run the TTP using the following example:
 ```bash
-ttpforge run forgearmory//credential-access/extract-credentials-with-mimipenguin/extract-credentials-with-mimipenguin.yaml
+ttpforge run forgearmory//credential-access/extract-credentials-with-mimipenguin/ttp.yaml
 ```
 
 ## Steps
