@@ -12,8 +12,11 @@ description: |
   `--no-cleanup` options should be explicity specified if we do not want the new role created to be deleted.
 
 args:
+  - name: region
+    description: The AWS region to use.
+    default: us-east-1
   - name: iam_role_name
-    description: The name of the  backdoored IAM role to be assumed.
+    description: The name of the backdoored IAM role to be assumed.
     default: ttpforge_trojan_role
   - name: backdoor_account_id
     description: AWS account ID which has been backdoored for access via attacker controled IAM role

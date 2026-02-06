@@ -12,6 +12,9 @@ description: |
   `--no-cleanup` options should be explicity specified if we do not want the new role created to be deleted.
 
 args:
+  - name: region
+    description: The AWS region to use.
+    default: us-east-1
   - name: iam_role_name
     description: The name of the new IAM role to be created.
     default: ttpforge_trojan_role
