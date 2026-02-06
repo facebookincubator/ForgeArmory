@@ -1,0 +1,37 @@
+---
+api_version: 2.0
+uuid: c6e14074-7110-4571-b163-98eafad92844
+name: "Windows Scheduled Task via COM API"
+authors:
+  - godlovepenn
+description: |
+  This TTP creates a scheduled task in Windows using the Task Scheduler COM API.
+  The task executes a specified action under a configurable principal (SYSTEM or ADMIN)
+  with configurable trigger time and repeat interval. It uses win32com.client to
+  interact with the Schedule.Service COM object directly.
+requirements:
+  platforms:
+    - os: windows
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1053 Scheduled Task/Job
+  subtechniques:
+    - T1068 Exploitation for Privilege Escalation
+steps:
+  - name: scheduled_task_com
+    file: src/main.py
+    args:
+      - '--name'
+      - 'HighPriorityPyCOMTask'
+      - '--action'
+      - 'C:\Windows\System32\cmd.exe'
+      - '--action-args'
+      - '/c whoami > current_context.txt'
+      - '--trigger'
+      - '1'
+      - '--repeat'
+      - '30'
+      - '--principal'
+      - 'SYSTEM'

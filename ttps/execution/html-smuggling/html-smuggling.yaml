@@ -1,0 +1,35 @@
+---
+api_version: 2.0
+uuid: 016528d2-3805-4b1b-815f-2a16e9d9c516
+name: "HTML Smuggling Attack Chain"
+authors:
+  - godlovepenn
+description: |
+  This TTP simulates an HTML smuggling attack chain consisting of three components:
+
+  1. index.html - An HTML page that dynamically loads a malicious JavaScript file from a C2 server
+  2. loader.js - JavaScript that reconstructs a base64-encoded executable and triggers a download
+  3. attachment.c - C source code for a payload that discovers Python on the system,
+     writes and executes an information-gathering script
+
+  The attack flow demonstrates how malicious content can be delivered through a browser
+  using JavaScript and HTML without being detected by network security tools.
+requirements:
+  platforms:
+    - os: windows
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1027 Obfuscated Files or Information
+  subtechniques:
+    - T1059.006 Command and Scripting Interpreter Python
+steps:
+  - name: html_smuggling_simulation
+    print_str: |
+      This TTP contains source files for an HTML smuggling attack chain simulation.
+      Files included:
+        - src/index.html: HTML page that loads remote JavaScript
+        - src/loader.js: JavaScript payload builder and downloader
+        - src/attachment.c: C source for the delivered executable
+      See src/README.md for detailed usage instructions.

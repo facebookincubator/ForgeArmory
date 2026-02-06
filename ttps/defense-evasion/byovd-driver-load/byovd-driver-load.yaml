@@ -1,0 +1,33 @@
+---
+api_version: 2.0
+uuid: e51fdb3a-cc36-4569-8c69-e48524c3af05
+name: "BYOVD Driver Load for Defense Evasion"
+authors:
+  - godlovepenn
+description: |
+  This TTP uses a Bring Your Own Vulnerable Driver (BYOVD) technique to load the
+  vulnerable TfSysMon kernel driver via the Windows Service Control Manager. Once loaded,
+  it communicates with the driver via DeviceIoControl to terminate security processes
+  (such as Windows Defender and EDR components) by PID.
+
+  The driver can be provided locally or downloaded from a specified URL with SHA-256
+  integrity verification.
+requirements:
+  platforms:
+    - os: windows
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1562 Impair Defenses
+  subtechniques:
+    - T1562.001 Impair Defenses Disable or Modify Tools
+steps:
+  - name: byovd_driver_load
+    file: src/main.py
+    args:
+      - '--service-name'
+      - 'SysMon'
+      - '--duration'
+      - '180'
+      - '--debug'
