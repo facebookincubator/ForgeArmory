@@ -1,0 +1,27 @@
+---
+api_version: 2.0
+uuid: 84f0e54b-548e-4a54-9196-7a7eb7bcbc88
+name: "WMI System Information Discovery"
+authors:
+  - godlovepenn
+description: |
+  This TTP collects comprehensive system information using Windows Management
+  Instrumentation (WMI) via the Python wmi library. It gathers OS info, CPU info,
+  drive info, installed hotfixes, local and domain user info, recently accessed files,
+  network configuration, and running processes. Output mimics the format of native
+  Windows commands (ipconfig, tasklist, etc.).
+requirements:
+  platforms:
+    - os: windows
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1082 System Information Discovery
+    - T1033 System Owner/User Discovery
+steps:
+  - name: wmi_system_discovery
+    file: src/main.py
+    args:
+      - '--modules'
+      - 'all'

