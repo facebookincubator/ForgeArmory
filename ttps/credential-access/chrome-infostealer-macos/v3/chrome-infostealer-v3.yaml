@@ -1,0 +1,55 @@
+---
+api_version: 2.0
+uuid: 9d4e7f23-8c12-45b6-a3d9-1e5f6c7a8b9d
+name: "MacOS Chrome InfoStealer Simulation V3"
+authors:
+  - godlovepenn
+description: |
+  This TTP provides comprehensive functionality for credential access and system reconnaissance found in most macOS infostealers:
+
+  1. User Password Acquisition:
+     - Retrieves the user's password using osascript to display a fake system dialog
+     - Simulates a common social engineering technique used by malware
+     - Provides customizable dialog title and text for different social engineering scenarios
+
+  2. Keychain Database Acquisition:
+     - Copies the user's keychain database to memory
+     - Reports the size of the copied keychain database
+
+  3. Chrome Credential Access:
+     - Copies Chrome browser credential files (Cookies, Login Data, Web Data) to memory
+     - Optionally zips the files and saves them to disk
+     - Supports multiple Chrome profiles with detection and selection capabilities
+
+  4. System Information Gathering:
+     - Executes system commands to gather information about the host
+     - Provides hardware information using system_profiler
+     - Supports custom command execution for targeted information gathering
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1056 Input Capture
+    - T1555 Credentials from Password Stores
+  subtechniques:
+    - T1056.002 GUI Input Capture
+    - T1555.003 Credentials from Web Browsers
+    - T1555.001 Keychain
+args:
+  - name: display_dialog
+    type: bool
+    default: false
+steps:
+  - name: chrome_infostealer_simulation_v3
+    file: src/main.py
+    args:
+      - {{ if .Args.display_dialog }}
+      - '-p'
+      - {{ end }}
+      - '-k'
+      - '-m'
+      - '-a'
+      - '-v'

@@ -1,0 +1,46 @@
+---
+api_version: 2.0
+uuid: b1f0543a-ece9-4f88-80ae-ec9c6b55dd56
+name: "MacOS Chrome InfoStealer Simulation V4"
+authors:
+  - godlovepenn
+description: |
+  This TTP provides comprehensive functionality for credential access and system reconnaissance found in most macOS infostealers:
+
+  1. User Password Acquisition:
+     - Retrieves the user's password using native macOS Security framework API calls
+     - Displays a native password dialog that looks identical to legitimate system prompts
+     - Validates the password against the keychain to ensure it's correct
+
+  2. Keychain Database Acquisition:
+     - Copies the user's keychain database to memory
+     - Reports the size of the copied keychain database
+
+  3. Chrome Credential Access:
+     - Copies Chrome browser credential files (Cookies, Login Data, Web Data) to memory
+     - Optionally zips the files and saves them to disk
+     - Supports multiple Chrome profiles with detection and selection capabilities
+
+  4. System Information Gathering:
+     - Executes system commands to gather information about the host
+     - Provides hardware information using system_profiler
+     - Supports custom command execution for targeted information gathering
+requirements:
+  platforms:
+    - os: darwin
+  dependencies:
+    - ctypes
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1056 Input Capture
+    - T1555 Credentials from Password Stores
+  subtechniques:
+    - T1056.002 GUI Input Capture
+    - T1555.003 Credentials from Web Browsers
+    - T1555.001 Keychain
+steps:
+  - name: chrome_infostealer_simulation_v4
+    file: src/main.py
+    args: ['-p', '-k', '-m', '-a', '-v']
