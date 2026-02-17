@@ -1,0 +1,43 @@
+api_version: 2.0
+uuid: 7d9a8b4a-1005-4645-a83b-a6b325e69cdb
+name: "Chrome Secure Preferences Hijack"
+authors:
+  - godlovepenn
+  - jazzyle
+description: |
+  This TTP exploits a vulnerability in Chrome's Secure Preferences file to silently and persistently
+  modify a Chrome extension, granting it additional permissions to access cookies and other sensitive data.
+
+  The vulnerability exists because Chrome uses an easily computed seed value for HMAC calculation to protect the
+  Secure Preferences file. By using this seed, an attacker can calculate valid HMAC values for
+  modified preferences, effectively bypassing the browser's security mechanisms.
+
+  This version uses a single Python script that handles all three steps:
+  1. Kills Chrome
+  2. Modify Chrome files
+  3. Restart Chrome and exfiltrate cookies (locally by dumping to a file or via telegram by sending cookies to Telegram bot)
+
+  Reference: https://syntax-err0r.github.io/Return_Of_The_Extension.html
+  Reference: https://www.cse.chalmers.se/~andrei/cans20.pdf
+args:
+  - name: id
+    type: string
+    description: "Extension ID to modify (required)"
+  - name: wait_time
+    type: int
+    default: 15
+    description: "Time to wait before closing Chrome (seconds)"
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - "TA0003 Persistence"
+  techniques:
+    - "T1176 Software Extensions"
+  subtechniques:
+    - "T1176.001 Software Extensions: Browser Extensions"
+steps:
+  - name: exploit_chrome
+    file: src/main.py
+    args: ['--id={{.Args.id}}', '--wait-time={{.Args.wait_time}}']

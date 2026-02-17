@@ -1,0 +1,30 @@
+---
+api_version: 2.0
+uuid: e740c75f-9d62-48aa-a4db-b18d8681cbd0
+name: "Chrome Google Token Abuse"
+authors:
+  - godlovepenn
+description: |
+  This TTP simulates a threat actor abusing a Google Refresh Token to gain access to a user's Google account.
+
+  This TTP uses Python scripts that handles all three steps:
+  1. Retrieve Chrome Safe Storage password by using Terminal command to access encryption key
+  2. Extracting tokens from Chrome's Web Data file
+  3. Using tokens to request Google OAuth tokens
+  4. Formating Google OAuth tokens into valid session cookies allowing MFA bypass without traditional cookie theft
+
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1555 Credentials from Password Stores
+  subtechniques:
+    - T1555.003 Credentials from Web Browsers
+    - T1555.001 Keychain
+steps:
+  - name: grt-abuse
+    file: src/main.py
+    args: ['--timeout', '60']
