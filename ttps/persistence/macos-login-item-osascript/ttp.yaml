@@ -1,0 +1,77 @@
+---
+api_version: 2.0
+uuid: 6c586278-85df-4f88-acb7-07151eaf6136
+name: macos-login-item-osascript
+authors:
+  - godlovepenn
+description: |
+  Adds a macOS application as a Login Item using osascript (AppleScript),
+  causing it to launch automatically when the user logs in. The target
+  application path and hidden state are configurable.
+
+  See also: login-item-persistence for a Swift-based variant that compiles
+  a binary to manage Login Items.
+
+mitre:
+  tactics:
+    - "TA0003 Persistence"
+  techniques:
+    - "T1547 Boot or Logon Autostart Execution"
+  subtechniques:
+    - "T1547.015 Boot or Logon Autostart Execution: Login Items"
+
+requirements:
+  platforms:
+    - os: darwin
+
+args:
+  - name: app_path
+    description: The full path to the application to add as a login item.
+    type: string
+    default: "/System/Applications/Calculator.app"
+
+  - name: hidden
+    description: Whether the login item should be hidden (true/false).
+    type: string
+    default: "false"
+
+  - name: cleanup_delay
+    description: Number of seconds to wait before removing the login item during cleanup.
+    type: int
+    default: 15
+
+steps:
+  - name: add_login_item_osascript
+    executor: bash
+    inline: |
+      echo "[*] Adding login item using osascript method"
+      echo "[*] Target application: {{.Args.app_path}}"
+
+      # Add the application as a login item
+      osascript -e 'tell application "System Events" to make login item at end with properties {path:"{{.Args.app_path}}", hidden:{{.Args.hidden}}}'
+
+      if [ $? -eq 0 ]; then
+        echo "[+] Successfully added login item"
+      else
+        echo "[-] Failed to add login item"
+        exit 1
+      fi
+
+      # Verify the login item was added
+      echo "[*] Current login items:"
+      osascript -e 'tell application "System Events" to get the name of every login item'
+    cleanup:
+      executor: bash
+      inline: |
+        echo "[*] Cleanup: Waiting {{.Args.cleanup_delay}} seconds before removing login item..."
+        sleep {{.Args.cleanup_delay}}
+
+        echo "[*] Removing login item for {{.Args.app_path}}"
+        # Extract app name from path for removal
+        APP_NAME=$(basename "{{.Args.app_path}}" .app)
+
+        osascript -e "tell application \"System Events\" to delete login item \"$APP_NAME\"" 2>/dev/null || {
+          echo "[!] Note: Login item may have already been removed or not found"
+        }
+
+        echo "[*] Cleanup complete"

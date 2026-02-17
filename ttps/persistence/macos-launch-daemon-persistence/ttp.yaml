@@ -1,0 +1,125 @@
+---
+api_version: 2.0
+uuid: 1e8a9b4c-6f2d-4e7a-8b01-9c3d2a1b5e4f
+name: macos-launch-daemon-persistence
+authors:
+  - godlovepenn
+description: |
+  Establishes system-level persistence on macOS by creating and loading a Launch
+  Daemon. This TTP requires root privileges. It creates a directory in
+  /Library/Application Support to store a payload script, then creates a .plist
+  file in /Library/LaunchDaemons that points to the script. The daemon is loaded
+  with launchctl, causing the script to execute immediately as root. The payload
+  script writes to a file in /tmp to provide evidence of execution.
+
+mitre:
+  tactics:
+    - "TA0003 Persistence"
+  techniques:
+    - "T1543 Create or Modify System Process"
+  subtechniques:
+    - "T1543.004 Create or Modify System Process: Launch Daemon"
+
+requirements:
+  platforms:
+    - os: darwin
+  superuser: true
+
+args:
+  - name: staging_dir_name
+    description: "The name of the directory to create within /Library/Application Support/."
+    type: string
+    default: "com.apple.security"
+  - name: script_name
+    description: "The name of the payload script."
+    type: string
+    default: "security_check"
+  - name: daemon_label
+    description: "The label for the Launch Daemon, used for the .plist filename."
+    type: string
+    default: "com.apple.security.daemon"
+  - name: proof_file_path
+    description: "The full path to the file used to verify execution."
+    type: string
+    default: "/tmp/daemon_execution_proof.log"
+
+steps:
+  {{$staging_dir := printf "/Library/Application Support/%s" .Args.staging_dir_name}}
+  {{$script_path := printf "%s/%s" $staging_dir .Args.script_name}}
+  {{$plist_filename := printf "%s.plist" .Args.daemon_label}}
+  {{$plist_path := printf "/Library/LaunchDaemons/%s" $plist_filename}}
+
+  - name: print_generated_paths
+    description: Prints the paths that will be used in subsequent steps for visibility.
+    print_str: |
+      ---
+      TTP Configuration:
+      Staging Directory: {{$staging_dir}}
+      Script Path:       {{$script_path}}
+      Plist Path:        {{$plist_path}}
+      ---
+
+  - name: create_staging_directory
+    description: Creates a directory to house the payload script.
+    executor: bash
+    inline: |
+      mkdir -p "{{$staging_dir}}"
+    cleanup:
+      remove_path: "{{$staging_dir}}"
+      recursive: true
+
+  - name: create_payload_script
+    description: Creates the executable script that will be run by the Launch Daemon.
+    create_file: "{{$script_path}}"
+    mode: 0755
+    contents: |
+      #!/bin/bash
+      echo "Daemon executed as $(whoami) at $(date)" >> "{{.Args.proof_file_path}}"
+
+  - name: create_launch_daemon_plist
+    description: Creates the .plist file in the LaunchDaemons directory to define the service.
+    create_file: "{{$plist_path}}"
+    contents: |
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+          <key>Label</key>
+          <string>{{.Args.daemon_label}}</string>
+          <key>ProgramArguments</key>
+          <array>
+              <string>{{$script_path}}</string>
+          </array>
+          <key>RunAtLoad</key>
+          <true/>
+      </dict>
+      </plist>
+    cleanup: default
+
+  - name: load_launch_daemon
+    description: Loads the Launch Daemon using launchctl to activate persistence.
+    executor: bash
+    inline: |
+      echo "Loading Launch Daemon: {{$plist_path}}"
+      launchctl load "{{$plist_path}}"
+    cleanup:
+      executor: bash
+      inline: |
+        echo "Unloading Launch Daemon: {{$plist_path}}"
+        launchctl unload "{{$plist_path}}" 2>/dev/null || true
+
+  - name: verify_execution
+    description: Pauses and then checks for the proof-of-execution file.
+    executor: bash
+    inline: |
+      echo "Waiting 2 seconds for daemon to execute..."
+      sleep 2
+      echo "--- Verifying execution. Proof file contents: ---"
+      if [[ -f "{{.Args.proof_file_path}}" ]]; then
+        cat "{{.Args.proof_file_path}}"
+      else
+        echo "Proof file not found at {{.Args.proof_file_path}}"
+      fi
+      echo "-----------------------------------------------"
+    cleanup:
+      remove_path: "{{.Args.proof_file_path}}"
