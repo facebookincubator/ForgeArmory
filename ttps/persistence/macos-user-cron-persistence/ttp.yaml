@@ -1,0 +1,66 @@
+---
+api_version: 2.0
+uuid: b4d7aa49-4624-4e77-9a12-676203080cba
+name: macos-user-cron-persistence
+authors:
+  - godlovepenn
+description: |
+  Establishes user-level persistence on a macOS system by creating a bash script
+  that spawns the Calculator application and then adding an entry to the current
+  user's crontab to execute this script periodically. The payload script is
+  written to /tmp/ by default.
+
+  See also: systemwide-cronjob for a Linux variant that installs a system-wide
+  cron job (requires root).
+
+mitre:
+  tactics:
+    - "TA0003 Persistence"
+  techniques:
+    - "T1053 Scheduled Task/Job"
+  subtechniques:
+    - "T1053.001 Scheduled Task/Job: Cron"
+
+requirements:
+  platforms:
+    - os: darwin
+
+args:
+  - name: payload_name
+    description: The filename of the payload script (e.g., calculator_launcher.sh).
+    type: string
+    default: calculator_launcher.sh
+
+  - name: payload_path
+    description: The directory where the payload script will be stored (e.g., /tmp/, ~/Library/Application Support/MyApp/).
+    type: path
+    default: /tmp/
+
+  - name: cron_interval
+    description: The cron schedule string (e.g., "* * * * *" for every minute, "0 */12 * * *" for twice a day).
+    type: string
+    default: "* * * * *"
+
+  - name: sleep_duration_seconds
+    description: Number of seconds to wait before cleanup.
+    type: int
+    default: 70
+
+steps:
+  - name: create_calculator_payload
+    create_file: "{{.Args.payload_path}}/{{.Args.payload_name}}"
+    contents: |
+      #!/bin/bash
+      open -a Calculator.app
+    mode: 0755
+    cleanup: default
+
+  - name: establish_cron_persistence
+    executor: bash
+    inline: |
+      (crontab -l 2>/dev/null; echo "{{.Args.cron_interval}} {{.Args.payload_path}}/{{.Args.payload_name}}") | crontab -
+      sleep {{.Args.sleep_duration_seconds}}
+    cleanup:
+      executor: bash
+      inline: |
+        (crontab -l 2>/dev/null | grep -v "{{.Args.payload_path}}/{{.Args.payload_name}}") | crontab -

@@ -1,0 +1,121 @@
+---
+api_version: 2.0
+uuid: 4f1a8c9b-3e7d-4b0f-8d6a-5c2e9f1b0a3c
+name: macos-launch-agent-persistence
+authors:
+  - godlovepenn
+description: |
+  Establishes user-level persistence on macOS by creating a Launch Agent.
+  This TTP creates a hidden directory in the user's home folder, places a
+  payload script inside it, and then creates and loads a Launch Agent .plist
+  file to execute the script upon user login. The default payload opens the
+  Calculator application.
+
+  See also: launch-agent-persistence for a Swift-based variant that compiles
+  a binary to create and load the Launch Agent.
+
+mitre:
+  tactics:
+    - "TA0003 Persistence"
+  techniques:
+    - "T1543 Create or Modify System Process"
+  subtechniques:
+    - "T1543.001 Create or Modify System Process: Launch Agent"
+
+requirements:
+  platforms:
+    - os: darwin
+  superuser: false
+
+args:
+  - name: dir_name
+    description: "The name of the hidden directory to create in the user's home folder."
+    type: string
+    default: ".defaults"
+  - name: script_name
+    description: "The name of the payload script to create."
+    type: string
+    default: "updater.sh"
+  - name: agent_label
+    description: "The label for the Launch Agent, which also determines the .plist filename."
+    type: string
+    default: "com.apple.updater"
+  - name: sleep_duration
+    description: "Number of seconds to sleep before cleanup begins."
+    type: int
+    default: 10
+
+steps:
+  # Use Go template variables to define paths for clarity and reuse
+  {{$staging_dir := printf "%s/%s" (env "HOME") .Args.dir_name}}
+  {{$script_path := printf "%s/%s" $staging_dir .Args.script_name}}
+  {{$plist_filename := printf "%s.plist" .Args.agent_label}}
+  {{$plist_path := printf "%s/Library/LaunchAgents/%s" (env "HOME") $plist_filename}}
+
+  - name: print_generated_paths
+    description: Prints the paths that will be used in subsequent steps for visibility.
+    print_str: |
+      ---
+      TTP Configuration:
+      Staging Directory: {{$staging_dir}}
+      Script Path:       {{$script_path}}
+      Plist Path:        {{$plist_path}}
+      ---
+
+  - name: create_staging_directory
+    description: Creates a hidden directory in the user's home folder to store the payload.
+    executor: bash
+    inline: |
+      mkdir -p "{{$staging_dir}}"
+    cleanup:
+      remove_path: "{{$staging_dir}}"
+      recursive: true
+
+  - name: create_executable_payload_script
+    description: Creates the executable script that will be run by the Launch Agent.
+    create_file: "{{$script_path}}"
+    mode: 0755
+    contents: |
+      #!/bin/bash
+      # Benign payload for demonstration. Can be replaced with any command.
+      open -a Calculator
+    cleanup: default
+
+  - name: create_launch_agent_plist
+    description: Creates the .plist file in the user's LaunchAgents directory.
+    create_file: "{{$plist_path}}"
+    contents: |
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+          <key>Label</key>
+          <string>{{.Args.agent_label}}</string>
+          <key>ProgramArguments</key>
+          <array>
+              <string>{{$script_path}}</string>
+          </array>
+          <key>RunAtLoad</key>
+          <true/>
+      </dict>
+      </plist>
+    cleanup: default
+
+  - name: load_launch_agent
+    description: Loads the Launch Agent using launchctl to activate persistence.
+    executor: bash
+    inline: |
+      launchctl load "{{$plist_path}}"
+    cleanup:
+      executor: bash
+      inline: |
+        # Unload the agent. Redirect stderr to /dev/null and use '|| true' to prevent
+        # the cleanup from failing if the service is already stopped or doesn't exist.
+        launchctl unload "{{$plist_path}}" 2>/dev/null || true
+
+  - name: sleep_before_cleanup
+    description: Pauses execution to allow persistence to be observed before cleanup.
+    executor: bash
+    inline: |
+      echo "Persistence established. Sleeping for {{.Args.sleep_duration}} seconds before starting cleanup..."
+      sleep {{.Args.sleep_duration}}
