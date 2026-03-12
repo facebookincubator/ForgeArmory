@@ -1,0 +1,31 @@
+---
+api_version: 2.0
+uuid: 96d946ec-f1ed-46e5-9c2e-decbda434bc5
+name: Add Windows Local DNS Record
+authors:
+  - d0n601
+description: |
+  Modify the local DNS record of a Windows host to include a reference pointing to a specified domain to a specified IP address.
+args:
+  - name: ip_address
+    description: IP address to point record to.
+  - name: domain
+    description: The domain name for the record
+requirements:
+  platforms:
+      - os: windows
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1565 Data Manipulation
+  subtechniques:
+    - T1565.001 Stored Data Manipulation
+steps:
+  - name: Add Local DNS Record
+    executor: powershell
+    edit_file: "C:\\Windows\\System32\\drivers\\etc\\hosts"
+    backup_file: "./hosts_{{(randAlphaNum 10)}}"
+    edits:
+      - append: {{.Args.ip_address}}       {{.Args.domain}}
+    cleanup: default

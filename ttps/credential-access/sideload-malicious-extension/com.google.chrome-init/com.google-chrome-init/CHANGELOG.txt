@@ -1,0 +1,220 @@
+2.18.1 - 2021-01-23
+- Enhancement: blacklist filtering is now enabled by default because otherwise it can be confusing to new users
+- Enhancement: added a separate FAQ entry about "unwanted" cookies in the help file
+
+2.18.0 - 2020-08-11
+- Feature: you can now blacklist individual cookies in Cookie Editor (right-click the cookie)
+- Feature: you can now delete all cookies that matched the search criteria in Cookiebro Editor (trashcan icon)
+
+2.17.1 - 2020-07-07
+- Enhancement: added "persistent" attribute to manifest.json
+
+2.17.0 - 2020-05-01
+- Feature: in Cookie Editor running search and expand/collapse now update the page URL accordingly so that the page becomes refreshable and bookmarkable with
+    those settings. This makes it easy to drag the URL e.g. to bookmark bar or bookmark it normally so that you can quickly view certain cookies.
+    Especially useful for developers.
+
+2.16.0 - 2020-04-26
+- Enhancement: slight CSS enhancements (buttons, cookie log view, editor highlight CSS)
+- Enhancement: search now properly hides non-matching items
+- Enhancement: downloading white- and blacklists should now work better on non-Windows platforms
+
+2.15.5 - 2019-09-09
+- Enhancement: removed history purge option on startup since it can make Chrome grind to halt at start
+
+2.15.4 - 2019-09-08
+- Enhancement: improved cookie remove callback function not to display an error if previous call already managed to delete the cookie
+
+2.15.3 - 2019-09-01
+- Revert: revert changes in 2.15.2 as the issue is not related to timing but chrome.cookies.getAllCookieStores() Firefox implementation bug
+
+2.15.2 - 2019-09-01
+- Bugfix: added 1 second delay to startup purge to enable firstPartyIsolation detection properly
+
+2.15.1 - 2019-09-01
+- Bugfix: potential bugfix for delete all cookies for-loop
+
+2.15.0 - 2019-08-30
+- Feature: "Clear [domain] data" popup action also sets window.name = ""; to prevent tracking
+
+2.14.0 - 2019-08-29
+- Feature: added an option to delete browsing history as well to combat PNG + Canvas evercookie tracking
+- Feature: added a Help file. Link to it is on the Options page.
+
+2.13.1 - 2019-08-29
+- Enhancement: hide "Clear unwanted..." in popup menu if there are no unwanted cookies present
+- Enhancement: only show "Clear [domain] data" for tabs with http(s) address
+
+2.13.0 - 2019-08-29
+- Feature: on Chrome the "Clear Stored Website Data" button (or startup purge process) will also delete webSQL and cacheStorage
+- Enhancement: modified popup menu action "Clear current tab data" to read "Clear [domain] data" to be clearer
+
+2.12.0 - 2019-08-26
+- Feature: popup menu option "Clear current tab data" can remove IndexedDB (not on Firefox due to lack of API), localStorage, sessionStorage, window.cacheStorage
+    and Service Workers of the current tab domain. Does not remove any cookies.
+
+2.11.0 - 2019-08-24
+- Feature: added option for removing Service Workers (off by default)
+
+2.10.2 - 2019-08-22
+- Enhancement: Favicon provider is now DuckDuckGo (which doesn't track you) and favicons are back on by default
+
+2.10.1 - 2019-08-22
+- Enhancement: favicons are now disabled by default
+
+2.10.0 - 2019-08-04
+- Feature: all cookies from selected domain can be now exported in Cookie Editor (right-click the domain in the tree)
+- Enhancement: Cookiebro WebExtension icon color is now properly updated also when active tab is changed (not just when URL of the tab changes)
+
+2.9.0 - 2019-07-27
+- Feature: single cookies can be now blacklisted/whitelisted in Options (format: <domain>/<cookiename>)
+- Feature: single cookie blacklist/whitelist settings are now properly exported/imported
+- Feature: single cookie settings are now shown in the settings list on the Options page
+- Feature: single cookies can be blacklisted by clicking a "Blacklist Cookie" button on the Cookie Log page
+- Feature: delete ALL cookies button in Options
+- Feature: single cookie can be now exported in Cookie Editor (and sub-sequently imported later)
+- Enhancement: exported JSON files are now pretty-printed
+- Enhancement: increased the maximum height of list areas on the Options page
+
+2.8.1 - 2019-07-15
+- Bugfix: popup didn't always show correctly remove/add action options although cookie management worked fine - fixed
+
+2.8.0 - 2019-05-18
+- Enhancement: periodical autodelete will be off by default in new installations (used to be 2 h) to avoid accidental cookie deletion before
+    user has had the chance to define proper settings
+
+2.7.7 - 2019-05-17
+- Bugfix (MAJOR): Cookiebro was completely broken due to change in 2.7.6
+
+2.7.6 - 2019-05-12
+- Bugfix: created a workaround fix for Waterfox 56.2.7+ problem with firstPartyDomain attribute
+
+2.7.5 - 2019-05-02
+- Feature: it should be now possible to import/export cookies between different browsers (e.g. Firefox -> Chrome and vice versa)
+
+2.7.4 - 2019-03-19
+- Bugfix: apparently Firefox doesn't support removing cacheStorage - removed
+
+2.7.3 - 2019-03-11
+- Feature: Cookiebro can now also remove cacheStorage of websites
+- Enhancement: updated JSTree to a new version
+
+2.7.2 - 2018-11-19
+- Bugfix: removeCookie console.log bug fixed
+
+2.7.1 - 2018-11-02
+- Bugfix: editor fixed
+
+2.7.0 - 2018-11-02
+- Feature: you can now disable Cookie Log events in Options
+- Feature: you can now clear the Cookie Log events in the Cookie Log view
+
+2.6.2 - 2018-10-03
+- Bugfix: Clear unwanted cookies didn't work in the popup if Firefox containers were enabled
+
+2.6.1 - 2018-09-20
+- Enhancement: original 3rd party libraries without sanitization tweaks
+
+2.6.0 - 2018-09-18
+- Feature: Added "Clear Stored Website Data" button to Options page for clearing indexedDB, localStorage and pluginData of websites on demand
+- Enhancement: original 3rd party libraries without sanitization tweaks
+
+2.5.1 - 2018-07-09
+- Feature: when using whitelist actions in the popup Cookiebro now shows a confirmation message
+
+2.4.0 - 2018-06-30
+- Feature: popup now contains additional option to whitelist also domain one level up from current domain
+- Enhancement: if imported cookie data contains cookies with empty domain (""), such domains and cookies are skipped in Cookie Editor
+
+2.3.1 - 2018-06-29
+- Bugfix: ensure Cookie Editor cookie nodes get strings as internal IDs
+
+2.3.0 - 2018-06-27
+- Feature: you can now disable favicons in Cookie Editor and Cookie Log (see Options page)
+
+2.2.4 - 2018-05-24
+- Bugfix: getHost function fixed (didn't always return correct host value for complex URLs with @ sign)
+
+2.2.3 - 2018-05-19
+- Enhancement: added locale templates for better discoverability in add-on store
+
+2.2.2 - 2018-03-22
+- Bugfix: now popup whitelisting on URLs like www.mydomain.com will whitelist mydomain.com and cookie carrying domain www.mydomain.com will properly match it
+     but foo.mydomain.com will not match unless *.mydomain.com is whitelisted as well.
+
+2.2.1 - 2018-03-19
+- Bugfix: Firefox 59+ no longer supports purging webSQL databases so that option was removed
+
+2.2.0 - 2018-03-17
+- Feature: you can now allow blacklisted sites to set session cookies. Off by default. (enable in Options)
+
+2.1.0 - 2018-03-17
+- Feature: Cookie Log (accessible via the popup menu) shows the last 200 cookie events with action buttons
+- Bugfix: if a single cookie is whitelisted, it is allowed even if the domain is blacklisted
+
+2.0.1 - 2018-03-07
+- Feature: you can now whitelist individual cookies in Cookie Editor. Right-click the cookie and select "Add cookie to whitelist".
+    Whitelisted cookies won't get autodeleted by the periodical or startup delete but they can be deleted when requested in Cookie Editor
+    UI or Firefox UI. Whitelisted individual cookies are shown with a green cookie icon.
+- Bugfix: Reload icon in Cookie Editor was broken - fixed
+
+2.0.0 - 2018-03-03
+- Feature: support for Firefox First Party Isolation system for cookies (see about:config setting privacy.firstparty.isolate)
+    See https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/cookies#First-party_isolation
+- Feature: support for Firefox containers
+    Note! Now popup shows the number of cookies in current container + Options/Cookie Editor opens the current container context cookies
+    See https://addons.mozilla.org/en-US/firefox/addon/multi-account-containers/
+    See https://blog.mozilla.org/tanvi/2016/06/16/contextual-identities-on-the-web/
+- Bugfix: Cookie update in Cookie Editor now properly removes the old cookie
+
+1.4.0 - 2018-02-11
+- Feature: export Cookies as JSON (available in Cookie Editor view)
+- Feature: import Cookies as JSON (available in Cookie Editor view)
+- Bugfix: fixed cookie URL generation
+
+1.3.3 - 2018-02-08
+- Enhancement: alternative implementation of Cookie tree loading to eliminate the need for blob permission in manifest.json
+- Enhancement: security enhanced version of flatpickr library included to pass AMO automated review
+- Enhancement: security enhanced version of jsTree library included to pass AMO automated review
+
+1.3.2 - 2018-02-07
+- Bugfix: remove whitelist setting in Options didn't work in all scenarios
+
+1.3.1 - 2018-02-07
+- Enhancement: less demanding settings in manifest.json
+
+1.3.0 - 2018-02-07
+- Feature: tree-based cookie editor for updating/deleting/creating individual cookies
+- Feature: search cookies in the Cookie Editor view
+- Feature: new Option "remove pluginData" to enable deletion of Flash Cookies (LSO) at browser startup
+- Bugfix: some link functions in Options page were not working properly
+- Enhancement: some CSS tweaks for Linux versions
+
+1.2.1 - 2018-02-06
+- Bugfix: fixed HTTP response handler listener toggling based on selected Options
+
+1.2.0 - 2018-02-05
+- Enhancement: "select text" in popup menu options disabled
+- Enhancement: blocking of blacklisted cookies no longer requires HTTP Response handler (improved performance)
+- Enhancement: removed checkbox "Delete Set-Cookie header" in Options since it is unnecessary now due to Cookie API usage
+- Bugfix: if blacklist filtering was on, Cookiebro changed all HTTP Response headers with length of 4 (including Date)
+- Bugfix: it was still possible to set cookies with JavaScript even if the site was blacklisted -> fixed
+
+1.1.0 - 2018-02-03
+- Enhancement: added a delay of 3 seconds before deleting indexedDB, localStorage and webSQL (if enabled in Options)
+    at browser startup to allow smooth startup
+- Feature: WebExtension icon can now change dynamically: colorful icon = site in tab is whitelisted, greyscale icon = site is not whitelisted
+    Enable in Options. Note that icon does not update immediately when tab is activated upon tab change.
+- Feature: In Options you can now delete either all session cookies or just non-whitelisted session cookies
+- Feature: added webSQL to the list of storages to wipe on startup (if that Option is enabled)
+- Bugfix: functions in popup window were horribly broken
+
+1.0.2 - 2018-01-27
+- Bugfix: import whitelist-functions were broken on Options page - fixed
+- Enhancement: CSS tweaks for popup window
+
+1.0.1 - 2018-01-25
+- Enhancement: changed the extension icon since it didn't show on dark theme properly
+
+1.0.0 - 2018-01-24
+- The first public release

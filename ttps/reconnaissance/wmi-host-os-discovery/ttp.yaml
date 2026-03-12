@@ -1,0 +1,238 @@
+---
+api_version: 2.0
+uuid: f1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c
+name: WMI Host and OS Information Discovery
+authors:
+  - alexpisani
+description: |
+  This TTP performs host and operating system reconnaissance using Windows Management
+  Instrumentation (WMI) classes. It gathers basic system information including computer
+  system details, operating system information, and hardware specifications that can
+  be useful for VM detection and system profiling.
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1047 Windows Management Instrumentation
+    - T1082 System Information Discovery
+    - T1518 Software Discovery
+  subtechniques:
+    - T1047.001 WMI
+requirements:
+  platforms:
+    - os: windows
+  executors:
+    - powershell
+args: []
+steps:
+  - name: gather_computer_system_info
+    executor: powershell
+    inline: |
+      Write-Host "===> Gathering Computer System Information via WMI..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        # Get computer system information with specific properties
+        $computerInfo = Get-WmiObject -Class Win32_ComputerSystem -Property bootupstate,username,totalphysicalmemory,systemtype,systemfamily,domain,dnshostname,oemstringarray,manufacturer,model
+
+        Write-Host "Computer System Details:" -ForegroundColor Yellow
+        Write-Host "  Computer Name: $($computerInfo.Name)"
+        Write-Host "  DNS Hostname: $($computerInfo.DNSHostName)"
+        Write-Host "  Domain: $($computerInfo.Domain)"
+        Write-Host "  Current User: $($computerInfo.UserName)"
+        Write-Host "  Manufacturer: $($computerInfo.Manufacturer)"
+        Write-Host "  Model: $($computerInfo.Model)"
+        Write-Host "  System Type: $($computerInfo.SystemType)"
+        Write-Host "  System Family: $($computerInfo.SystemFamily)"
+        Write-Host "  Boot State: $($computerInfo.BootupState)"
+
+        # Convert memory to GB for readability
+        $memoryGB = [math]::Round($computerInfo.TotalPhysicalMemory / 1GB, 2)
+        Write-Host "  Total Physical Memory: $memoryGB GB"
+
+        # Display OEM strings (useful for VM detection)
+        if ($computerInfo.OEMStringArray) {
+          Write-Host "  OEM String Array:"
+          foreach ($oemString in $computerInfo.OEMStringArray) {
+            Write-Host "    - $oemString"
+          }
+        }
+
+        # VM Detection Analysis
+        Write-Host "`nVM Detection Analysis:" -ForegroundColor Yellow
+        $vmIndicators = @()
+
+        if ($computerInfo.Manufacturer -match "VMware|VirtualBox|Microsoft Corporation|Xen|QEMU") {
+          $vmIndicators += "Manufacturer indicates virtualization: $($computerInfo.Manufacturer)"
+        }
+
+        if ($computerInfo.Model -match "Virtual|VMware|VirtualBox") {
+          $vmIndicators += "Model indicates virtualization: $($computerInfo.Model)"
+        }
+
+        if ($computerInfo.OEMStringArray -match "VMware|VirtualBox|Hyper-V|Xen") {
+          $vmIndicators += "OEM strings indicate virtualization"
+        }
+
+        if ($memoryGB -lt 2) {
+          $vmIndicators += "Low memory (< 2GB) may indicate VM"
+        }
+
+        if ($vmIndicators.Count -gt 0) {
+          Write-Host "  Potential VM Environment Detected:" -ForegroundColor Red
+          foreach ($indicator in $vmIndicators) {
+            Write-Host "    - $indicator" -ForegroundColor Red
+          }
+        } else {
+          Write-Host "  No obvious VM indicators detected" -ForegroundColor Green
+        }
+
+        # Store results for potential output
+        $global:ComputerSystemResults = $computerInfo
+
+      } catch {
+        Write-Host "Error gathering computer system information: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+      Write-Host "=" * 60
+
+  - name: gather_operating_system_info
+    executor: powershell
+    inline: |
+      Write-Host "===> Gathering Operating System Information via WMI..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        # Get operating system information
+        $osInfo = Get-WmiObject -Class Win32_OperatingSystem
+
+        Write-Host "Operating System Details:" -ForegroundColor Yellow
+        Write-Host "  OS Name: $($osInfo.Caption)"
+        Write-Host "  Version: $($osInfo.Version)"
+        Write-Host "  Build Number: $($osInfo.BuildNumber)"
+        Write-Host "  Architecture: $($osInfo.OSArchitecture)"
+        Write-Host "  Install Date: $($osInfo.InstallDate)"
+        Write-Host "  Last Boot Time: $($osInfo.LastBootUpTime)"
+        Write-Host "  System Directory: $($osInfo.SystemDirectory)"
+        Write-Host "  Windows Directory: $($osInfo.WindowsDirectory)"
+        Write-Host "  Registered User: $($osInfo.RegisteredUser)"
+        Write-Host "  Organization: $($osInfo.Organization)"
+        Write-Host "  Serial Number: $($osInfo.SerialNumber)"
+
+        # Memory information
+        $totalMemoryGB = [math]::Round($osInfo.TotalVisibleMemorySize / 1MB, 2)
+        $freeMemoryGB = [math]::Round($osInfo.FreePhysicalMemory / 1MB, 2)
+        $usedMemoryGB = $totalMemoryGB - $freeMemoryGB
+
+        Write-Host "  Total Visible Memory: $totalMemoryGB GB"
+        Write-Host "  Free Physical Memory: $freeMemoryGB GB"
+        Write-Host "  Used Memory: $usedMemoryGB GB"
+
+        # System uptime calculation
+        $bootTime = [Management.ManagementDateTimeConverter]::ToDateTime($osInfo.LastBootUpTime)
+        $uptime = (Get-Date) - $bootTime
+        Write-Host "  System Uptime: $($uptime.Days) days, $($uptime.Hours) hours, $($uptime.Minutes) minutes"
+
+        # Store results for potential output
+        $global:OperatingSystemResults = $osInfo
+
+      } catch {
+        Write-Host "Error gathering operating system information: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+      Write-Host "=" * 60
+
+  - name: gather_processor_info
+    executor: powershell
+    inline: |
+      Write-Host "===> Gathering Processor Information via WMI..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        # Get processor information
+        $processors = Get-WmiObject -Class Win32_Processor
+
+        Write-Host "Processor Details:" -ForegroundColor Yellow
+        $processorCount = 0
+        foreach ($processor in $processors) {
+          $processorCount++
+          Write-Host "  Processor $processorCount :"
+          Write-Host "    Name: $($processor.Name)"
+          Write-Host "    Manufacturer: $($processor.Manufacturer)"
+          Write-Host "    Architecture: $($processor.Architecture)"
+          Write-Host "    Number of Cores: $($processor.NumberOfCores)"
+          Write-Host "    Number of Logical Processors: $($processor.NumberOfLogicalProcessors)"
+          Write-Host "    Max Clock Speed: $($processor.MaxClockSpeed) MHz"
+          Write-Host "    Current Clock Speed: $($processor.CurrentClockSpeed) MHz"
+          Write-Host "    L2 Cache Size: $($processor.L2CacheSize) KB"
+          Write-Host "    L3 Cache Size: $($processor.L3CacheSize) KB"
+        }
+
+        # VM Detection based on processor info
+        Write-Host "`nProcessor-based VM Detection:" -ForegroundColor Yellow
+        $totalCores = ($processors | Measure-Object NumberOfCores -Sum).Sum
+        $totalLogicalProcessors = ($processors | Measure-Object NumberOfLogicalProcessors -Sum).Sum
+
+        Write-Host "  Total Physical Cores: $totalCores"
+        Write-Host "  Total Logical Processors: $totalLogicalProcessors"
+
+        if ($totalLogicalProcessors -lt 4) {
+          Write-Host "  Warning: Low processor count may indicate VM environment" -ForegroundColor Red
+        }
+
+        # Store results for potential output
+        $global:ProcessorResults = $processors
+
+      } catch {
+        Write-Host "Error gathering processor information: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+      Write-Host "=" * 60
+
+  - name: gather_bios_info
+    executor: powershell
+    inline: |
+      Write-Host "===> Gathering BIOS Information via WMI..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        # Get BIOS information
+        $biosInfo = Get-WmiObject -Class Win32_BIOS
+
+        Write-Host "BIOS Details:" -ForegroundColor Yellow
+        Write-Host "  Manufacturer: $($biosInfo.Manufacturer)"
+        Write-Host "  Name: $($biosInfo.Name)"
+        Write-Host "  Version: $($biosInfo.Version)"
+        Write-Host "  Release Date: $($biosInfo.ReleaseDate)"
+        Write-Host "  Serial Number: $($biosInfo.SerialNumber)"
+        Write-Host "  SMBIOS Version: $($biosInfo.SMBIOSBIOSVersion)"
+        Write-Host "  SMBIOS Major Version: $($biosInfo.SMBIOSMajorVersion)"
+        Write-Host "  SMBIOS Minor Version: $($biosInfo.SMBIOSMinorVersion)"
+
+        # VM Detection based on BIOS
+        Write-Host "`nBIOS-based VM Detection:" -ForegroundColor Yellow
+        $vmBiosIndicators = @()
+
+        if ($biosInfo.Manufacturer -match "VMware|VirtualBox|Microsoft Corporation|Xen|QEMU|innotek") {
+          $vmBiosIndicators += "BIOS Manufacturer indicates virtualization: $($biosInfo.Manufacturer)"
+        }
+
+        if ($biosInfo.Version -match "VMware|VirtualBox|Hyper-V|Xen|QEMU") {
+          $vmBiosIndicators += "BIOS Version indicates virtualization: $($biosInfo.Version)"
+        }
+
+        if ($vmBiosIndicators.Count -gt 0) {
+          Write-Host "  VM Environment Detected:" -ForegroundColor Red
+          foreach ($indicator in $vmBiosIndicators) {
+            Write-Host "    - $indicator" -ForegroundColor Red
+          }
+        } else {
+          Write-Host "  No VM indicators in BIOS information" -ForegroundColor Green
+        }
+
+      } catch {
+        Write-Host "Error gathering BIOS information: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+      Write-Host "=" * 60
+      Write-Host "[+] WMI Host and OS Information Discovery Complete!" -ForegroundColor Green

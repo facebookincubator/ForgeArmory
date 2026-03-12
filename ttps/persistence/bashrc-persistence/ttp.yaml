@@ -1,0 +1,38 @@
+api_version: 2.0
+uuid: 9ece9803-ff65-4ebe-8831-94696b5caa73
+name: Persistence via bashrc file
+authors:
+  - cedowens
+description: |
+    This TTP creates a ~/.bashrc file (if one does not exist) or appends to the rc file (if it exists). When executed the rc file will drop ~/testfile.
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1546 Event Triggered Execution
+  subtechniques:
+    - T1546.004 Unix Shell Configuration Modification
+args:
+  - name: timeout
+    description: Timeout value to set before cleanup begins.
+    default: 900
+steps:
+  - name: bashrc
+    inline: |
+      if [ ! -f ~/.bashrc ]
+         then echo "No ~/.bashrc file found so creating an empty file"
+         touch ~/.bashrc
+      fi
+      cp ~/.bashrc ~/.bashrc_orig
+      echo "echo \"This file was dropped by a modified .bashrc file\" >> /tmp/bashrcfiletest" >> ~/.bashrc && source ~/.bashrc
+      echo "Created or appended to ~/.bashrc. This bashrc file will be triggered each time a bash session is created."
+      echo "Sleeping for {{ .Args.timeout }} seconds and then will restore the original bashrc file"
+      sleep {{ .Args.timeout }}
+    cleanup:
+      inline: |
+        cp ~/.bashrc_orig ~/.bashrc && source ~/.bashrc
+        rm ~/.bashrc_orig
+        if [ -f /tmp/bashrcfiletest ]; then
+          rm /tmp/bashrcfiletest
+        fi
+        echo "Restored the original bashrc file. Done!"

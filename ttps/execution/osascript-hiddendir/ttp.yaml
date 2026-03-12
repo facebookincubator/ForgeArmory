@@ -1,0 +1,30 @@
+name: Red Canary osascript hidden dir rule trigger
+api_version: 2.0
+uuid: 24f0157e-6751-4b0c-81a3-e88efa3b8a6f
+authors:
+  - cedowens
+description: |
+  This TTP tests a Red Canary detector to flag on osascript being executed against files in a hidden directory. This TTP was developed to run on macOS.
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1059 Command and Scripting Interpreter
+  subtechniques:
+    - T1059.002 AppleScript
+steps:
+  - name: osascript_hiddendir
+    inline: |
+      echo -e "==> Executing the osascript_hiddendir TTP...\n"
+      echo "Creating /tmp/.purplehidden, dropping a JXA file there that simply runs the 'whoami' command, and executing the JXA file via osascript..."
+      mkdir -p /tmp/.purplehidden
+      echo -e "ObjC.import('Cocoa');\nObjC.import('stdlib');\nvar currentApp = Application.currentApplication();\ncurrentApp.includeStandardAdditions = true;\ncurrentApp.doShellScript('whoami');" > /tmp/.purplehidden/purpletest.js
+      osascript /tmp/.purplehidden/purpletest.js >> /tmp/osascript_hiddendir-execution.out
+      echo "osascript execution completed...now will perform cleanup..."
+    cleanup:
+      inline: |
+        rm -rf /tmp/.purplehidden /tmp/osascript_hiddendir-execution.out
+        echo "Cleanup finished. TTP Done!"

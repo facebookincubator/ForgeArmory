@@ -1,0 +1,40 @@
+api_version: 2.0
+uuid: 3647ce89-fdbc-4499-be2b-197128487a05
+name: Persistence via .bashenv file
+authors:
+  - cedowens
+description: |
+    This TTP creates a ~/.bashenv file (if one does not exist) or appends to the .bashenv file (if it exists). When executed the .bashenv file will drop ~/bashenvout.
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1546 Event Triggered Execution
+  subtechniques:
+    - T1546.004 Unix Shell Configuration Modification
+args:
+  - name: timeout
+    description: Timeout value to set before cleanup begins.
+    default: 900
+steps:
+  - name: bashenv
+    inline: |
+      if [ ! -f ~/.bashenv ]
+         then echo "No ~/.bashenv file found so creating an empty file"
+         touch ~/.bashenv
+      fi
+      cp ~/.bashenv ~/.bashenv_orig
+      echo "echo \"This file was dropped by a modified .bashenv file\" >> /tmp/bashenvout" >> ~/.bashenv
+      echo "Created or appended to ~/.bashenv. This bashenv file will be triggered each time a bash session is created."
+      source ~/.bashenv
+      echo "Sleeping for {{ .Args.timeout }} seconds and then will restore the original bashenv file"
+      sleep {{ .Args.timeout }}
+    cleanup:
+      inline: |
+        cp ~/.bashenv_orig ~/.bashenv
+        rm ~/.bashenv_orig
+        if [ -f /tmp/bashenvout ]; then
+          rm /tmp/bashenvout
+        fi
+        source ~/.bashenv
+        echo "Restored the original bashenv file. Done!"

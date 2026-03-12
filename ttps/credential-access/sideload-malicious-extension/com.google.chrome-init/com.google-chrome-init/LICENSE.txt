@@ -1,0 +1,7 @@
+Cookiebro
+
+Permission to use this WebExtension in a browser in as it is available from Firefox Add-on Store or Chrome Web Store is hereby granted.
+Even partial copying, reuse, publication or sharing of the source code is forbidden.
+
+Copyright (C) Nodetics
+All Rights Reserved

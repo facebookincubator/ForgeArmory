@@ -1,0 +1,29 @@
+---
+api_version: 2.0
+uuid: 12b5e9d3-eeb2-47be-a32d-22cc66fe1f8b
+name: Apple Remote Desktop using kickstart
+authors:
+  - hmashru
+description: |
+  This TTP will run the kickstart command-line tool to enable Apple Remote Desktop (ARD) on the target macOS host.
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0011 Command And Control
+  techniques:
+    - T1219 Remote Access Tools
+  subtechniques:
+    - T1219.002 Remote Desktop Software
+steps:
+  - name: Enabling remote desktop
+    inline: |
+      sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -users all -privs -all -restart -agent
+  - name: Connecting to remote desktop and cleaning up
+    inline: |
+      open vnc://localhost
+    cleanup:
+      inline: |
+        sleep 3
+        sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -configure -access -off

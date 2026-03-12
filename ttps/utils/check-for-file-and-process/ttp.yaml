@@ -1,0 +1,131 @@
+---
+api_version: 2.0
+uuid: 3f725960-99c4-4698-8e4b-a342f2ca3c61
+name: ttp_check_for_file
+authors:
+  - arubinchik
+description: |
+  Check for the existence of a file based on the arguments passed into the TTPForge script.
+  The path to check is applied on the drive (expected to be C:).
+  The file name should match the powershell script in this directory (dummy_process_to_start.ps1).
+  A boolean can be passed within the `should_exist` flag to indicate whether we expect the file to be present or not.
+  If there is a mismatch, the script will fail with an exit code of 1.
+
+requirements:
+  platforms:
+    - os: windows
+args:
+  - name: path_to_check
+    description: The path to check for the existence of a file.
+    default: "ttpforge"
+  - name: file_name
+    description: The file to check for.
+    default: "dummy.exe"
+  - name: should_exist
+    description: Whether we expect the file to exist or not
+    default: True
+  - name: should_check_for_process
+    description: Whether we should check for the process associated with the file
+    default: True
+
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1083 File and Directory Discovery
+
+steps:
+  - name: check_parameters
+    executor: powershell
+    inline: |
+      $SHOULD_EXIST = "{{.Args.should_exist}}"
+      if ($SHOULD_EXIST -eq "True" -or $SHOULD_EXIST -eq "False") {
+          echo "should_exist argument is valid"
+          exit 0
+      } else {
+          echo "should_exist argument must be True or False, but got $SHOULD_EXIST"
+          exit 1
+      }
+
+      $SHOULD_CHECK_FOR_PROCESS = "{{.Args.should_check_for_process}}"
+      if ($SHOULD_CHECK_FOR_PROCESS -eq "True" -or $SHOULD_CHECK_FOR_PROCESS -eq "False") {
+          echo "should_check_for_process argument is valid"
+          exit 0
+      } else {
+          echo "should_check_for_process argument must be True or False, but got $SHOULD_CHECK_FOR_PROCESS"
+          exit 1
+      }
+
+  - name: check_for_file_existence
+    executor: powershell
+    inline: |
+      $drive = Split-Path -Path $PWD -Qualifier
+      $directory = "$drive\{{.Args.path_to_check}}"
+      $fileName = "{{.Args.file_name}}"
+
+      $should_exist = "{{.Args.should_exist}}"
+      # Construct the full path to the file
+      $filePath = Join-Path -Path $directory -ChildPath $fileName
+
+      echo "Testing path $filePath"
+      $exists = Test-Path -Path $filePath
+
+      echo "file exists = $exists"
+      echo "file should_exist = $should_exist"
+      if ($exists) {
+        $sha1_hash = Get-FileHash -Path $filePath -Algorithm SHA1
+        $sha256_hash = Get-FileHash -Path $filePath -Algorithm SHA256
+        echo "Found file with SHA1 Hash $sha1_hash and SHA256 Hash: $sha256_hash"
+      }
+      if ($should_exist -eq $exists) {
+        exit 0
+      }
+      exit 1
+
+
+  - name: check_for_process_existence
+    executor: powershell
+    inline: |
+      $should_check_for_process = "{{.Args.should_check_for_process}}"
+      echo "should_check_for_process = $should_check_for_process"
+      if ($should_check_for_process -eq "True") {
+        $should_exist = "{{.Args.should_exist}}"
+        $fileName = "{{.Args.file_name}}"
+
+        # Remove the .exe extension from the file name, as that is the expected name of the process
+        $processName = $fileName -replace "\.exe$", ""
+
+        echo "Searching for process with name: $processName"
+
+        $process = Get-Process -Name $processName -ErrorAction SilentlyContinue;
+        if ($process) {
+          Write-Host "Process '$ProcessName' exists with PID(s):"
+          $process | Select-Object -ExpandProperty Id
+          $exists = $true
+        } else {
+          Write-Host "Process '$ProcessName' does not exist"
+          $exists = $false
+        }
+
+
+
+        echo "process exists = $exists"
+        echo "process should_exist = $should_exist"
+        if ($exists) {
+          echo "Found process with name: $processName"
+        }
+        if ($should_exist -eq $exists) {
+          exit 0
+        }
+        exit 1
+      }
+
+      echo "Skipping process check as should_check_for_process is set to false"
+      exit 0
+
+
+
+    cleanup:
+      executor: powershell
+      inline: |
+        echo "No cleanup required for this step. "

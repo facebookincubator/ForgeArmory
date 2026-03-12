@@ -1,0 +1,55 @@
+---
+api_version: 2.0
+uuid: b0198d7b-be6a-4694-889f-7f9b3110f8ac
+name: runkey_persistence
+authors:
+  - cedowens
+description: |
+  This TTP builds a screenshot binary and adds it to runkey persistence.
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1547 Boot or Logon Autostart Execution
+  subtechniques:
+    - T1547.001 Registry Run Key
+steps:
+  - name: check_for_golang
+    executor: cmd.exe
+    inline: |
+      echo "First checking to see if go is installed..."
+      where go >nul 2>nul
+      if %ERRORLEVEL% EQU 0 (
+         echo "Go is already installed!"
+         set GOROOT=C:\Program Files\Go
+      ) else (
+         echo "Go is NOT installed...exiting..."
+         exit 1
+      )
+  - name: build_binary
+    executor: cmd.exe
+    inline: |
+      echo "next building the binary for this test..."
+      set GOROOT=C:\Program Files\Go
+      go mod init sshot/v2
+      go get github.com/kbinani/screenshot
+      go build
+      echo "binary built"
+  - name: add_persistence
+    executor: cmd.exe
+    inline: |
+      echo "next adding the binary to run key persistence and sleeping for 15s before cleanup..."
+      cmd.exe /C start .\runkey_persist.bat
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        echo "deleting the go binary and files as well as removing the persistence"
+        del go.mod
+        del go.sum
+        del sshot.exe
+        reg delete "HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\RunOnceEx\0001" /v PurpleTesting /f
+        echo "Cleanup done!"

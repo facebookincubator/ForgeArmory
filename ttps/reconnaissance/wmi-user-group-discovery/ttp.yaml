@@ -1,0 +1,388 @@
+---
+api_version: 2.0
+uuid: c9d0e1f2-a3b4-5c6d-7e8f-9a0b1c2d3e4f
+name: WMI User and Group Discovery
+authors:
+  - alexpisani
+description: |
+  This TTP performs user account and group reconnaissance using Windows Management
+  Instrumentation (WMI) classes. It enumerates local user accounts, groups,
+  currently logged-on users, and analyzes user privileges and group memberships
+  for potential security insights.
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1047 Windows Management Instrumentation
+    - T1033 System Owner/User Discovery
+    - T1087 Account Discovery
+    - T1087.001 Local Account
+    - T1069 Permission Groups Discovery
+    - T1069.001 Local Groups
+  subtechniques:
+    - T1047.001 WMI
+requirements:
+  platforms:
+    - os: windows
+  executors:
+    - powershell
+args:
+  - name: include_domain_accounts
+    description: Include domain accounts in enumeration (if domain-joined)
+    default: "true"
+steps:
+  - name: enumerate_local_user_accounts
+    executor: powershell
+    inline: |
+      Write-Host "===> Enumerating Local User Accounts via WMI..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        # Get local user accounts using Win32_UserAccount class
+        $localUsers = Get-WmiObject -Class Win32_UserAccount -Filter "LocalAccount=True"
+
+        Write-Host "Local User Accounts Found: $($localUsers.Count)" -ForegroundColor Yellow
+
+        if ($localUsers) {
+          Write-Host "`nLocal User Account Details:" -ForegroundColor Yellow
+          Write-Host "=" * 30
+
+          foreach ($user in $localUsers) {
+            Write-Host "  User: $($user.Name)" -ForegroundColor Cyan
+            Write-Host "    Full Name: $($user.FullName)"
+            Write-Host "    Description: $($user.Description)"
+            Write-Host "    SID: $($user.SID)"
+            Write-Host "    Domain: $($user.Domain)"
+            Write-Host "    Disabled: $($user.Disabled)"
+            Write-Host "    Locked Out: $($user.Lockout)"
+            Write-Host "    Password Changeable: $($user.PasswordChangeable)"
+            Write-Host "    Password Expires: $($user.PasswordExpires)"
+            Write-Host "    Password Required: $($user.PasswordRequired)"
+            Write-Host "    Account Type: $($user.AccountType)"
+            Write-Host ""
+          }
+
+          # Analyze user account security
+          Write-Host "User Account Security Analysis:" -ForegroundColor Yellow
+          $enabledUsers = $localUsers | Where-Object { -not $_.Disabled }
+          $disabledUsers = $localUsers | Where-Object { $_.Disabled }
+          $noPasswordUsers = $localUsers | Where-Object { -not $_.PasswordRequired }
+          $nonExpiringPasswords = $localUsers | Where-Object { -not $_.PasswordExpires }
+
+          Write-Host "  Enabled Users: $($enabledUsers.Count)" -ForegroundColor Green
+          Write-Host "  Disabled Users: $($disabledUsers.Count)" -ForegroundColor Red
+          Write-Host "  Users without Password Requirement: $($noPasswordUsers.Count)" -ForegroundColor Red
+          Write-Host "  Users with Non-Expiring Passwords: $($nonExpiringPasswords.Count)" -ForegroundColor Yellow
+
+          if ($noPasswordUsers) {
+            Write-Host "`n  Users without Password Requirement:" -ForegroundColor Red
+            foreach ($user in $noPasswordUsers) {
+              Write-Host "    - $($user.Name)" -ForegroundColor Red
+            }
+          }
+
+          # Store results for output
+          $global:LocalUsers = $localUsers
+
+        } else {
+          Write-Host "No local user accounts found" -ForegroundColor Yellow
+        }
+
+      } catch {
+        Write-Host "Error enumerating local user accounts: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+      Write-Host "=" * 60
+
+  - name: enumerate_domain_user_accounts
+    executor: powershell
+    inline: |
+      if ("{{ .Args.include_domain_accounts }}" -eq "true") {
+        Write-Host "===> Enumerating Domain User Accounts via WMI..." -ForegroundColor Green
+        Write-Host "=" * 60
+
+        try {
+          # Get domain user accounts using Win32_UserAccount class
+          $domainUsers = Get-WmiObject -Class Win32_UserAccount -Filter "LocalAccount=False" -ErrorAction SilentlyContinue
+
+          if ($domainUsers) {
+            Write-Host "Domain User Accounts Found: $($domainUsers.Count)" -ForegroundColor Yellow
+
+            Write-Host "`nDomain User Account Summary (First 10):" -ForegroundColor Yellow
+            Write-Host "=" * 35
+
+            $count = 0
+            foreach ($user in $domainUsers) {
+              $count++
+              if ($count -le 10) {
+                Write-Host "  User: $($user.Name)" -ForegroundColor Cyan
+                Write-Host "    Full Name: $($user.FullName)"
+                Write-Host "    Domain: $($user.Domain)"
+                Write-Host "    SID: $($user.SID)"
+                Write-Host "    Disabled: $($user.Disabled)"
+                Write-Host ""
+              }
+            }
+
+            if ($domainUsers.Count -gt 10) {
+              Write-Host "  ... and $($domainUsers.Count - 10) more domain users" -ForegroundColor Yellow
+            }
+
+            # Store results for output
+            $global:DomainUsers = $domainUsers
+
+          } else {
+            Write-Host "No domain user accounts found or system not domain-joined" -ForegroundColor Yellow
+          }
+
+        } catch {
+          Write-Host "Error enumerating domain user accounts: $($_.Exception.Message)" -ForegroundColor Red
+          Write-Host "This may indicate the system is not domain-joined or insufficient privileges" -ForegroundColor Yellow
+        }
+
+        Write-Host "=" * 60
+      } else {
+        Write-Host "===> Skipping Domain User Account Enumeration (disabled by parameter)" -ForegroundColor Yellow
+        Write-Host "=" * 60
+      }
+
+  - name: enumerate_local_groups
+    executor: powershell
+    inline: |
+      Write-Host "===> Enumerating Local Groups via WMI..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        # Get local groups using Win32_Group class
+        $localGroups = Get-WmiObject -Class Win32_Group -Filter "LocalAccount=True"
+
+        Write-Host "Local Groups Found: $($localGroups.Count)" -ForegroundColor Yellow
+
+        if ($localGroups) {
+          Write-Host "`nLocal Group Details:" -ForegroundColor Yellow
+          Write-Host "=" * 20
+
+          foreach ($group in $localGroups) {
+            Write-Host "  Group: $($group.Name)" -ForegroundColor Cyan
+            Write-Host "    Description: $($group.Description)"
+            Write-Host "    SID: $($group.SID)"
+            Write-Host "    Domain: $($group.Domain)"
+            Write-Host ""
+          }
+
+          # Identify privileged groups
+          $privilegedGroups = $localGroups | Where-Object {
+            $_.Name -in @("Administrators", "Power Users", "Backup Operators", "Server Operators", "Account Operators", "Print Operators", "Remote Desktop Users")
+          }
+
+          Write-Host "Privileged Groups Analysis:" -ForegroundColor Yellow
+          Write-Host "  Total Privileged Groups: $($privilegedGroups.Count)" -ForegroundColor Red
+
+          foreach ($group in $privilegedGroups) {
+            Write-Host "  - $($group.Name): $($group.Description)" -ForegroundColor Red
+          }
+
+          # Store results for output
+          $global:LocalGroups = $localGroups
+
+        } else {
+          Write-Host "No local groups found" -ForegroundColor Yellow
+        }
+
+      } catch {
+        Write-Host "Error enumerating local groups: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+      Write-Host "=" * 60
+
+  - name: enumerate_domain_groups
+    executor: powershell
+    inline: |
+      if ("{{ .Args.include_domain_accounts }}" -eq "true") {
+        Write-Host "===> Enumerating Domain Groups via WMI..." -ForegroundColor Green
+        Write-Host "=" * 60
+
+        try {
+          # Get domain groups using Win32_Group class
+          $domainGroups = Get-WmiObject -Class Win32_Group -Filter "LocalAccount=False" -ErrorAction SilentlyContinue
+
+          if ($domainGroups) {
+            Write-Host "Domain Groups Found: $($domainGroups.Count)" -ForegroundColor Yellow
+
+            Write-Host "`nDomain Group Summary (First 15):" -ForegroundColor Yellow
+            Write-Host "=" * 30
+
+            $count = 0
+            foreach ($group in $domainGroups) {
+              $count++
+              if ($count -le 15) {
+                Write-Host "  Group: $($group.Name)" -ForegroundColor Cyan
+                Write-Host "    Description: $($group.Description)"
+                Write-Host "    Domain: $($group.Domain)"
+                Write-Host "    SID: $($group.SID)"
+                Write-Host ""
+              }
+            }
+
+            if ($domainGroups.Count -gt 15) {
+              Write-Host "  ... and $($domainGroups.Count - 15) more domain groups" -ForegroundColor Yellow
+            }
+
+            # Identify high-privilege domain groups
+            $privilegedDomainGroups = $domainGroups | Where-Object {
+              $_.Name -match "Admin|Domain Admin|Enterprise Admin|Schema Admin|Backup|Server|Operator"
+            }
+
+            if ($privilegedDomainGroups) {
+              Write-Host "`nHigh-Privilege Domain Groups:" -ForegroundColor Red
+              foreach ($group in $privilegedDomainGroups) {
+                Write-Host "  - $($group.Name): $($group.Description)" -ForegroundColor Red
+              }
+            }
+
+            # Store results for output
+            $global:DomainGroups = $domainGroups
+
+          } else {
+            Write-Host "No domain groups found or system not domain-joined" -ForegroundColor Yellow
+          }
+
+        } catch {
+          Write-Host "Error enumerating domain groups: $($_.Exception.Message)" -ForegroundColor Red
+          Write-Host "This may indicate the system is not domain-joined or insufficient privileges" -ForegroundColor Yellow
+        }
+
+        Write-Host "=" * 60
+      } else {
+        Write-Host "===> Skipping Domain Group Enumeration (disabled by parameter)" -ForegroundColor Yellow
+        Write-Host "=" * 60
+      }
+
+  - name: enumerate_logged_on_users
+    executor: powershell
+    inline: |
+      Write-Host "===> Enumerating Currently Logged-On Users via WMI..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        # Get logged-on users using Win32_LoggedOnUser class
+        $loggedOnUsers = Get-WmiObject -Class Win32_LoggedOnUser
+
+        if ($loggedOnUsers) {
+          Write-Host "Logged-On User Sessions Found: $($loggedOnUsers.Count)" -ForegroundColor Yellow
+
+          Write-Host "`nLogged-On User Details:" -ForegroundColor Yellow
+          Write-Host "=" * 25
+
+          # Parse the logged-on user information
+          $userSessions = @()
+          foreach ($loggedUser in $loggedOnUsers) {
+            # Extract user and domain from the Antecedent property
+            if ($loggedUser.Antecedent -match 'Win32_Account\.Domain="([^"]*)",Name="([^"]*)"') {
+              $domain = $matches[1]
+              $username = $matches[2]
+
+              # Extract logon ID from Dependent property
+              if ($loggedUser.Dependent -match 'Win32_LogonSession\.LogonId="([^"]*)"') {
+                $logonId = $matches[1]
+
+                $userSessions += [PSCustomObject]@{
+                  Username = $username
+                  Domain = $domain
+                  LogonId = $logonId
+                  FullName = "$domain\$username"
+                }
+              }
+            }
+          }
+
+          # Display unique user sessions
+          $uniqueSessions = $userSessions | Sort-Object FullName -Unique
+          foreach ($session in $uniqueSessions) {
+            Write-Host "  User: $($session.FullName)" -ForegroundColor Cyan
+            Write-Host "    Username: $($session.Username)"
+            Write-Host "    Domain: $($session.Domain)"
+            Write-Host "    Logon ID: $($session.LogonId)"
+            Write-Host ""
+          }
+
+          Write-Host "Unique Logged-On Users: $($uniqueSessions.Count)" -ForegroundColor Green
+
+          # Store results for output
+          $global:LoggedOnUsers = $loggedOnUsers
+          $global:UserSessions = $uniqueSessions
+
+        } else {
+          Write-Host "No logged-on users found" -ForegroundColor Yellow
+        }
+
+      } catch {
+        Write-Host "Error enumerating logged-on users: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+      Write-Host "=" * 60
+
+  - name: enumerate_logon_sessions
+    executor: powershell
+    inline: |
+      Write-Host "===> Enumerating Logon Sessions via WMI..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        # Get logon sessions using Win32_LogonSession class
+        $logonSessions = Get-WmiObject -Class Win32_LogonSession
+
+        if ($logonSessions) {
+          Write-Host "Logon Sessions Found: $($logonSessions.Count)" -ForegroundColor Yellow
+
+          Write-Host "`nLogon Session Analysis:" -ForegroundColor Yellow
+          Write-Host "=" * 25
+
+          # Group sessions by logon type
+          $sessionsByType = $logonSessions | Group-Object LogonType
+          foreach ($group in $sessionsByType) {
+            $logonTypeName = switch ($group.Name) {
+              "2" { "Interactive" }
+              "3" { "Network" }
+              "4" { "Batch" }
+              "5" { "Service" }
+              "7" { "Unlock" }
+              "8" { "NetworkCleartext" }
+              "9" { "NewCredentials" }
+              "10" { "RemoteInteractive" }
+              "11" { "CachedInteractive" }
+              default { "Unknown ($($group.Name))" }
+            }
+            Write-Host "  $logonTypeName Sessions: $($group.Count)"
+          }
+
+          # Show recent interactive sessions (Type 2 and 10)
+          $interactiveSessions = $logonSessions | Where-Object { $_.LogonType -in @(2, 10) } | Sort-Object StartTime -Descending | Select-Object -First 10
+
+          if ($interactiveSessions) {
+            Write-Host "`nRecent Interactive Sessions (Top 10):" -ForegroundColor Yellow
+            Write-Host "=" * 35
+
+            foreach ($session in $interactiveSessions) {
+              $logonType = if ($session.LogonType -eq 2) { "Interactive" } else { "RemoteInteractive" }
+              Write-Host "  Session ID: $($session.LogonId)" -ForegroundColor Cyan
+              Write-Host "    Logon Type: $logonType"
+              Write-Host "    Authentication Package: $($session.AuthenticationPackage)"
+              Write-Host "    Start Time: $($session.StartTime)"
+              Write-Host ""
+            }
+          }
+
+          # Store results for output
+          $global:LogonSessions = $logonSessions
+
+        } else {
+          Write-Host "No logon sessions found" -ForegroundColor Yellow
+        }
+
+      } catch {
+        Write-Host "Error enumerating logon sessions: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+      Write-Host "=" * 60
+      Write-Host "[+] WMI User and Group Discovery Complete!" -ForegroundColor Green

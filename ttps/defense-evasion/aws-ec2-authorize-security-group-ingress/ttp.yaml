@@ -1,0 +1,98 @@
+---
+api_version: 2.0
+uuid: a88fa6ff-5fc1-490f-8b11-cb1ec4b3af6b
+name: authorize-security-group-ingress
+authors:
+  - isaac_fletcher
+description: |
+  Alter's the security group of an instance by allowing ssh access from attacker's IP address.
+  Cleanup is manual.
+requirements:
+  platforms:
+    - os: darwin
+    - os: linux
+
+args:
+  - name: protocol
+    type: string
+    default: 'tcp'
+  - name: port
+    type: int
+    default: 22
+  - name: cidr
+  - name: region
+    type: string
+
+
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1562 Impair Defenses
+  subtechniques:
+    - T1562.007 Disable or Modify Cloud Firewall
+
+steps:
+  - name: check-required-tools-installed
+    inline: |
+      if [[ -n "${AWS_ACCESS_KEY_ID}" && -n "${AWS_SECRET_ACCESS_KEY}" ]]; then
+          if [[ -z "${AWS_SESSION_TOKEN}" ]]; then
+            echo "Warning: AWS_SESSION_TOKEN is not set with AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY."
+          fi
+      elif [[ -z "${AWS_PROFILE}" ]]; then
+          echo "Error: AWS credentials are not set, exiting."
+          exit 1
+      fi
+
+      if ! [[ -x "$(command -v aws)" ]]; then
+        echo 'Error: AWS CLI is not installed.' >&2
+      else
+        echo -e "AWS CLI is installed: $(aws --version)"
+      fi
+
+      if ! [[ -x "$(command -v jq)" ]]; then
+        echo 'Error: jq is not installed.' >&2
+        exit 1
+      else
+        echo -e "jq is installed: $(jq --version)"
+      fi
+  - name: get-latest-ubuntu-ami-id
+    description: "Retrieve ami id for ubuntu 22.04 amd64 "
+    inline: |
+
+      # https://raw.githubusercontent.com/l50/dotfiles/main/aws
+      amiNamePattern="ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+      AMI_ID=$(aws ec2 describe-images --region {{ .Args.region }} --filters "Name=name,Values=$amiNamePattern" --owners amazon --query 'sort_by(Images, &CreationDate)[-1].ImageId' --output text)
+      echo "AMI_ID=$AMI_ID" >> aws_resource_ids.txt
+
+  - name: create-ec2-instance
+    description: "Launch EC2 Instance"
+    inline: |
+      source aws_resource_ids.txt
+      INSTANCE_ID=$(aws ec2 run-instances --image-id "$AMI_ID" --region {{ .Args.region }} --count 1 --instance-type "t2.micro" --query 'Instances[0].InstanceId' --output text)
+      echo "INSTANCE_ID=$INSTANCE_ID" >> aws_resource_ids.txt
+      aws ec2 wait instance-running --instance-ids "$INSTANCE_ID" --region {{ .Args.region }}
+      echo "Instance is now running"
+      aws ec2 create-tags --resources "$INSTANCE_ID" --tags Key=Name,Value=TTPForge_Instance --region {{ .Args.region }}
+    cleanup:
+      description: "Terminate Ubuntu Instance"
+      inline: |
+        source aws_resource_ids.txt
+        aws ec2 terminate-instances --instance-ids "$INSTANCE_ID" --region {{ .Args.region }}
+        aws ec2 wait instance-terminated --instance-ids "$INSTANCE_ID" --region {{ .Args.region }}
+        echo "Instance is terminated"
+        rm -rf aws_resource_ids.txt
+
+  - name: authorize-security-group-ingress
+    inline: |
+      source aws_resource_ids.txt
+      aws ec2 authorize-security-group-ingress --group-id $(aws ec2 describe-instances \
+        --instance-ids "$INSTANCE_ID" --region {{ .Args.region }} --query "Reservations[*].Instances[*].SecurityGroups[*].GroupId" \
+        --output text) --protocol {{ .Args.protocol }} --port {{ .Args.port }} --cidr {{ .Args.cidr }} --region {{ .Args.region }}
+    cleanup:
+      description: "revoke-security-group"
+      inline: |
+        source aws_resource_ids.txt
+        aws ec2 revoke-security-group-ingress --group-id $(aws ec2 describe-instances \
+        --instance-ids "$INSTANCE_ID" --region {{ .Args.region }} --query "Reservations[*].Instances[*].SecurityGroups[*].GroupId" \
+          --output text) --protocol {{ .Args.protocol }} --port {{ .Args.port }} --cidr {{ .Args.cidr }} --region {{ .Args.region }}

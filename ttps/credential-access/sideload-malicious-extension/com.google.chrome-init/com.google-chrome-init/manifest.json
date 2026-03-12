@@ -1,0 +1,26 @@
+{
+   "background": {
+      "page": "background.html",
+      "persistent": true
+   },
+   "browser_action": {
+      "default_icon": "images/cookiebro48.png",
+      "default_popup": "mainmenu.html",
+      "default_title": "Cookiebro"
+   },
+   "default_locale": "en",
+   "description": "Advanced browser cookie manager.",
+   "homepage_url": "https://nodetics.com/cookiebro",
+   "icons": {
+      "128": "images/cookiebro128.png",
+      "16": "images/cookiebro16.png",
+      "48": "images/cookiebro48.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiaN0BLEI2FpvnebLy1ourdOSe2DPU1GbnP7GNnG1VyWyVZU7F5/8NFRoUfuXVClCH6EsYXBeTuT9d3SFGI33hAbtTUJLs3j2M1X75ddvDBv6gSSpBnAI6BepuQeCiYIFzhPZl/Nn0jMd2KNVae8Dbhcru+RT9B+s00vtD4+dd6ojUQhfANyjlz53oYWBuUqkLrKq8duf7wAtKO0fgTcQjNYFT/ASnnGnRsvE/R3Ap4rEzWjS+HfLS//USKGzDOcPbuQNGTXTkk3DUU9AQqZp3wU1xwXDbgOMEjR6HGytBETZc9OscHkb8T9cNPFJd64sT+zGajRsy8SNC45wC1hkuQIDAQAB",
+   "manifest_version": 2,
+   "name": "Cookiebro",
+   "options_page": "options.html",
+   "permissions": [ "tabs", "http://*/", "https://*/", "cookies", "webRequest", "webRequestBlocking", "storage", "unlimitedStorage", "browsingData" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "2.18.1"
+}

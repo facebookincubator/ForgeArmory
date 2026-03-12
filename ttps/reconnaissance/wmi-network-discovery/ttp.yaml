@@ -1,0 +1,389 @@
+---
+api_version: 2.0
+uuid: d0e1f2a3-b4c5-6d7e-8f9a-0b1c2d3e4f5a
+name: WMI Network Information Discovery
+authors:
+  - alexpisani
+description: |
+  This TTP performs network reconnaissance using Windows Management
+  Instrumentation (WMI) classes. It enumerates network adapters, IP
+  configuration, routing tables, network shares, and identifies potential
+  virtualization indicators based on network hardware information.
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1047 Windows Management Instrumentation
+    - T1016 System Network Configuration Discovery
+    - T1135 Network Share Discovery
+    - T1018 Remote System Discovery
+  subtechniques:
+    - T1047.001 WMI
+requirements:
+  platforms:
+    - os: windows
+  executors:
+    - powershell
+args:
+  - name: check_vm_indicators
+    description: Check for virtualization indicators in network hardware
+    default: "true"
+steps:
+  - name: enumerate_network_adapters
+    executor: powershell
+    inline: |
+      Write-Host "===> Enumerating Network Adapters via WMI..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        # Get network adapters using Win32_NetworkAdapter class
+        $networkAdapters = Get-WmiObject -Class Win32_NetworkAdapter
+
+        Write-Host "Network Adapters Found: $($networkAdapters.Count)" -ForegroundColor Yellow
+
+        if ($networkAdapters) {
+          Write-Host "`nNetwork Adapter Details:" -ForegroundColor Yellow
+          Write-Host "=" * 25
+
+          foreach ($adapter in $networkAdapters) {
+            if ($adapter.Name -and $adapter.Name -ne "") {
+              Write-Host "  Adapter: $($adapter.Name)" -ForegroundColor Cyan
+              Write-Host "    Description: $($adapter.Description)"
+              Write-Host "    Manufacturer: $($adapter.Manufacturer)"
+              Write-Host "    MAC Address: $($adapter.MACAddress)"
+              Write-Host "    Adapter Type: $($adapter.AdapterType)"
+              Write-Host "    Device ID: $($adapter.DeviceID)"
+              Write-Host "    Net Connection ID: $($adapter.NetConnectionID)"
+              Write-Host "    Net Connection Status: $($adapter.NetConnectionStatus)"
+              Write-Host "    Physical Adapter: $($adapter.PhysicalAdapter)"
+              Write-Host "    Speed: $($adapter.Speed)"
+              Write-Host ""
+            }
+          }
+
+          # Filter active/enabled adapters
+          $activeAdapters = $networkAdapters | Where-Object { $_.NetConnectionStatus -eq 2 }  # Connected
+          Write-Host "Active Network Adapters: $($activeAdapters.Count)" -ForegroundColor Green
+
+          # Store results for output
+          $global:NetworkAdapters = $networkAdapters
+          $global:ActiveAdapters = $activeAdapters
+
+        } else {
+          Write-Host "No network adapters found" -ForegroundColor Yellow
+        }
+
+      } catch {
+        Write-Host "Error enumerating network adapters: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+      Write-Host "=" * 60
+
+  - name: check_virtualization_indicators
+    executor: powershell
+    inline: |
+      if ("{{ .Args.check_vm_indicators }}" -eq "true") {
+        Write-Host "===> Checking for Virtualization Indicators in Network Hardware..." -ForegroundColor Green
+        Write-Host "=" * 60
+
+        try {
+          if ($global:NetworkAdapters) {
+            Write-Host "Virtualization Detection Analysis:" -ForegroundColor Yellow
+
+            $vmIndicators = @()
+            $vmAdapters = @()
+
+            foreach ($adapter in $global:NetworkAdapters) {
+              $isVirtual = $false
+              $indicators = @()
+
+              # Check manufacturer for VM indicators
+              if ($adapter.Manufacturer -match "VMware|VirtualBox|Microsoft|Xen|QEMU|Red Hat|Oracle") {
+                $indicators += "Manufacturer: $($adapter.Manufacturer)"
+                $isVirtual = $true
+              }
+
+              # Check adapter name/description for VM indicators
+              if ($adapter.Name -match "VMware|VirtualBox|Hyper-V|Xen|QEMU|Virtual") {
+                $indicators += "Name: $($adapter.Name)"
+                $isVirtual = $true
+              }
+
+              if ($adapter.Description -match "VMware|VirtualBox|Hyper-V|Xen|QEMU|Virtual") {
+                $indicators += "Description: $($adapter.Description)"
+                $isVirtual = $true
+              }
+
+              # Check MAC address for VM indicators (common VM MAC prefixes)
+              if ($adapter.MACAddress) {
+                $macPrefix = $adapter.MACAddress.Substring(0, 8).Replace(":", "").ToUpper()
+                $vmMacPrefixes = @("000C29", "001C14", "005056", "000569", "001C42", "00155D", "080027")
+                if ($vmMacPrefixes -contains $macPrefix) {
+                  $indicators += "MAC Address: $($adapter.MACAddress) (VM MAC prefix)"
+                  $isVirtual = $true
+                }
+              }
+
+              if ($isVirtual) {
+                $vmAdapters += [PSCustomObject]@{
+                  Name = $adapter.Name
+                  Description = $adapter.Description
+                  Manufacturer = $adapter.Manufacturer
+                  MACAddress = $adapter.MACAddress
+                  Indicators = $indicators -join "; "
+                }
+              }
+            }
+
+            if ($vmAdapters.Count -gt 0) {
+              Write-Host "`nVirtual Network Adapters Detected:" -ForegroundColor Red
+              Write-Host "=" * 35
+
+              foreach ($adapter in $vmAdapters) {
+                Write-Host "  Adapter: $($adapter.Name)" -ForegroundColor Red
+                Write-Host "    Description: $($adapter.Description)"
+                Write-Host "    Manufacturer: $($adapter.Manufacturer)"
+                Write-Host "    MAC Address: $($adapter.MACAddress)"
+                Write-Host "    VM Indicators: $($adapter.Indicators)" -ForegroundColor Red
+                Write-Host ""
+              }
+
+              Write-Host "CONCLUSION: Virtual Machine Environment Detected!" -ForegroundColor Red
+              Write-Host "Total VM Network Adapters: $($vmAdapters.Count)" -ForegroundColor Red
+
+            } else {
+              Write-Host "No obvious virtualization indicators found in network hardware" -ForegroundColor Green
+            }
+
+            # Store VM indicators for output
+            $global:VMNetworkIndicators = $vmAdapters
+
+          } else {
+            Write-Host "No network adapter data available for VM detection" -ForegroundColor Yellow
+          }
+
+        } catch {
+          Write-Host "Error checking virtualization indicators: $($_.Exception.Message)" -ForegroundColor Red
+        }
+
+        Write-Host "=" * 60
+      } else {
+        Write-Host "===> Skipping Virtualization Indicator Check (disabled by parameter)" -ForegroundColor Yellow
+        Write-Host "=" * 60
+      }
+
+  - name: enumerate_network_configuration
+    executor: powershell
+    inline: |
+      Write-Host "===> Enumerating Network Configuration via WMI..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        # Get network adapter configuration using Win32_NetworkAdapterConfiguration class
+        $networkConfigs = Get-WmiObject -Class Win32_NetworkAdapterConfiguration -Filter "IPEnabled=True"
+
+        Write-Host "Active Network Configurations Found: $($networkConfigs.Count)" -ForegroundColor Yellow
+
+        if ($networkConfigs) {
+          Write-Host "`nNetwork Configuration Details:" -ForegroundColor Yellow
+          Write-Host "=" * 30
+
+          foreach ($config in $networkConfigs) {
+            Write-Host "  Interface: $($config.Description)" -ForegroundColor Cyan
+            Write-Host "    Index: $($config.Index)"
+            Write-Host "    IP Addresses: $($config.IPAddress -join ', ')"
+            Write-Host "    Subnet Masks: $($config.IPSubnet -join ', ')"
+            Write-Host "    Default Gateways: $($config.DefaultIPGateway -join ', ')"
+            Write-Host "    DNS Servers: $($config.DNSServerSearchOrder -join ', ')"
+            Write-Host "    DHCP Enabled: $($config.DHCPEnabled)"
+            Write-Host "    DHCP Server: $($config.DHCPServer)"
+            Write-Host "    DNS Domain: $($config.DNSDomain)"
+            Write-Host "    DNS Hostname: $($config.DNSHostName)"
+            Write-Host "    MAC Address: $($config.MACAddress)"
+            Write-Host ""
+          }
+
+          # Store results for output
+          $global:NetworkConfigurations = $networkConfigs
+
+        } else {
+          Write-Host "No active network configurations found" -ForegroundColor Yellow
+        }
+
+      } catch {
+        Write-Host "Error enumerating network configuration: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+      Write-Host "=" * 60
+
+  - name: enumerate_routing_table
+    executor: powershell
+    inline: |
+      Write-Host "===> Enumerating IP Routing Table via WMI..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        # Get routing table using Win32_IP4RouteTable class
+        $routingTable = Get-WmiObject -Class Win32_IP4RouteTable
+
+        Write-Host "Routing Table Entries Found: $($routingTable.Count)" -ForegroundColor Yellow
+
+        if ($routingTable) {
+          Write-Host "`nRouting Table Details (Top 20):" -ForegroundColor Yellow
+          Write-Host "=" * 30
+
+          $count = 0
+          foreach ($route in $routingTable | Sort-Object Destination) {
+            $count++
+            if ($count -le 20) {
+              Write-Host "  Route $count :" -ForegroundColor Cyan
+              Write-Host "    Destination: $($route.Destination)"
+              Write-Host "    Mask: $($route.Mask)"
+              Write-Host "    Next Hop: $($route.NextHop)"
+              Write-Host "    Interface Index: $($route.InterfaceIndex)"
+              Write-Host "    Metric: $($route.Metric1)"
+              Write-Host "    Type: $($route.Type)"
+              Write-Host "    Protocol: $($route.Protocol)"
+              Write-Host ""
+            }
+          }
+
+          if ($routingTable.Count -gt 20) {
+            Write-Host "  ... and $($routingTable.Count - 20) more routing entries" -ForegroundColor Yellow
+          }
+
+          # Identify default routes
+          $defaultRoutes = $routingTable | Where-Object { $_.Destination -eq "0.0.0.0" }
+          if ($defaultRoutes) {
+            Write-Host "Default Routes:" -ForegroundColor Yellow
+            foreach ($route in $defaultRoutes) {
+              Write-Host "  Gateway: $($route.NextHop) (Interface: $($route.InterfaceIndex))" -ForegroundColor Green
+            }
+          }
+
+          # Store results for output
+          $global:RoutingTable = $routingTable
+
+        } else {
+          Write-Host "No routing table entries found" -ForegroundColor Yellow
+        }
+
+      } catch {
+        Write-Host "Error enumerating routing table: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+      Write-Host "=" * 60
+
+  - name: enumerate_network_shares
+    executor: powershell
+    inline: |
+      Write-Host "===> Enumerating Network Shares via WMI..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        # Get network shares using Win32_Share class
+        $networkShares = Get-WmiObject -Class Win32_Share
+
+        Write-Host "Network Shares Found: $($networkShares.Count)" -ForegroundColor Yellow
+
+        if ($networkShares) {
+          Write-Host "`nNetwork Share Details:" -ForegroundColor Yellow
+          Write-Host "=" * 22
+
+          foreach ($share in $networkShares) {
+            Write-Host "  Share: $($share.Name)" -ForegroundColor Cyan
+            Write-Host "    Path: $($share.Path)"
+            Write-Host "    Description: $($share.Description)"
+            Write-Host "    Type: $($share.Type)"
+            Write-Host "    Allow Maximum: $($share.AllowMaximum)"
+            Write-Host "    Maximum Allowed: $($share.MaximumAllowed)"
+            Write-Host ""
+          }
+
+          # Analyze share types
+          Write-Host "Share Type Analysis:" -ForegroundColor Yellow
+          $shareTypes = $networkShares | Group-Object Type
+          foreach ($group in $shareTypes) {
+            $typeName = switch ($group.Name) {
+              "0" { "Disk Drive" }
+              "1" { "Print Queue" }
+              "2" { "Device" }
+              "3" { "IPC" }
+              "2147483648" { "Disk Drive Admin" }
+              "2147483649" { "Print Queue Admin" }
+              "2147483650" { "Device Admin" }
+              "2147483651" { "IPC Admin" }
+              default { "Unknown ($($group.Name))" }
+            }
+            Write-Host "  $typeName Shares: $($group.Count)"
+          }
+
+          # Identify potentially interesting shares
+          $interestingShares = $networkShares | Where-Object {
+            $_.Name -notmatch '^[A-Z]\$$|^ADMIN\$|^IPC\$' -and $_.Type -eq 0
+          }
+
+          if ($interestingShares) {
+            Write-Host "`nPotentially Interesting Shares:" -ForegroundColor Yellow
+            foreach ($share in $interestingShares) {
+              Write-Host "  - $($share.Name): $($share.Path)" -ForegroundColor Green
+              if (-not $share.AllowMaximum) {
+                Write-Host "    (Access may be restricted)" -ForegroundColor Yellow
+              }
+            }
+          }
+
+          # Store results for output
+          $global:NetworkShares = $networkShares
+
+        } else {
+          Write-Host "No network shares found" -ForegroundColor Yellow
+        }
+
+      } catch {
+        Write-Host "Error enumerating network shares: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+      Write-Host "=" * 60
+
+  - name: enumerate_network_protocols
+    executor: powershell
+    inline: |
+      Write-Host "===> Enumerating Network Protocols via WMI..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        # Get network protocols using Win32_NetworkProtocol class
+        $networkProtocols = Get-WmiObject -Class Win32_NetworkProtocol -ErrorAction SilentlyContinue
+
+        if ($networkProtocols) {
+          Write-Host "Network Protocols Found: $($networkProtocols.Count)" -ForegroundColor Yellow
+
+          Write-Host "`nNetwork Protocol Details:" -ForegroundColor Yellow
+          Write-Host "=" * 25
+
+          foreach ($protocol in $networkProtocols) {
+            Write-Host "  Protocol: $($protocol.Name)" -ForegroundColor Cyan
+            Write-Host "    Description: $($protocol.Description)"
+            Write-Host "    Guaranteed Delivery: $($protocol.GuaranteesDelivery)"
+            Write-Host "    Guaranteed Sequencing: $($protocol.GuaranteesSequencing)"
+            Write-Host "    Connection Oriented: $($protocol.ConnectionOriented)"
+            Write-Host "    Supports Broadcasting: $($protocol.SupportsBroadcasting)"
+            Write-Host "    Supports Multicasting: $($protocol.SupportsMulticasting)"
+            Write-Host ""
+          }
+
+          # Store results for output
+          $global:NetworkProtocols = $networkProtocols
+
+        } else {
+          Write-Host "No network protocols found or class not available" -ForegroundColor Yellow
+        }
+
+      } catch {
+        Write-Host "Error enumerating network protocols: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "Win32_NetworkProtocol class may not be available on this system" -ForegroundColor Yellow
+      }
+
+      Write-Host "=" * 60
+      Write-Host "[+] WMI Network Information Discovery Complete!" -ForegroundColor Green

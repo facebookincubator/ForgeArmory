@@ -1,0 +1,27 @@
+---
+api_version: 2.0
+uuid: 562fe73c-cffa-4227-b3fe-69ed2dbf09a8
+name: Forge SSH Certificate with High Priv Principal (Shell)
+authors:
+  - dwng
+description: |
+  Generate an SSH keypair and use it to create a signed certificate
+  with the high privileged principal `root`.
+
+    ttpforge run shell.yaml
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1552 Unsecured Credentials
+  subtechniques:
+    - T1552.004 Private Keys
+steps:
+  - name: generate_ssh_keypair
+    inline: ssh-keygen -t rsa -f host_key -C host_key -N ""
+    cleanup:
+      inline: rm host_key host_key.pub
+  - name: forge_certificate
+    inline: ssh-keygen -s host_key -n root -I ttp-testing host_key.pub
+    cleanup:
+      inline: rm host_key-cert.pub

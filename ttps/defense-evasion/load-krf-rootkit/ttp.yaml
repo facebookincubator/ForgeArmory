@@ -1,0 +1,38 @@
+---
+api_version: 2.0
+uuid: ab7b6460-685c-4561-8452-c4d55a6dc115
+name: run_krf_rootkit
+authors:
+  - cedowens
+description: |
+  "This TTP includes a .zip file which contains the krf Linux kernel module rootkit. This TTP extracts the .zip, runs make, make install, and make insmod to insert the rootkit. This TTP will also check to verify that the krfx kernel module has been successfully inserted."
+args:
+- name: timeout
+  description: Timeout value to set before cleanup begins
+  default: 120
+requirements:
+  platforms:
+    - os: linux
+  superuser: true
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1014 Root Kit
+steps:
+  - name: build_kernelmodule
+    inline: |
+      echo "First, installing dependencies..."
+      sudo dnf install kernel-devel-$(uname -r) -y && sudo dnf group install "Development Tools" -y  && sudo dnf install ruby -y && sudo dnf install elfutils-libelf-devel -y
+      echo "Next unzipping the krf.zip file and building/inserting the kernel module..."
+      unzip krf.zip && cd krf && make -j$(nproc) && sudo make install && sudo make insmod
+    cleanup:
+      inline: |
+        echo "Sleeping for {{ .Args.timeout }} seconds and then performing cleanup..."
+        sleep {{ .Args.timeout }}
+        echo "First, removing the installed dnf packages..."
+        sudo dnf remove kernel-devel-$(uname -r) -y && sudo dnf group remove "Development Tools" -y  && sudo dnf remove ruby -y && sudo dnf remove elfutils-libelf-devel -y
+        echo "Next, attempting to remove the krfx kernel module..."
+        sudo rmmod krfx
+        cd .. && rm -rf krf
+        echo "Cleanup done!"

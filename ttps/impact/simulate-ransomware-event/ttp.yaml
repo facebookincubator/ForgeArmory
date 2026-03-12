@@ -1,0 +1,39 @@
+---
+api_version: 2.0
+uuid: 2338787c-7cf9-4fd7-a4e2-c5c9cc5dcc37
+name: linux_ransomware_test
+authors:
+  - cedowens
+description: |
+  "This TTP uses openssl to simulate mass file encryption events on linux systems."
+requirements:
+  platforms:
+    - os: linux
+args:
+  - name: file_path
+  - name: append_extension
+mitre:
+  tactics:
+    - TA0040 Impact
+  techniques:
+    - T1486 Data Encrypted for Impact
+steps:
+  - name: encrypt_files
+    inline: |
+      echo -e "First, generating a test cert with an associated private key to use for this test if not already present. Then recursively traversing the path at {{ .Args.file_path }} and using openssl to encrypt files...\n"
+      if [ -z "{{ .Args.append_extension }}" ]; then
+          ./encrypt-noextension.sh {{ .Args.file_path }}
+      else
+          ./encrypt-enc.sh {{ .Args.file_path }} {{ .Args.append_extension }}
+      fi
+    cleanup:
+      inline: |
+        echo "Sleeping for 60 seconds and then performing cleanup (i.e., decrypting the encrypted files, removing $HOME/encrypted-list.txt, and removing the encryption cert and key)..."
+        sleep 60
+        if [ -z "{{ .Args.append_extension }}" ]; then
+            ./decrypt-noextension.sh
+        else
+            ./decrypt-enc.sh
+        fi
+        rm -f ca.*
+        echo "Clean up all done!"

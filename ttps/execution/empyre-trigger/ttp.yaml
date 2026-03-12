@@ -1,0 +1,27 @@
+name: Red Canary python empyre command line string detector test
+api_version: 2.0
+uuid: fc49fca0-007c-4e94-b9ef-a83475a7e4e8
+authors:
+  - cedowens
+description: |
+  This TTP tests a Red Canary detector flagging on a specific command observed with python empyre. This TTP was developed to run on macOS.
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1059 Command and Scripting Interpreter
+  subtechniques:
+    - T1059.004 Unix Shell
+steps:
+  - name: empyre_trigger
+    inline: |
+      echo -e "==> Executing the empyre_trigger TTP...\n"
+      echo "Running an ifconfig command found in python empyre."
+      ifconfig | grep inet | grep -v 127.0.0.1
+      echo "Done!"
+    cleanup:
+      inline: |
+        echo "No cleanup needed for this TTP!"

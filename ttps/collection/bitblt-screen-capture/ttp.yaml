@@ -1,0 +1,55 @@
+---
+api_version: 2.0
+uuid: d3fe80b4-9971-480c-aa44-2201067b6d47
+name: take_screenshot
+authors:
+  - cedowens
+description: |
+  This TTP uses the BitBlt API to take a screenshot.
+requirements:
+  platforms:
+    - os: windows
+mitre:
+  tactics:
+    - TA0009 Collection
+  techniques:
+    - T1113 Screen Capture
+steps:
+  - name: check_for_golang
+    executor: cmd.exe
+    inline: |
+      echo "first checking to see if go is installed..."
+      where go >nul 2>nul
+      if %ERRORLEVEL% EQU 0 (
+         echo "Go is already installed!"
+         set GOROOT=C:\Program Files\Go
+      ) else (
+         echo "Go is NOT installed...exiting..."
+         exit 1
+      )
+  - name: take_screenshot
+    executor: cmd.exe
+    inline: |
+      echo "building the screenshot golang binary..."
+      set GOROOT=C:\Program Files\Go
+      go mod init sshot/v2
+      go get github.com/kbinani/screenshot
+      echo "Now executing the screenshot.."
+      go build screenshot.go
+      .\screenshot.exe
+      if exist "screenshot.png" (
+         echo "the screenshot was successfully captured. TTP Successful!"
+      ) else (
+         echo "the screenshot was not successfully captured. TTP Failed."
+         exit 1
+      )
+      timeout /t 5
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        echo "Deleting the screenshot file..."
+        del screenshot.png
+        del go.mod
+        del go.sum
+        del screenshot.exe
+        echo "Cleanup done!"

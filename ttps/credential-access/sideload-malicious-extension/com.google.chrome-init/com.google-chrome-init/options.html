@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cookiebro Options</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="shortcut icon" type="image/png" href="images/cookiebro16.png"/>
+<link rel="stylesheet" type="text/css" href="css/cookiebro.css"/>
+<style type="text/css">
+html, body {
+	height: 100%;
+}
+
+body { 
+	font-size: 14px;
+	margin: 0;
+}
+
+td.side {
+	background-color: #eee;
+	width: 30%;
+}
+
+td.main {
+	min-width: 700px;
+	padding: 30px;
+	padding-top: 0px;
+	height: 100%;
+	vertical-align: top;
+	background-color: #fff;
+	border-right: 1px solid #ddd;
+	border-left: 1px solid #ddd;
+}
+
+table.optiontable {
+	margin: 0;
+	border: 0;
+	border-collapse: collapse;
+	height: 100%;
+}
+
+select#period,
+select#filterEtagmode,
+select#filterLinkmode {
+	margin-top: 2px;
+	border: 1px solid #eee;
+}
+
+input[type="checkbox"] {
+	margin-right: 4px;
+}
+
+div#container {
+	height: 100%;
+}
+
+img.headerClearIcon {
+	width: 14px;
+	margin-left: 3px;
+	cursor: pointer;
+}
+
+span.help {
+	text-decoration: underline;
+	color: blue;
+	margin-right: 20px;
+	cursor: pointer;
+}
+
+</style>
+
+<script type="text/javascript" src="scripts-core/jquery-3.2.1.min.js"></script>
+<script type="text/javascript" src="js/util.js"></script>
+<script type="text/javascript" src="js/cookiebro-options.js"></script>
+</head>
+<body>
+<div id="container">
+
+<table border="0" width="100%" class="optiontable">
+<tr height="100%">
+<td class="side"></td>
+<td class="main">
+<div class="topbar">
+<span class="help" id="viewhelp">Help</span>
+<span class="changelog"><a href="CHANGELOG.txt" target="_blank">Changelog</a></span>
+<span class="donate"><img src="images/heart.png" width="12"> <a href="https://www.paypal.me/nodetics/5" target="_blank" title="Please Support Cookiebro Development - Your contribution is highly appreciated!">Donate</a></span>
+</div>
+
+<h1>Cookiebro Options <img src="images/cookiebro48.png" width="24"></h1>
+
+<h3>General Settings</h3>
+
+<input type="checkbox" id="startupdelete"> Auto-delete unwanted cookies at browser startup<br>
+<input type="checkbox" id="startupbrowsingpurge" title="Websites can use these for fingerprinting and tracking you"> Auto-delete indexedDB and localStorage of websites at browser startup<br>
+<input type="checkbox" id="startuppluginpurge" title="Websites can use these for fingerprinting and tracking you"> Auto-delete pluginData (e.g. Flash Cookies) of normal websites at browser startup<br>
+<input type="checkbox" id="startupserviceworkerpurge" title="Websites can use these for fingerprinting and tracking you"> Auto-delete Service Workers of normal websites at browser startup<br>
+<input type="checkbox" id="keepsession"> Protect session cookies from periodical auto-deletion<br>
+<input type="checkbox" id="blacklistsession"> Accept session cookies also from blacklisted sites<br>
+<input type="checkbox" id="blacklist" title="When enabled, blacklisted cookies will be completely blocked without saving. Matching whitelist setting overrides a blacklist setting."> Enable blacklist filtering<br>
+<input type="checkbox" id="filterEtag" title="ETag headers can be used for tracking just like Cookies"> Delete ETag HTTP Response header from blacklisted sites with no matching whitelist setting<br>
+<input type="checkbox" id="filterLink" title="Link headers can be used for forced HTTP requests that cannot be properly controlled"> Delete Link HTTP Response header from blacklisted sites with no matching whitelist setting<br>
+<input type="checkbox" id="dynamicicon" title="Greyscale icon = not whitelisted, Colorful icon = is whitelisted. Having this setting disabled brings a tiny performance boost"> Change extension icon automatically based on whether site in active tab is whitelisted or not<br>
+<input type="checkbox" id="disablefavicons" title="If checked, Cookie Editor and Cookie Log don't show the site favicon but use a generic image instead"> Disable favicons in Cookie Editor and Cookie Log view<br>
+<input type="checkbox" id="disablecookielog" title="If checked, Cookie Log view doesn't show any cookie events"> Disable Cookie event logging (don't show new events in the Cookie Log view)<br>
+<select id="period">
+	<option value="0">Do not delete unwanted cookies periodically</option>
+	<option value="1" title="Warning, frequent auto-deletion can slow down browser performance!">Delete unwanted cookies every 1 min</option>
+	<option value="2" title="Warning, frequent auto-deletion can slow down browser performance!">Delete unwanted cookies every 2 min</option>
+	<option value="3" title="Warning, frequent auto-deletion can slow down browser performance!">Delete unwanted cookies every 3 min</option>
+	<option value="4" title="Warning, frequent auto-deletion can slow down browser performance!">Delete unwanted cookies every 4 min</option>
+	<option value="5" title="Warning, frequent auto-deletion can slow down browser performance!">Delete unwanted cookies every 5 min</option>
+	<option value="10">Delete unwanted cookies every 10 min</option>
+	<option value="15">Delete unwanted cookies every 15 min</option>
+	<option value="20">Delete unwanted cookies every 20 min</option>
+	<option value="25">Delete unwanted cookies every 25 min</option>
+	<option value="30">Delete unwanted cookies every 30 min</option>
+	<option value="45">Delete unwanted cookies every 45 min</option>
+	<option value="60">Delete unwanted cookies every 60 min</option>
+	<option value="90">Delete unwanted cookies every 90 min</option>
+	<option value="120">Delete unwanted cookies every 2 hours</option>
+	<option value="240">Delete unwanted cookies every 4 hours</option>
+	<option value="480">Delete unwanted cookies every 8 hours</option>
+	<option value="720">Delete unwanted cookies every 12 hours</option>
+	<option value="1440">Delete unwanted cookies every 24 hours</option>
+</select><br>
+<br>
+<button id="purgebrowsingdata" class="standard button button-clear" title="Delete IndexedDB, localStorage, Service Workers and pluginData of websites">Clear Stored Website Data</button>
+<button id="deleteall" class="standard button button-clear" title="Delete all cookies (also whitelisted)">Clear ALL Cookies</button>
+
+<h3 title="Keep cookies from these domains until they expire">Whitelist Settings (Allow)</h3>
+<div id="whitelist"></div>
+
+<input id="newdomainwhite" title="Domain from which cookies are accepted and preserved. *. will include all subdomains of a site. e.g. *.google.com will include www.google.com, docs.google.com, mail.google.com as well as google.com. To whitelist a specific cookie by name, use format: domain/cookieName - e.g. google.com/SIDCC"><button id="addnewwhite" class="standard button button-add">Add</button>
+<br><br>
+<button id="exportwhite" class="standard button button-export">Export Whitelist</button> <button id="importwhite" class="standard button button-import">Import Whitelist</button> <button id="clearwhite" class="standard button button-clear">Clear Whitelist</button>
+
+<div style="height: 0px; width: 0px; overflow: hidden;">
+	<input id="whitefileupload" type="file">	
+</div>
+
+<h3 title="Block cookies completely from these domains (do not save them at all). Whitelist settings override blacklist settings">Blacklist Settings (Block)</h3>
+<div id="blacklist"></div>
+
+<input id="newdomainblack" title="Domain from which cookies are blocked. *. will include all subdomains of a site. e.g. *.google.com will include www.google.com, docs.google.com, mail.google.com as well as google.com. Note! *.* will match ALL domains. To blacklist a specific cookie by name, use format: domain/cookieName - e.g. google.com/SIDCC"><button id="addnewblack" class="standard button button-add">Add</button>
+<br><br>
+<button id="exportblack" class="standard button button-export">Export Blacklist</button> <button id="importblack" class="standard button button-import">Import Blacklist</button> <button id="clearblack" class="standard button button-clear">Clear Blacklist</button>
+
+<div style="height: 0px; width: 0px; overflow: hidden;">
+	<input id="blackfileupload" type="file">	
+</div>
+
+<h3>Sites with Whitelisted Cookies</h3>
+
+<div id="whitelistedCookies"></div>
+
+<h3 title="Unwanted = not whitelisted">Sites with Unwanted Cookies</h3>
+
+<button data-type="unwanted" class="clearcookies standard button button-clear" title="Delete all unwanted cookies">Clear All</button>
+
+<div id="unwantedCookies"></div>
+
+<h3>Sites with Session Cookies</h3>
+
+<button data-type="session-nonwhitelisted" class="clearcookies standard button button-clear" title="Delete all session cookies that are not whitelisted">Clear Non-Whitelisted</button>
+<button data-type="session-all" class="clearcookies standard button button-clear" title="Delete all session cookies including whitelisted">Clear All</button>
+
+<div id="sessionCookies"></div>
+
+</td>
+<td class="side"></td>
+</tr>
+</table>
+</div>
+</body>
+</html>

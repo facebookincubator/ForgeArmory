@@ -1,0 +1,32 @@
+---
+api_version: 2.0
+uuid: cab73752-6abf-44e1-bec7-a2b9a630b25d
+name: "Keylogger using Obj-C"
+authors:
+  - hmashru
+description: |
+  "Create a keylogger binary using Obj-C and execute it to capture the first 20 key strokes"
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0001 Credential Access
+  techniques:
+    - T1056 Input Capture
+  subtechniques:
+    - T1056.001 Keylogging
+steps:
+  - name: Create keylogger binary
+    inline: |
+      echo -e "First, building the Obj-C source file for this TTP and then executing the compiled binary..."
+      clang -framework Cocoa -framework Carbon -o keylogger keylogger.m
+      echo -e "Next, executing the compiled keylogger binary..."
+      ./keylogger
+      echo "TTP Done!"
+    cleanup:
+      inline: |
+        echo "Deleting the compiled binary..."
+        rm -f keylogger
+        echo "Deleting the stored keylogged data..."
+        rm -f /tmp/keys.txt

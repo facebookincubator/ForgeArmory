@@ -1,0 +1,52 @@
+---
+api_version: 2.0
+uuid: 9b65bb2f-7ebf-4b99-a95e-e983fee766b7
+name: rc_persistence
+authors:
+  - cedowens
+description: |
+  "This TTP appends a line to the bottom of the /etc/rc.local file for persistence."
+args:
+  - name: timeout
+    description: "Timeout in seconds before cleanup begins."
+    type: int
+    default: 120
+requirements:
+  platforms:
+    - os: linux
+  superuser: true
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1037 Boot or Logon Initialization Scripts
+  subtechniques:
+    - T1037.004 RC Scripts
+steps:
+  - name: append_to_rclocal
+    inline: |
+      echo "Appending a line to the bottom of /etc/rc.local to write text to a file at /tmp/rcpersist.txt each time the rc persistence is executed..."
+      sudo echo "nohup echo \"rc persistence test\" >> /tmp/rcpersist.txt &" >> /etc/rc.local
+    cleanup:
+      inline: |
+        echo "Removing the line appended to the bottom of /etc/rc.local..."
+        sudo sed -i '/rcpersist.txt/d' /etc/rc.local
+  - name: set_up_persistence
+    inline: |
+      echo "Now setting up the rc persistence by setting the executable bit on /etc/rc.local and enabling the rc-local service upon reboot and immediately."
+      sudo chmod +x /etc/rc.local
+      sudo systemctl enable rc-local
+      sudo systemctl start rc-local
+    cleanup:
+      inline: |
+        echo "Sleeping {{ .Args.timeout }} seconds before starting cleanup..."
+        sleep {{ .Args.timeout }}
+        echo "Disabling/stopping the rc-local service and removing the executable bit from /etc/rc.local..."
+        sudo systemctl disable rc-local
+        sudo systemctl stop rc-local
+        sudo chmod -x /etc/rc.local
+        if [ -f /tmp/rcpersist.txt ]; then
+          rm -f /tmp/rcpersist.txt
+          echo "Removed /tmp/rcpersist.txt"
+        fi
+        echo "Cleanup done!"

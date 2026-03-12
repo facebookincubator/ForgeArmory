@@ -1,0 +1,27 @@
+api_version: 2.0
+uuid: a6e8af9f-50d5-4c28-ad29-3e7686e250d0
+name: netcat port binding on local port.
+authors:
+  - cedowens
+description: |
+    netcat binding to a specified local port.
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1059 Command and Scripting Interpreter
+  subtechniques:
+    - T1059.004 Unix Shell
+args:
+- name: port
+  default: 8887
+- name: timeout
+  default: 900
+steps:
+  - name: nc_bind
+    inline : |
+      timeout {{ .Args.timeout }} nc -6 -lvvp {{ .Args.port }} || echo "overwriting response code..."
+      echo "performing netcat port binding on local port {{ .Args.port }}. This port bind will self terminate after {{ .Args.timeout }} seconds."
+    cleanup:
+      inline: |
+        echo "No separate cleanup step needed for this TTP, as it self exits after {{ .Args.timeout }} seconds."

