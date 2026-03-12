@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cookiebro Log</title>
+<meta charset="UTF-8"/>
+<link rel="shortcut icon" type="image/png" href="images/cookiebro16.png"/>
+<link rel="stylesheet" type="text/css" href="css/cookiebro.css"/>
+<link rel="stylesheet" type="text/css" href="css/alertify.core.css"/>
+<link rel="stylesheet" type="text/css" href="css/alertify.default.css"/>
+<link rel="stylesheet" type="text/css" href="css/alertify.nodetics.css"/>
+<style type="text/css">
+
+body {
+	font-size: 12px;
+}
+
+table.log {
+	border-collapse: collapse;
+	margin: auto;
+}
+
+table.log td {
+	padding: 2px;
+}
+
+table.log thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid black;
+}
+
+th.decision {
+	width: 80px;
+	text-align: center !important;
+}
+
+th.date {
+	white-space: nowrap;
+}
+
+th.name,
+th.domain {
+	/* width: 200px; */
+}
+
+th.icon {
+	width: 40px;
+}
+
+td.cookieIcon {
+	text-align: center;
+}
+
+table.log tr:hover {
+	background-color: #eee;
+}
+
+td.domain {
+	font-weight: 700;
+}
+
+td.domainIcon {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+}
+
+td.domainIcon img {
+	width: 14px;
+	height: 14px;
+	vertical-align: middle;
+}
+
+td.decision {
+	text-align: center;
+}
+
+span.decision {
+    padding: 1px;
+    padding-left: 5px;
+    border-radius: 2px;
+    padding-right: 5px;
+    margin-bottom: 1px;
+    margin-top: 1px;
+}
+
+span.decision.Set {
+	background-color: blue;
+	color: white;
+}
+
+span.decision.Block {
+	background-color: darkRed;
+	color: white;
+}
+
+span.action {
+	margin-right: 15px;
+    background-color: #ddd;
+    padding: 1px;
+    padding-left: 5px;
+    border-radius: 2px;
+    padding-right: 5px;
+    margin-bottom: 1px;
+    margin-top: 1px;
+    cursor: pointer;
+	vertical-align: middle;
+}
+
+span.action input[type="checkbox"] {
+	vertical-align: middle;
+}
+
+span.action.blacklistcookie,
+span.action.blacklist {
+	background-color: #000;
+	color: white;
+}
+
+span.action.deletecookie {
+	background-color: darkRed;
+	color: white;
+}
+
+input.action {
+	vertical-align: middle;
+}
+
+td.cookieIcon img {
+	vertical-align: middle;
+}
+
+#clearlog {
+	margin-bottom: 20px;
+}
+
+</style>
+<script type="text/javascript" src="scripts-core/jquery-3.2.1.min.js"></script>
+<script type="text/javascript" src="scripts-core/moment.min.js"></script>
+<script type="text/javascript" src="scripts-core/alertify.js"></script>
+<script type="text/javascript" src="js/util.js"></script>
+<script type="text/javascript" src="js/cookiebro-log.js"></script>
+</head>
+<body>
+<center>
+<h1>Cookie Log</h1>
+
+<button id="clearlog" class="standard button button-clear" title="Delete all cookie events from the log">Clear Log</button>
+</center>
+<div id="cookielog"></div>
+</body>
+</html>

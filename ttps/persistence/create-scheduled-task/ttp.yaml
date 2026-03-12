@@ -1,0 +1,111 @@
+---
+api_version: 2.0
+uuid: f037a330-8ffc-4a61-8c44-e3d3a48faa73
+name: create-scheduled-task
+authors:
+  - jaysong
+description: |
+  Create a scheduled task in Windows for persistence.
+  If no `command_or_path is provided, calc.exe will be used.
+args:
+  - name: taskname
+    default: ttpforge-persistence
+  - name: workdir
+    default: "C:\\Users\\Public"
+  - name: task_file
+    default: "Persist.bat"
+  - name: tasktime
+    default: "06:00"
+  - name: searchstring
+    default: "ttpforge-persistence"
+  - name: command_or_path
+    default: "calc.exe"
+  - name: detect
+    default: true
+requirements:
+  platforms:
+    - os: windows
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1053 Scheduled Task/Job
+
+steps:
+  - name: create-scheduled-task
+    executor: powershell
+    inline: |
+      # Create the Persist.bat script
+      echo @echo off > {{ .Args.workdir }}\{{ .Args.task_file }}
+      echo {{ .Args.command_or_path }} >> {{ .Args.workdir }}\{{ .Args.task_file }}
+
+      # Create the scheduled task
+      schtasks /create /tn {{ .Args.taskname }} /tr "{{ .Args.command_or_path }}" /sc daily /st {{ .Args.tasktime }} /F /IT
+
+  - name: run-scheduled-task
+    executor: powershell
+    inline: |
+      schtasks /run /tn {{ .Args.taskname }}
+      sleep 5
+    cleanup:
+      name: cleanup
+      executor: cmd.exe
+      inline: |
+        echo @echo off > {{ .Args.workdir }}\cleanup.bat
+        echo SET "PROCESS_NAME={{ .Args.command_or_path }}" >> {{ .Args.workdir }}\cleanup.bat
+        echo SETLOCAL EnableDelayedExpansion >> {{ .Args.workdir }}\cleanup.bat
+        echo SET FOUND=0 >> {{ .Args.workdir }}\cleanup.bat
+        echo FOR /F "tokens=1,2 delims=," %%a IN ('tasklist /NH /FO CSV ^^^| findstr /I /C:"!PROCESS_NAME!"') DO ( >> {{ .Args.workdir }}\cleanup.bat
+        echo   SET PROC=%%~a >> {{ .Args.workdir }}\cleanup.bat
+        echo   SET FOUND=1 >> {{ .Args.workdir }}\cleanup.bat
+        echo   GOTO :kill >> {{ .Args.workdir }}\cleanup.bat
+        echo ) >> {{ .Args.workdir }}\cleanup.bat
+        echo :kill >> {{ .Args.workdir }}\cleanup.bat
+        echo IF %FOUND% EQU 1 ( >> {{ .Args.workdir }}\cleanup.bat
+        echo   taskkill /F /IM %PROC% >> {{ .Args.workdir }}\cleanup.bat
+        echo   echo Killed process: %PROC% >> {{ .Args.workdir }}\cleanup.bat
+        echo ) ELSE ( >> {{ .Args.workdir }}\cleanup.bat
+        echo   echo No matching processes found. >> {{ .Args.workdir }}\cleanup.bat
+        echo ) >> {{ .Args.workdir }}\cleanup.bat
+        echo ENDLOCAL >> {{ .Args.workdir }}\cleanup.bat
+        :: Execute the cleanup.bat script
+        cmd.exe /c {{ .Args.workdir }}\cleanup.bat
+        :: Delete the scheduled task and the scripts
+        schtasks /delete /tn "{{ .Args.taskname }}" /f
+        del {{ .Args.workdir }}\{{ .Args.task_file }}
+        del {{ .Args.workdir }}\cleanup.bat
+
+  - name: check-task-creation
+    executor: powershell
+    inline: |
+      # Check if the task was created
+      $TASK_EXISTS = schtasks /query /tn {{ .Args.taskname }}
+      if ($TASK_EXISTS) {
+        Write-Output "Task {{ .Args.taskname }} was created successfully."
+      } else {
+        Write-Output "Task {{ .Args.taskname }} was not created."
+      }
+
+  - name: check-detection
+    executor: cmd.exe
+    inline: |
+      @echo off
+      setlocal
+      set detect={{ .Args.detect }}
+
+      if "%detect%" == "true" (
+        wevtutil qe Microsoft-Windows-TaskScheduler/Operational /f:text > temp.txt
+        findstr /C:"{{ .Args.searchstring }}" temp.txt > events.txt
+        set /p EVENTS=<events.txt
+        if defined EVENTS (
+            echo Recent task creation events detected.
+        ) else (
+            echo No recent task creation events detected.
+        )
+      )
+    cleanup:
+      name: cleanup
+      executor: powershell
+      inline: |
+        Remove-Item temp.txt
+        Remove-Item events.txt

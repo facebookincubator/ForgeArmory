@@ -1,0 +1,22 @@
+api_version: 2.0
+uuid: 04f6a109-36de-4522-824a-f5630c924450
+name: This TTP searches for any binaries with the SUID or SGID bits set. This is a common check for escalating privileges.
+authors:
+  - cedowens
+description: |
+    This TTP test a command line executing for searching for binaries with the suid or sgid bits set.
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1083 File and Directory Discovery
+steps:
+  - name: suid_search
+    inline : |
+      find . -perm -4000 2>/dev/null
+      find . -perm -2000 2>/dev/null
+      echo "Ran two commands to search for binaries with the suid or sgid bit set. Note: instead of searching from the root dir, I am searching from the current directory to save time/compute."
+      echo "Done!"
+    cleanup:
+      inline: |
+        echo "No cleanup needed for this TTP, as it simply runs a shell command"

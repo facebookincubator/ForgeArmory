@@ -1,0 +1,59 @@
+---
+api_version: 2.0
+uuid: ec697fb9-ffef-4146-8103-41c05f72a4aa
+name: DLL Injection
+authors:
+  - hmashru
+description: |
+  This TTP demonstrates the ability to inject a malicious DLL into a legitimate process.
+  Threat Intel: https://www.rapid7.com/blog/post/2024/07/24/malware-campaign-lures-users-with-fake-w2-form/
+  Injecting a dll into a legitimate process that helps with defense evasion.
+requirements:
+  platforms:
+    - os: windows
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1055 Process Injection
+  subtechniques:
+    - T1055.001 Dynamic-link Library Injection
+steps:
+  - name: Verifying dll file presence and checksum
+    executor: powershell
+    inline: |
+      echo "Verifying dll file presence and checksum"
+    checks:
+      - msg: "Malicious dll file is either not present or has the wrong checksum"
+        path_exists: ./mal.dll
+        checksum:
+          sha256: cc4fbb501849eed47073395ab7970838315fab519053b848f7f9432521c65066
+  - name: Verifying exe file presence and checksum
+    executor: powershell
+    inline: |
+      echo "Verifying exe file presence and checksum"
+    checks:
+      - msg: "Malicious exe file is either not present or has the wrong checksum"
+        path_exists: ./inject.exe
+        checksum:
+          sha256: 298b59590b15dff083f50b5d6fa6d798fd3a91cf8c880afcb4ed38f4155b349e
+  - name: copy dll to temp folder
+    executor: powershell
+    inline: |
+      cp .\mal.dll C:\Users\Public\mal.dll
+  - name: Injecting malicious dll into explorer.exe
+    executor: powershell
+    inline: |
+      ./inject.exe
+      sleep 2
+  - name: Killing explorer.exe for cleanup
+    kill_process_name: explorer.exe
+  - name: Cleaning up files
+    executor: powershell
+    inline: |
+      echo "Removing file and restoring explorer process"
+      rm C:\Users\Public\mal.dll
+      Start-Process -FilePath "explorer.exe"
+      sleep 2
+  - name: Killing notepad.exe for cleanup
+    kill_process_name: Notepad.exe

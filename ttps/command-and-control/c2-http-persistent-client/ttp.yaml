@@ -1,0 +1,52 @@
+---
+api_version: 2.0
+uuid: 3a83feac-3d90-45ea-af50-8d8387afe7af
+name: HTTP C2 Over Persistent Connection
+authors:
+  - jazzyle
+description: |
+  Using server sent events and establishes a single TCP socket that receives continuous data from the server to maintain a persistent HTTP connection.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0011 Command and Control
+  techniques:
+    - T1071 Application Layer Protocol
+  subtechniques:
+    - T1071.001 Web Protocols
+args:
+  - name: server_host
+    description: hostname (example.com) or IP address (127.0.0.1) of the server
+    type: string
+    default: localhost
+
+  - name: runtime
+    description: Time limit of the connection in seconds
+    type: int
+    default: 4100
+steps:
+  - name: dependency_check
+    inline: |
+      if ! pip show sseclient; then
+        echo "Error: Please install sseclient before proceeding [pip install sseclient]"
+        exit 1
+      fi
+  - name: execute_client
+    executor: python3
+    description: Establish a persistent TCP socket and receives data from the server using the same HTTP response throughout time specified.
+    inline: |
+      import time
+      import sseclient
+
+      client = sseclient.SSEClient(f"http://{{.Args.server_host}}:80/")
+      start_time=time.time()
+
+      for i, message in enumerate(client):
+        print(f"Connection-Alive: Message {i+1} - Time Remaining:", round({{.Args.runtime}} - (time.time() - start_time)), "s", flush=True)
+
+        if time.time() - start_time > {{.Args.runtime}}:
+            client.resp.close()
+            break

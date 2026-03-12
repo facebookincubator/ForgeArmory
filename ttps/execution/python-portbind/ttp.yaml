@@ -1,0 +1,34 @@
+api_version: 2.0
+uuid: a7fe0635-a29a-482f-90f6-97937896fd82
+name: Python3 Local Port Binding on a specified local port.
+authors:
+  - cedowens
+description: |
+    Python3 listening on a specified local port.
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1059 Command and Scripting Interpreter
+  subtechniques:
+    - T1059.006 Python
+args:
+  - name: port
+    description: The port to bind to
+    default: 8899
+  - name: timeout
+    description: Timeout value to run the port bind before cleanup
+    default: 900
+
+steps:
+  - name: python_bind
+    inline: |
+      sed -i -e 's|port_here|{{ .Args.port }}|g' port-bind.py
+      sh -c 'timeout {{ .Args.timeout }} python3 port-bind.py' &
+      echo "python listening on local port {{ .Args.port }}. This port bind will self terminate after {{ .Args.timeout }} seconds."
+      sleep {{ .Args.timeout }}
+    cleanup:
+      inline: |
+        echo "restoring the original contents of port-bind.py"
+        sed -i -e 's|{{ .Args.port }}|port_here|g' port-bind.py
+        echo "Cleanup done!"

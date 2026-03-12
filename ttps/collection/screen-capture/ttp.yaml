@@ -1,0 +1,27 @@
+---
+api_version: 2.0
+uuid: 0f642862-93f1-4737-a32a-e918737ddbd2
+name: "Screen Capture"
+authors:
+  - nesusvet
+description: |
+  "Executes screencapture binary to take a screenshot"
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - "TA0009 Collection"
+  techniques:
+    - "T1113 Screen Capture"
+args:
+  - name: filename
+    description: Name of file to save screenshot to
+    default: foo.jpg
+steps:
+  - name: Screen Capture
+    inline: |
+      screencapture {{.Args.filename}}
+    cleanup:
+      inline: |
+        rm -f {{.Args.filename}}

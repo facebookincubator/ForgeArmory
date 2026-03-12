@@ -1,0 +1,80 @@
+---
+api_version: 2.0
+uuid: fc98201f-bb03-4e28-b5f7-1d7a00a6c73d
+name: ttp_execute_file_for_santa_testing
+authors:
+  - arubinchik
+description: |
+  Execute a  precompiled binary with an expected hash of `fab05ce9802817965f1db73f1cabb332d609b52da773968171e78750e9bc4e95`
+  and verify that the exit code matches the expected parameterized code.
+  The expected code must be either 0 for a successful execution or 137 for a blocked execution.
+
+args:
+  - name: expected_exit_code
+    description: The expected exit code to check for after running the script
+    default: 137
+
+requirements:
+  platforms:
+    - os: darwin
+
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1553 Subvert Trust Controls
+
+steps:
+  - name: check_parameters
+    inline: |
+      EXPECTED_CODE="{{.Args.expected_exit_code}}"
+      if [[ "${EXPECTED_CODE}" == "0" || "$EXPECTED_CODE" == "137" ]]; then
+            echo "Expected is ${EXPECTED_CODE}"
+            exit 0
+      else
+          echo "Expected code must be 0 or 137, but got $EXPECTED_CODE"
+          exit 1
+      fi
+
+    cleanup:
+      inline: |
+        echo "No cleanup required for this step. "
+
+  - name: verify_hash
+    inline: |
+      EXPECTED_HASH="fab05ce9802817965f1db73f1cabb332d609b52da773968171e78750e9bc4e95"
+
+      hash=$(shasum -a 256 dummy_file | awk '{print $1}')
+      echo "Hash is: $hash"
+
+      if [[ ${hash} == ${EXPECTED_HASH} ]]; then
+            echo "Verified hash of binary is expected"
+            exit 0
+      else
+          echo "Hash of binary is NOT expected"
+          exit 1
+      fi
+
+    cleanup:
+      inline: |
+        echo "No cleanup required for this step. "
+
+
+  - name: run_binary
+    inline: |
+      set +e
+      EXPECTED_CODE="{{.Args.expected_exit_code}}"
+      ./dummy_file
+      exitcode=$?
+
+      if [[ ${exitcode} == ${EXPECTED_CODE} ]]; then
+            echo "Verified exit code $exitcode matches expected code"
+            exit 0
+      else
+          echo "Exit code: ${exitcode} did not match expected code: ${EXPECTED_CODE}"
+          exit 1
+      fi
+
+    cleanup:
+      inline: |
+        echo "No cleanup required for this step. "

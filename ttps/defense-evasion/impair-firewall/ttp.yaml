@@ -1,0 +1,38 @@
+---
+api_version: 2.0
+uuid: 5b4b26a6-554e-4186-9d25-1509d6875425
+name: Temporarily Disable pf
+authors:
+  - cedowens
+description: |
+  This TTP temporarily disables the pf firewall on macOS.
+args:
+  - name: sleepval
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1562 Impair Defenses
+  subtechniques:
+    - T1562.001 Disable or Modify Tools
+steps:
+  - name: disablepf
+    inline: |
+      if [ $(whoami) == "root" ]; then
+        echo -e "Running pfctl -d to temporarily disable the pf firewall..."
+        pfctl -d
+        touch canaryfile.txt
+      else
+        echo "This TTP must be run with root to successfully execute."
+      fi
+    cleanup:
+      inline: |
+        if [ -f canaryfile.txt ]; then
+           echo "Sleeping for {{ .Args.sleepval }} seconds and then enabling pfctl..."
+           sleep {{ .Args.sleepval }}
+           pfctl -e
+           rm canaryfile.txt
+           echo "Cleanup Finished! pfctl re-enabled!"
+        else
+           echo "Exiting, as this TTP was not run with sudo rights..."
+        fi

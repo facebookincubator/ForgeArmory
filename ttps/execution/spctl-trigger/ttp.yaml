@@ -1,0 +1,29 @@
+name: Red Canary spctl rule trigger
+api_version: 2.0
+uuid: 7b50992e-66c0-476f-99dd-a2bebd48c826
+authors:
+  - cedowens
+description: |
+  This TTP tests a Red Canary detector that looks for spctl being executed against a file in /tmp. This TTP was developed to be run on macOS.
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1059 Command and Scripting Interpreter
+  subtechniques:
+    - T1059.004 Unix Shell
+steps:
+  - name: spctl_trigger
+    inline: |
+      echo "==> Executing the spctl_trigger TTP..."
+      echo "==> First creating a fake file in the /tmp dir..."
+      echo "this is a test file for the spctl rule trigger" >> /tmp/spctl-test.txt
+      spctl -a /tmp/spctl-test.txt || echo "Text added to clear exit code..."
+      echo "Executed the spctl -a /tmp/spctl-test.txt command, which should trigger a Red Canary IO."
+    cleanup:
+      inline: |
+        rm /tmp/spctl-test.txt
+        echo "Removed /tmp/spctl-test.txt. Cleanup finished. TTP Done!"

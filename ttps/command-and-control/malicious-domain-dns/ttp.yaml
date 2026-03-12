@@ -1,0 +1,27 @@
+---
+api_version: 2.0
+uuid: 107827fc-0d46-422c-8d77-8860e8340619
+name: Malicious Domain DNS
+authors:
+  - sriram3000
+description: |
+  This TTP mimics a macOS user trying to find the DNS record for a malicious domain.
+args:
+  - name: domain
+    description: The domain to query
+    default: 00bca37b237615ab.fun
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0011 Command and Control
+  techniques:
+    - T1071 Application Layer Protocol
+  subtechniques:
+    - T1071.004 DNS
+steps:
+  - name: Lookup DNS record for malicious domain
+    inline: |
+      echo "Looking up malicious domain"
+      dig {{.Args.domain}}

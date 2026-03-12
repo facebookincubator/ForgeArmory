@@ -1,0 +1,17 @@
+---
+api_version: 2.0
+uuid: 5484250c-6af2-42d7-afa9-641a850b1623
+name: export-tableau-sites
+authors:
+  - sriharic
+description: |
+  This TTP runs a sensitive command to export sites on Tableau Server.
+mitre:
+  tactics:
+    - TA0009 Collection
+  techniques:
+    - T1005 Data from Local System
+steps:
+  - name: run_sensitive_command
+    inline: |
+      tsm sites export --help

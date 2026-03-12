@@ -1,0 +1,26 @@
+name: Red Canary installcore rule trigger
+api_version: 2.0
+uuid: 7872b255-5b32-447d-aaf8-8d5850a03c50
+authors:
+  - cedowens
+description: |
+  This TTP tests a Red Canary detector to flag on the /Volumes/Installer/Installer.app/Contents/MacOS/sonorus command line string being found. This TTP was developed to run on macOS.
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1059 Command and Scripting Interpreter
+  subtechniques:
+    - T1059.004 Unix Shell
+steps:
+  - name: installcore_trigger
+    inline: |
+      echo "==> Executing the installcore_trigger TTP..."
+      echo "Running a cli string observed with InstallCore malware. This should still trigger an IO just by being seen in cli arguments even if the malware itself is not present on the system."
+      /Volumes/Installer/Installer.app/Contents/MacOS/sonorous purple_team_test || echo "Text added to clear exit code..."
+    cleanup:
+      inline: |
+        echo "No cleanup needed for this TTP. TTP Done!"

@@ -1,0 +1,40 @@
+api_version: 2.0
+uuid: 17414f01-fd20-4c68-8384-79757ea432de
+name: SSH rc persistence.
+authors:
+  - cedowens
+description: |
+    This TTP creates a ~/.ssh/rc file (if one does not exist) or appends to the rc file (if it exists). When executed the rc file will drop /tmp/testfile.
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1546 Event Triggered Execution
+  subtechniques:
+    - T1546.004 Unix Shell Configuration Modification
+args:
+  - name: timeout
+    description: Timeout value to set before cleanup begins.
+    default: 900
+steps:
+  - name: sshrc
+    inline : |
+      if [ -f ~/.ssh/rc ]
+         then cp ~/.ssh/rc ~/.ssh/rc-orig
+      fi
+      echo "echo \"testing sshrc persistence\" >> /tmp/testfile" >> ~/.ssh/rc
+      echo "Created or appended to ~/.ssh/rc. This rc file will be triggered each time an inbound ssh session is established. Once triggered /tmp/testfile will be dropped."
+      if [ -f ~/.ssh/rc-orig ]
+         then echo "Sleeping for {{ .Args.timeout }} seconds before running cleanup..."
+         sleep {{ .Args.timeout }}
+         cp ~/.ssh/rc-orig ~/.ssh/rc
+         rm ~/.ssh/rc-orig
+         rm /tmp/testfile
+         echo "Clean up done! Original ssh rc file restored and testfile removed. TTP Done!"
+      else
+         echo "Sleeping for {{ .Args.timeout }} before deleting the added ssh rc file and the testfile dropped."
+         sleep {{ .Args.timeout }}
+         rm ~/.ssh/rc
+         rm /tmp/testfile
+         echo "Clean up done! Removed the added ssh rc file and the added testfile. TTP Done!"
+      fi

@@ -1,0 +1,248 @@
+---
+api_version: 2.0
+uuid: b8c9d0e1-f2a3-4b5c-6d7e-8f9a0b1c2d3e
+name: WMI Service Discovery and Enumeration
+authors:
+  - alexpisani
+description: |
+  This TTP performs Windows service reconnaissance using Windows Management
+  Instrumentation (WMI) classes. It enumerates running services, their
+  configurations, and identifies services running with high privileges
+  that may be useful for privilege escalation attacks.
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1047 Windows Management Instrumentation
+    - T1007 System Service Discovery
+    - T1082 System Information Discovery
+  subtechniques:
+    - T1047.001 WMI
+requirements:
+  platforms:
+    - os: windows
+  executors:
+    - powershell
+args:
+  - name: filter_privileged_only
+    description: Only show services running as LocalSystem, LocalService, or NetworkService
+    default: "false"
+steps:
+  - name: enumerate_all_services
+    executor: powershell
+    inline: |
+      Write-Host "===> Enumerating Windows Services via WMI..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        # Get all services using Win32_Service class
+        $services = Get-WmiObject -Class Win32_Service
+
+        Write-Host "Total Services Found: $($services.Count)" -ForegroundColor Yellow
+        Write-Host "`nService Overview:" -ForegroundColor Yellow
+
+        # Group services by state
+        $runningServices = $services | Where-Object { $_.State -eq "Running" }
+        $stoppedServices = $services | Where-Object { $_.State -eq "Stopped" }
+        $pausedServices = $services | Where-Object { $_.State -eq "Paused" }
+
+        Write-Host "  Running Services: $($runningServices.Count)" -ForegroundColor Green
+        Write-Host "  Stopped Services: $($stoppedServices.Count)" -ForegroundColor Red
+        Write-Host "  Paused Services: $($pausedServices.Count)" -ForegroundColor Yellow
+
+        # Group by start mode
+        $autoServices = $services | Where-Object { $_.StartMode -eq "Auto" }
+        $manualServices = $services | Where-Object { $_.StartMode -eq "Manual" }
+        $disabledServices = $services | Where-Object { $_.StartMode -eq "Disabled" }
+
+        Write-Host "`nStart Mode Distribution:" -ForegroundColor Yellow
+        Write-Host "  Automatic: $($autoServices.Count)"
+        Write-Host "  Manual: $($manualServices.Count)"
+        Write-Host "  Disabled: $($disabledServices.Count)"
+
+        # Store results for further analysis
+        $global:AllServices = $services
+        $global:RunningServices = $runningServices
+
+      } catch {
+        Write-Host "Error enumerating services: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+      Write-Host "=" * 60
+
+  - name: analyze_privileged_services
+    executor: powershell
+    inline: |
+      Write-Host "===> Analyzing Privileged Services..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        if ($global:AllServices) {
+          # Filter services by privilege level
+          $systemServices = $global:AllServices | Where-Object { $_.StartName -eq "LocalSystem" -or $_.StartName -eq "NT AUTHORITY\SYSTEM" }
+          $localServiceServices = $global:AllServices | Where-Object { $_.StartName -eq "NT AUTHORITY\LocalService" }
+          $networkServiceServices = $global:AllServices | Where-Object { $_.StartName -eq "NT AUTHORITY\NetworkService" }
+          $userServices = $global:AllServices | Where-Object { $_.StartName -like "*\*" -and $_.StartName -notlike "NT AUTHORITY\*" -and $_.StartName -ne "LocalSystem" }
+
+          Write-Host "Privileged Service Analysis:" -ForegroundColor Yellow
+          Write-Host "  LocalSystem Services: $($systemServices.Count)" -ForegroundColor Red
+          Write-Host "  LocalService Services: $($localServiceServices.Count)" -ForegroundColor Yellow
+          Write-Host "  NetworkService Services: $($networkServiceServices.Count)" -ForegroundColor Yellow
+          Write-Host "  User Account Services: $($userServices.Count)" -ForegroundColor Cyan
+
+          # Show running LocalSystem services (highest privilege)
+          $runningSystemServices = $systemServices | Where-Object { $_.State -eq "Running" }
+          Write-Host "`nRunning LocalSystem Services (High Privilege):" -ForegroundColor Red
+          Write-Host "=" * 40
+
+          foreach ($service in $runningSystemServices | Select-Object -First 20) {
+            Write-Host "  Service: $($service.Name)" -ForegroundColor Cyan
+            Write-Host "    Display Name: $($service.DisplayName)"
+            Write-Host "    Path: $($service.PathName)"
+            Write-Host "    Start Mode: $($service.StartMode)"
+            Write-Host "    Process ID: $($service.ProcessId)"
+            Write-Host "    Description: $($service.Description)"
+            Write-Host ""
+          }
+
+          if ($runningSystemServices.Count -gt 20) {
+            Write-Host "  ... and $($runningSystemServices.Count - 20) more LocalSystem services" -ForegroundColor Yellow
+          }
+
+          # Store privileged services for output
+          $global:PrivilegedServices = @{
+            SystemServices = $systemServices
+            LocalServiceServices = $localServiceServices
+            NetworkServiceServices = $networkServiceServices
+            UserServices = $userServices
+          }
+
+        } else {
+          Write-Host "No service data available for analysis" -ForegroundColor Red
+        }
+
+      } catch {
+        Write-Host "Error analyzing privileged services: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+      Write-Host "=" * 60
+
+  - name: identify_potential_privilege_escalation_targets
+    executor: powershell
+    inline: |
+      Write-Host "===> Identifying Potential Privilege Escalation Targets..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        if ($global:AllServices) {
+          Write-Host "Potential Privilege Escalation Analysis:" -ForegroundColor Yellow
+
+          # Look for services with interesting characteristics
+          $interestingServices = @()
+
+          foreach ($service in $global:AllServices) {
+            $issues = @()
+
+            # Check for unquoted service paths with spaces
+            if ($service.PathName -match '^[^"]*\s+.*\.exe' -and $service.PathName -notmatch '^".*"') {
+              $issues += "Unquoted service path with spaces"
+            }
+
+            # Check for services running as LocalSystem
+            if ($service.StartName -eq "LocalSystem" -or $service.StartName -eq "NT AUTHORITY\SYSTEM") {
+              if ($service.State -eq "Running") {
+                $issues += "Running as LocalSystem (highest privilege)"
+              }
+            }
+
+            # Check for services with writable paths (basic check)
+            if ($service.PathName -match '^[A-Za-z]:\\(?!Windows\\|Program Files)') {
+              $issues += "Service path outside standard directories"
+            }
+
+            # Check for services with user accounts
+            if ($service.StartName -like "*\*" -and $service.StartName -notlike "NT AUTHORITY\*" -and $service.StartName -ne "LocalSystem") {
+              $issues += "Running under user account: $($service.StartName)"
+            }
+
+            if ($issues.Count -gt 0) {
+              $interestingServices += [PSCustomObject]@{
+                Name = $service.Name
+                DisplayName = $service.DisplayName
+                PathName = $service.PathName
+                StartName = $service.StartName
+                State = $service.State
+                StartMode = $service.StartMode
+                Issues = $issues -join "; "
+              }
+            }
+          }
+
+          Write-Host "`nServices with Potential Security Issues:" -ForegroundColor Red
+          Write-Host "=" * 45
+
+          $count = 0
+          foreach ($service in $interestingServices | Sort-Object Name) {
+            $count++
+            if ($count -le 15) {  # Limit output to first 15
+              Write-Host "  [$count] $($service.Name)" -ForegroundColor Cyan
+              Write-Host "    Display Name: $($service.DisplayName)"
+              Write-Host "    Path: $($service.PathName)"
+              Write-Host "    Start Name: $($service.StartName)"
+              Write-Host "    State: $($service.State)"
+              Write-Host "    Issues: $($service.Issues)" -ForegroundColor Red
+              Write-Host ""
+            }
+          }
+
+          if ($interestingServices.Count -gt 15) {
+            Write-Host "  ... and $($interestingServices.Count - 15) more services with potential issues" -ForegroundColor Yellow
+          }
+
+          Write-Host "Total Services with Potential Issues: $($interestingServices.Count)" -ForegroundColor Yellow
+
+          # Store interesting services for output
+          $global:InterestingServices = $interestingServices
+
+        } else {
+          Write-Host "No service data available for analysis" -ForegroundColor Red
+        }
+
+      } catch {
+        Write-Host "Error identifying privilege escalation targets: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+      Write-Host "=" * 60
+
+  - name: enumerate_service_methods
+    executor: powershell
+    inline: |
+      Write-Host "===> Available WMI Service Methods..." -ForegroundColor Green
+      Write-Host "=" * 60
+
+      try {
+        # Get available methods for Win32_Service class
+        $serviceMethods = Get-WmiObject -Class Win32_Service -List | Select-Object -ExpandProperty Methods
+
+        Write-Host "Win32_Service Class Methods:" -ForegroundColor Yellow
+        foreach ($method in $serviceMethods) {
+          Write-Host "  - $($method.Name)" -ForegroundColor Cyan
+          if ($method.Name -in @("Create", "Delete", "StartService", "StopService", "PauseService", "ResumeService", "ChangeStartMode")) {
+            Write-Host "    (Potentially useful for service manipulation)" -ForegroundColor Yellow
+          }
+        }
+
+        Write-Host "`nNote: These methods can be used to:" -ForegroundColor Green
+        Write-Host "  - Create new services (Create)"
+        Write-Host "  - Delete existing services (Delete)"
+        Write-Host "  - Start/Stop services (StartService/StopService)"
+        Write-Host "  - Pause/Resume services (PauseService/ResumeService)"
+        Write-Host "  - Change service startup mode (ChangeStartMode)"
+        Write-Host "  - Update service configuration (Change)"
+
+      } catch {
+        Write-Host "Error enumerating service methods: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+      Write-Host "=" * 60
+      Write-Host "[+] WMI Service Discovery Complete!" -ForegroundColor Green

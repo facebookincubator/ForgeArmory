@@ -1,0 +1,37 @@
+---
+api_version: 2.0
+uuid: 83e5e79f-497e-4c52-8aec-7a69be852252
+name: cronjob_persistence
+authors:
+  - cedowens
+description: |
+  "This TTP creates a simple cron job that will drop a text file to the /tmp dir and append to this file each time the cron job is triggered (every minute)."
+args:
+- name: timeout
+  description: Timeout value to set before cleanup begins
+  default: 1200
+requirements:
+  platforms:
+    - os: linux
+  superuser: true
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1053 Scheduled Task/Job
+  subtechniques:
+    - T1053.003 Cron
+steps:
+  - name: cronjob
+    inline: |
+      (echo "* * * * * echo \"purple team cron job test\" >> /tmp/purplecrontest.out") | crontab -u root -
+      echo "[+] Added a simple cron job to drop /tmp/purplecrontest.out and append to this file each time the cron job is run."
+      echo "[+] Sleeping for {{ .Args.timeout }} seconds before removing the cron job persistence..."
+      sleep {{ .Args.timeout }}
+    cleanup:
+      inline: |
+        crontab -l | grep -v "purple team" | crontab -
+        if [ -f /tmp/purplecrontest.out ]; then
+          rm /tmp/purplecrontest.out
+        fi
+        echo "Cleanup Done!"

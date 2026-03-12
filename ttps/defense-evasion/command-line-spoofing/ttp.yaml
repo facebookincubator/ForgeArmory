@@ -1,0 +1,31 @@
+---
+api_version: 2.0
+uuid: 434d54bd-77f4-4bad-8099-622331671609
+name: Command Line Spoofing
+authors:
+  - hmashru
+description: |
+  This TTP demonstrates how to spoof the name of an executable to evade EDRs and act as an anti-forensic method.
+requirements:
+  platforms:
+    - os: linux
+args:
+  - name: spoofed_process_name
+    default: "ps"
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1036 Masquerading
+  subtechniques:
+    - T1036.005 Match Legitimate Name or Location - Command Line Spoofing
+steps:
+  - name: Compiling the C program
+    inline: |
+      gcc spoofer.c -o prog
+  - name: Executing C program
+    inline: |
+      ./prog {{.Args.spoofed_process_name}}
+    cleanup:
+      inline: |
+        rm -f prog

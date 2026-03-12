@@ -1,0 +1,58 @@
+---
+api_version: 2.0
+uuid: fdf7a0d7-182e-4027-b441-d048cd5336f5
+name: create_and_execute_blocked_file
+authors:
+  - arubinchik
+description: |
+  This TTP tries to execute a file that has been blocked by MDE and verify that the execution has been blocked,
+  determined by an exit code value of `126`.
+  The current hash being tested is: `6e9c7174060ffa8ffc4f239a452d2469d1458ae2507038b455c1a2a4e45ed159`
+    We should confirm that this is the hash being used in the `verify_hash` step.
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1562 Impair Defenses
+  subtechniques:
+    - T1562.001 Disable or Modify Tools
+steps:
+  - name: verify_and_execute_file
+    inline: |
+      set +e
+      FILE="./diff_file_to_block.sh"
+      # Check if the file exists
+      if [ -f "$FILE" ]; then
+        echo "File $FILE exists, proceeding to test execution"
+        chmod +x $FILE
+        shasum -a 256 $FILE
+        exitcode=$?
+        if [[ ${exitcode} == 1 ]]; then
+            echo "Unable to calculate hash, likely because the file is blocked."
+        fi
+
+        sh "$FILE"
+        exitcode=$?
+        PERMISSION_DENIED_EXIT_CODE=126
+        # We check for a 127 because after the shasum, it's possible MDE will quarantine the file, and it will no longer be present here.
+        FILE_NOT_FOUND_EXIT_CODE=127
+        if [[ ${exitcode} == ${PERMISSION_DENIED_EXIT_CODE} ]]; then
+            echo "Execution was successfully blocked"
+            exit 0
+        elif [[ ${exitcode} == ${FILE_NOT_FOUND_EXIT_CODE} ]]; then
+            echo "The file was quarantined so could not be executed."
+            exit 0
+        else
+            echo "Execution was not blocked, exit code: ${exitcode}, expected: ${PERMISSION_DENIED_EXIT_CODE} or ${FILE_NOT_FOUND_EXIT_CODE}"
+            exit 1
+        fi
+
+
+      else
+        echo "File $FILE does not exist, nothing more to test"
+        # This means that MDE blocked it immediately, so this is actually a good result.
+        exit 0
+      fi
+    cleanup:
+      inline: |
+        echo "No cleanup required for this step. "

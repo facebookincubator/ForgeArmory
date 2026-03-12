@@ -1,0 +1,33 @@
+---
+api_version: 2.0
+uuid: b90e6a0b-7ed7-4584-8457-22da7ccf564e
+name: GNOME Desktop Autostart
+authors:
+  - hmashru
+description: |
+  This TTP creates a new autostart file for the user and executes specific binary when the user logs in.
+requirements:
+  platforms:
+    - os: linux
+mitre:
+  tactics:
+    - TA0003 Persistence
+  techniques:
+    - T1547 Boot or Logon Autostart Execution
+  subtechniques:
+    - T1547.013 XDG Autostart Entries
+steps:
+  - name: Compiling C file
+    inline: |
+      gcc xdg-binary.c -o xdg-binary
+  - name: copying binary & desktop to appropriate directories
+    inline: |
+      echo "Copying binary & desktop to appropriate directories..."
+      cp ./xdg-binary $HOME/.config/gnome-setup
+      cp ./gnome-setup.desktop $HOME/.config/autostart/
+      sleep 10
+      # Can check startup applications
+  - name: cleanup
+    inline: |
+      rm $HOME/.config/gnome-setup
+      rm $HOME/.config/autostart/gnome-setup.desktop

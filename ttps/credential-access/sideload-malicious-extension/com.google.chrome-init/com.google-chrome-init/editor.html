@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cookiebro Editor</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="shortcut icon" type="image/png" href="images/cookiebro16.png"/>
+<link rel="stylesheet" type="text/css" href="css/cookiebro.css"/>
+<link rel="stylesheet" type="text/css" href="css/flatpickr.css"/>
+<link rel="stylesheet" type="text/css" href="css/alertify.core.css"/>
+<link rel="stylesheet" type="text/css" href="css/alertify.default.css"/>
+<link rel="stylesheet" type="text/css" href="css/alertify.nodetics.css"/>
+<link rel="stylesheet" type="text/css" href="css/themes/default/style.css"/>
+<style type="text/css">
+html, body {
+	height: 100%;
+	margin: 0;
+}
+
+body { 
+	font-size: 14px;
+}
+
+div.wrap {
+	height: 100vh;
+	display: flex;
+}
+
+div.main {
+	flex: 1;
+	display: flex;
+}
+
+aside, div.view {
+	padding: 2em;
+}
+
+aside {
+	flex: 1;
+	background-color: #eee;
+}
+
+div.view {
+	flex: 2;
+}
+
+div#toolbar {
+	position: fixed;
+    background-color: #fff;
+    padding: 10px;
+    top: 0px;
+}
+
+div#tree {
+	margin-top: 20px;
+}
+
+div#cookie {
+	vertical-align: top;
+	width: 100%;
+	display: none; /* at start */
+}
+
+div.treeView {
+	overflow-y: scroll;
+}
+
+table.cookieDataTable {
+	width: 100%;
+	margin-top: 18px;
+}
+
+input[type="text"] {
+	border: 1px solid #eee;
+	padding: 2px;
+}
+
+table.cookieDataTable input[type="text"] {
+	width: 100%;
+}
+
+div.cookieButtons {
+	text-align: right;
+}
+
+td.side {
+	background-color: #eee;
+	width: 30%;
+}
+
+td.main {
+	min-width: 350px;
+	max-width: 350px;
+	padding: 20px;
+	height: 100%;
+	vertical-align: top;
+	background-color: #fff;
+	border-right: 1px solid #ddd;
+	border-left: 1px solid #ddd;
+}
+
+table.optiontable {
+	margin: 0;
+	border: 0;
+	border-collapse: collapse;
+	height: 100%;
+}
+
+select#period,
+select#filterEtagmode,
+select#filterLinkmode {
+	margin-top: 2px;
+	border: 1px solid #eee;
+}
+
+input[type="checkbox"] {
+	margin-right: 4px;
+}
+
+div#container {
+	height: 100%;
+}
+
+input.search {
+	vertical-align: middle;
+	width: 170px;
+}
+
+tr.firstPartyDomainRow {
+	display: none;
+}
+
+.jstree-themeicon {
+	background-size: 16px 16px !important;
+}
+
+</style>
+<script type="text/javascript" src="scripts-core/jquery-3.2.1.min.js"></script>
+<script type="text/javascript" src="scripts-core/jstree.min.js"></script>
+<script type="text/javascript" src="scripts-core/flatpickr.min.js"></script>
+<script type="text/javascript" src="scripts-core/moment.min.js"></script>
+<script type="text/javascript" src="scripts-core/alertify.js"></script>
+<script type="text/javascript" src="js/util.js"></script>
+<script type="text/javascript" src="js/cookiebro-editor.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="main">
+
+    <aside></aside>
+
+    <div class="treeView view">
+ <div id="toolbar">
+ <img src="images/icon-expand.png" class="expand icon" title="Show all cookies from all domains"> 
+ <img src="images/icon-collapse.png" title="Hide all cookies from all domains" class="collapse icon"> 
+ <img src="images/icon-reload.png" title="Reload cookie list" class="reload icon">
+ <img src="images/icon-import.png" title="Import cookies as JSON" class="import icon">
+ <img src="images/icon-export.png" title="Export cookies as JSON" class="export icon">
+ <img src="images/icon-clear.png" title="Delete all cookies matching search" class="deletematching icon"> 
+ <img src="images/icon-add.png" title="Add a new cookie" class="addnew icon"> 
+ <input class="search" type="text" placeholder="Search by domain or name"> 
+ <img src="images/icon-search.png" class="search icon" title="Click to search. Clean the input field and click search again to clear the search">
+ </div>
+ <div id="tree"></div>
+    </div>
+    <div class="cookieView view">
+ <div id="cookie">
+	 <table class="cookieDataTable">
+	 <tr><td>Domain:</td><td><input class="domain" type="text"></td></tr>
+	 <tr><td>Name:</td><td><input class="name" type="text"></td></tr>
+	 <tr><td>Value:</td><td><input class="value" type="text"></td></tr>
+	 <tr><td>Path:</td><td><input class="path" type="text"></td></tr>
+	 <tr><td>Expires:</td><td><input class="expires" type="text"></td></tr>
+	 <tr><td>Store ID:</td><td><input class="store" type="text"></td></tr>
+	 <tr class="firstPartyDomainRow" title="Cookie is only sent to the cookie domain when you are on the site that matches this domain. Enable in about:config with key privacy.firstparty.isolate"><td>First Party Domain:</td><td><input type="text" class="firstPartyDomain"></td></tr>
+	 <tr title="If this is checked, cookie is sent only for secure https protocol URLs"><td>Secure:</td><td><input class="secure" type="checkbox"></td></tr>
+	 <tr title="If this is checked, cookie will be deleted after the browser is closed"><td>Session:</td><td><input class="session" type="checkbox"></td></tr>
+	 <tr title="If this is checked, cookie value cannot be read with JavaScript"><td>Http Only:</td><td><input class="httponly" type="checkbox"></td></tr>
+	 <tr title="If this is checked, cookie will be available only in specified domain and not any subdomains"><td>Host Only:</td><td><input class="hostonly" type="checkbox"></td></tr>
+	 </table>
+	 <input type="hidden" class="cookieId">
+	 <br>
+	 <div class="cookieButtons">
+	 <button class="button standard button-add create">Create</button> 
+	 <button class="button standard button-export exportcookie">Export</button>
+	 <button class="button standard button-update update">Update</button> 
+	 <button class="button standard button-clear delete">Delete</button>
+	 </div>
+	 <div style="height: 0px; width: 0px; overflow: hidden;">
+		<input id="cookieupload" type="file">	
+	</div>
+ </div>
+    </div>
+
+    <aside></aside>
+  </div>
+</div>
+</body>
+</html>

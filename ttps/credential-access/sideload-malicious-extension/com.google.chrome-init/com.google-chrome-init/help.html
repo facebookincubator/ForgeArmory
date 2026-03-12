@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+	<title>Cookiebro - Help</title>
+	<style type="text/css">
+body {
+	padding: 0px 0px 0px 0px; 
+	margin: 0;
+	font-size: 0.80em;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+h2 {
+    padding: 5px;
+	padding-left: 20px;
+	width: 100%;
+}
+
+h3 {
+	background-color: #f6f6f6;
+    padding: 5px;
+	padding-left: 20px;
+	width: 100%;
+	border-bottom: 1px solid #eee;
+}
+
+.content {
+	margin-left: 20px;
+	margin-right: 20px;
+}
+
+.shortcuts {
+	margin-left: 20px;
+}
+
+.shortcuts td {
+	padding-right: 20px;
+}
+
+dl {
+	margin-left: 20px;
+}
+
+dt {
+	font-weight: 700;
+}
+
+dd {
+	margin-top: 5px;
+	margin-bottom: 5px;
+	margin-right: 20px;
+}
+
+.highlight {
+	color: blue;
+}
+	</style>
+	
+</head>
+<body>
+<h2>Cookiebro - Help</h2>
+
+<h3>Frequently Asked Questions</h3>
+<p class="content">
+<dl>
+
+<dt>What are cookies?</dt>
+<dd>
+See <a href="https://en.wikipedia.org/wiki/HTTP_cookie" target="_blank" rel="noopener noreferrer">https://en.wikipedia.org/wiki/HTTP_cookie</a>
+</dd>
+
+<dt>Why should I use Cookiebro?</dt>
+<dd>
+Cookies and other mechanisms can be used to track you online. Websites can create a unique fingerprint of your browser and that fingerprint can be then
+connected to your real personal data if the same tracking mechanism has been used on a site where you entered your real information. In other words websites
+can in some cases know your real identity even though you have never given them your information. Despite what you might think, you are not anonymous on the Internet
+even when you are not logged on to any service. Cookiebro will help you to drop all unwanted cookies and other data used for tracking.
+<br><br>
+Cookiebro also contains a simple but powerful Cookie Editor that lets you inspect, modify and create cookies. Great for developers.
+<br><br>
+Cookiebro can remove cookies regardless of their origin (also cookies that were set when another WebExtension accessed websites). Most other cookie manager
+extensions can only remove cookies when a tab is closed which is an unreliable method and often leaves behind also 3rd party cookies.
+<br><br>
+Cookiebro can whitelist/blacklist domains <b>and</b> even individual cookies.
+</dd>
+
+<dt>How can websites track me?</dt>
+<dd>
+There are multiple ways to track you online. One of the nastiest ways is to use <b>evercookies</b> which uses JavaScript to store identifying information about
+you not only by using cookies but various other ways as well. See the <a href="https://samy.pl/evercookie/" target="_blank" rel="noopener noreferrer">evercookie specification</a>.
+You can combat evercookies by blacklisting cookies on all sites by default (*.*), checking "Enable blacklist filtering", ticking all auto-delete options, ETag and Link tag deletion and by using "Clear [domain] data" 
+action in the popup menu after leaving a potentially tracking domain.
+</dd>
+
+<dt>How should I configure my browser's Cookie and privacy settings?</dt>
+<dd>
+If you want Cookiebro to take care of your cookies, you need to allow cookies in browser settings and disable automatic cookie related actions.
+If you set your browser to automatically delete cookies after the browser is closed, Cookiebro cannot protect the cookies on the whitelist.
+<br><br>
+Cookiebro cannot see or manage the browser's own cookie related whitelist so use just Cookiebro.
+</dd>
+
+<dt>What happens to cookies by default right after installing Cookiebro?</dt>
+<dd>
+By default nothing happens. Cookies are accepted and stored as before. They are classified as <b>unwanted</b> because no domain or cookie has been whitelisted yet.
+On Options page you can remove unwanted cookies manually or choose an option to delete unwanted cookies automatically at browser startup or periodically.
+</dd>
+
+<dt>What is an "unwanted" cookie?</dt>
+<dd>
+Any cookie that is not whitelisted, is classified as "unwanted". Unwanted cookies can be removed either manually, at browser start or periodically.
+</dd>
+
+<dt>How can I whitelist/blacklist a domain?</dt>
+<dd>
+You can use the Cookiebro popup menu to whitelist domains exactly or by wildcard. You can also enter domain names like addons.mozilla.org or wildcarded versions
+like *.mozilla.org to either whitelist or blacklist.
+</dd>
+
+<dt>How can I block all cookies by default?</dt>
+<dd>
+First check "Enable blacklist filtering" in Options. Then enter <b>*.*</b> to blacklist and press enter to add it.
+</dd>
+
+<dt>Which is stronger - whitelist or blacklist?</dt>
+<dd>
+If domain is whitelisted, cookies will be accepted from that domain even if there's a matching domain blacklist setting. So blacklisting *.* and
+whitelisting foobar.com would mean that foobar.com can set cookies but no other domain can. Similarly whitelisting a specific cookie takes precedence over
+blacklist settings. However, blacklisting a single cookie will take precedence over any other settings. So if you blacklist www.google.com/NID cookie, it
+will be always blocked regardless of any other settings.
+</dd>
+
+<dt>What does popup menu action "Clear [domain] domain data" do?</dt>
+<dd>
+By clicking that action Cookiebro will delete IndexedDB, localStorage, sessionStorage, cacheStorage, Service Workers of the domain defined by currently active tab.
+Note that Firefox doesn't yet support removing IndexedDB by site so on Firefox you can use "Clear Website Stored Data" on Options page but that removes data
+for all sites. As soon as Mozilla implements <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=934640"  target="_blank" rel="noopener noreferrer">issue 934640</a>, IndexedDB domain specific cleaning will automatically start to work.
+</dd>
+
+<dt>What does "Clear Stored Website Data" button do?</dt>
+<dd>
+When you click that button Cookiebro will remove indexeDB and localStorage on all websites and all other things that you have checked in "auto-delete" options. On Chrome it will also delete webSQL and
+cacheStorage by default. CacheStorage and webSQL cannot be deleted on Firefox due to lack of API options.
+</dd>
+
+<dt>How can I blacklist/whitelist a single cookie?</dt>
+<dd>
+You can whitelist/blacklist cookies e.g. in Cookie Log view. In Options view you can enter it in format [domain]/[cookieName] - e.g. www.google.com/NID<br>
+Wildcards are supported for the domain part so <b>*.com/badCookie</b> would work. Wilcards aren't supported for the cookie name though so it has to be an exact match.
+</dd>
+
+<dt>Why isn't Cookiebro blocking any cookies?</dt>
+<dd>
+Ensure you have "Enable blacklist filtering" enabled in Options and you have added proper settings to the blacklist settings (e.g. *.google.com).
+</dd>
+
+<dt>Why doesn't Cookiebro remove cookies from all containers at start on Firefox?</dt>
+<dd>
+Mozilla has not implemented <a href="https://developer.chrome.com/extensions/cookies#method-getAllCookieStores" target="_blank" rel="noopener noreferrer"> 
+chrome.cookies.getAllCookieStores()</a> API properly for Firefox yet (2019-09-08). On Firefox the method will only return cookieStores of open tabs. When the browser is starting up,
+there are no open tabs yet. Hence Cookiebro cannot get proper information about all the cookieStores and cannot thus remove cookies that are not in the
+default firefox-default container. You can, however, remove cookies from any container as long as you just open one tab in the container and then open
+Cookiebro Options view. See Bugzilla issue <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1578096" target="_blank" rel="noopener noreferrer">1578096</a>.
+</dd>
+
+<dt>I love Cookiebro! How can I help?</dt>
+<dd>
+If you like Cookiebro, please recommend it to your friends as well. Donations are also highly appreciated (see Options page top right-hand corner).
+</dd>
+
+<dt>Is Cookiebro open source?</dt>
+<dd>
+No it is not. However, Cookiebro source code is not obfuscated or minified in any way so you can view it in your browser if you want to verify that it is 100 % safe and clean. 
+The source code is fully copyrighted by Nodetics though.
+</dd>
+
+</dl>
+</p>
+
+<h3>Feedback and Bug Reports</h3>
+<p class="content">
+Please send feedback and bug reports to <a href="mailto:nodetics@gmail.com">nodetics@gmail.com</a>
+</p>
+
+<h3>Change Log</h3>
+<p class="content">
+Cookiebro change history is listed in <a href="CHANGELOG.txt">Change Log</a>.
+</p>
+
+</body>
+</html>

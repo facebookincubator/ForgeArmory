@@ -1,0 +1,71 @@
+api_version: 2.0
+uuid: adb199aa-90af-4d23-8ae4-4b9d21af8cc0
+name: HTTP C2 Over Persistent TCP Connection
+authors:
+  - cedowens
+description: |
+  This ttp establishes a simple HTTP C2 beacon connection that is open for at least an hour.
+requirements:
+  platforms:
+    - os: linux
+mitre:
+  tactics:
+    - TA0011 Command and Control
+  techniques:
+    - T1071 Application Layer Protocol
+  subtechniques:
+    - T1071.001 Web Protocols
+
+args:
+
+  - name: server_host
+    description: hostname (example.com) or IP address (127.0.0.1) to send requests
+    type: string
+    default: localhost
+
+  - name: max_time
+    description: Connection length in seconds
+    type: int
+    default: 4000
+
+  - name: interval
+    description: Seconds between HTTP requests
+    type: int
+    default: 5
+
+  - name: traffic
+    description: Send HTTP traffic
+    type: bool
+    default: false
+
+steps:
+  - name: client
+  {{if .Args.traffic}}
+    description: Establish a persistent C2 beacon that sends HTTP requests every {{.Args.interval}} seconds to {{.Args.server_host}}
+    executor: python3
+    inline: |
+      import http.client
+      import time
+
+      startTime = time.time()
+
+      conn = http.client.HTTPConnection("{{.Args.server_host}}", 80)
+      while True:
+        conn.request("GET","/")
+        response = conn.getresponse().read()
+        print(".", end = "", flush = True)
+        if time.time() - startTime >= {{.Args.max_time}}:
+          break
+        time.sleep({{.Args.interval}})
+      conn.close()
+      print("\nConnection Closed")
+
+  {{else}}
+    description: Establish a persistent C2 beacon that lasts {{.Args.max_time}} seconds
+    executor: bash
+    inline: |
+        echo -e "GET / HTTP/1.1\r\nConnection: keep-alive\r\n\r\n" | nc -v {{.Args.server_host}} 80 -w {{.Args.max_time}}
+
+        echo -e "\nTime Limit Reached\nConnection Closing..."
+
+  {{end}}
