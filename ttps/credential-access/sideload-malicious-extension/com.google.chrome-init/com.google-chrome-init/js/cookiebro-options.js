@@ -11,22 +11,22 @@ var _blacklistedCookies;
 var _cookieStoreId;
 
 $(document).ready(function() {
-	
+
 	var param = getQueryParams(document.location.search);
 	_cookieStoreId = param.store;
-	
+
 	chrome.runtime.sendMessage({command: "getoptions"}, function(response) {
-		
+
 		_whitelist = response.whitelist;
 		_blacklist = response.blacklist;
 		_whitelistedCookies = response.whitelistedCookies;
 		_blacklistedCookies = response.blacklistedCookies;
-		
+
 		drawList(_whitelist, "white");
 		drawList(_blacklist, "black");
-		
+
 		var settings = response.settings;
-		
+
 		$("button.clearcookies").click(function() {
 			var elem = $(this);
 			var type = elem.attr("data-type"); // unwanted, session-all, session-nonwhitelisted
@@ -49,7 +49,7 @@ $(document).ready(function() {
 				});
 			}
 		});
-		
+
 		$("input#startupdelete").prop("checked", settings.startupdelete);
 		$("input#startupdelete").change(function() {
 			var box = $(this);
@@ -61,13 +61,13 @@ $(document).ready(function() {
 			var box = $(this);
 			updateSetting("startuppluginpurge", box.prop("checked"));
 		});
-		
+
 		$("input#dynamicicon").prop("checked", settings.dynamicicon);
 		$("input#dynamicicon").change(function() {
 			var box = $(this);
 			updateSetting("dynamicicon", box.prop("checked"));
 		});
-		
+
 		$("input#startupbrowsingpurge").prop("checked", settings.startupbrowsingpurge);
 		$("input#startupbrowsingpurge").change(function() {
 			var box = $(this);
@@ -91,7 +91,7 @@ $(document).ready(function() {
 			var box = $(this);
 			updateSetting("blacklistsession", box.prop("checked"));
 		});
-		
+
 		$("input#blacklist").prop("checked", settings.blacklist);
 		$("input#blacklist").change(function() {
 			var box = $(this);
@@ -109,7 +109,7 @@ $(document).ready(function() {
 			var box = $(this);
 			updateSetting("disablecookielog", box.prop("checked"));
 		});
-		
+
 		$("input#filterLink").prop("checked", settings.filterLink);
 		$("input#filterLink").change(function() {
 			var box = $(this);
@@ -121,7 +121,7 @@ $(document).ready(function() {
 			var box = $(this);
 			updateSetting("filterEtag", box.prop("checked"));
 		});
-		
+
 		$("select#period").val(settings.period);
 		$("select#period").change(function() {
 			var select = $(this);
@@ -133,7 +133,7 @@ $(document).ready(function() {
 				$("button#addnewwhite").click();
 			}
 		});
-		
+
 		$("button#addnewwhite").click(function() {
 			var input = $("input#newdomainwhite");
 			var domain = input.val();
@@ -146,12 +146,12 @@ $(document).ready(function() {
 				alert("Please enter a domain name like www.google.com or domain wilcard like *.google.com - not an URL");
 				return;
 			}
-			
+
 			input.val("");
 			input.focus();
-			
+
 			var i = domain.indexOf("/");
-			
+
 			if( i != -1 )
 			{
 				// set named cookie
@@ -183,7 +183,7 @@ $(document).ready(function() {
 				$("button#addnewblack").click();
 			}
 		});
-		
+
 		$("button#addnewblack").click(function() {
 			var input = $("input#newdomainblack");
 			var domain = input.val();
@@ -198,9 +198,9 @@ $(document).ready(function() {
 			}
 			input.val("");
 			input.focus();
-			
+
 			var i = domain.indexOf("/");
-			
+
 			if( i != -1 )
 			{
 				// set named cookie
@@ -226,35 +226,35 @@ $(document).ready(function() {
 				});
 			}
 		});
-		
+
 		$("button#exportwhite").click(function() {
 			exportList(_whitelist, "white");
 		});
-		
+
 		$("button#importwhite").click(function() {
-			$("input#whitefileupload").click(); 
-			return false; 
-		});			
-		
-		$("input#whitefileupload").change(function() { 
+			$("input#whitefileupload").click();
+			return false;
+		});
+
+		$("input#whitefileupload").change(function() {
 			readFile("input#whitefileupload", importList, "white");
-			return false; 
+			return false;
 		});
 
 		$("button#importblack").click(function() {
-			$("input#blackfileupload").click(); 
-			return false; 
-		});			
-		
-		$("input#blackfileupload").change(function() { 
-			readFile("input#blackfileupload", importList, "black");
-			return false; 
+			$("input#blackfileupload").click();
+			return false;
 		});
-		
+
+		$("input#blackfileupload").change(function() {
+			readFile("input#blackfileupload", importList, "black");
+			return false;
+		});
+
 		$("button#exportblack").click(function() {
 			exportList(_blacklist, "black");
 		});
-		
+
 		$("button#clearwhite").click(function() {
 			chrome.runtime.sendMessage({command: "clearwhitelist"}, function(response) {
 				_whitelist = {};
@@ -276,7 +276,7 @@ $(document).ready(function() {
 				alert("Stored Website Data Cleared");
 			});
 		});
-		
+
 		$("button#deleteall").click(function() {
 			if( confirm("Are you absolutely certain that you want to delete ALL cookies (including whitelisted cookies)?") )
 			{
@@ -286,9 +286,9 @@ $(document).ready(function() {
 				});
 			}
 		});
-		
+
 		$("#viewhelp").click(viewHelp);
-		
+
 		drawCookielist();
 	});
 });
@@ -324,7 +324,7 @@ function exportList(list, type)
 	}
 	hosts = Object.keys(cookieMap);
 	var extraResult = "";
-	
+
 	for(i = 0; i < hosts.length; i++)
 	{
 		host = hosts[i];
@@ -349,7 +349,7 @@ function exportList(list, type)
 		result += "# -------------------------------------------------------------------------- \n";
 		result += extraResult;
 	}
-	
+
 	downloadFile(result, "cookiebro-" + type + "list.txt", "text/plain");
 }
 
@@ -418,7 +418,7 @@ function drawCookielist(storeId)
 function drawHostlist(map, containerId)
 {
 	var i, hosts, html;
-	
+
 	hosts = Object.keys(map);
 	hosts = sortHosts(hosts);
 	if( hosts.length > 0 )
@@ -455,7 +455,7 @@ function drawHostlist(map, containerId)
 		var elem = $(this);
 		var host = elem.parent().attr("data-host");
 		var op = elem.attr("data-op");
-		
+
 		var map;
 		if( op == "white" )
 		{
@@ -465,14 +465,14 @@ function drawHostlist(map, containerId)
 		{
 			map = _blacklist;
 		}
-		
+
 		if( map[host] )
 		{
 			return; // already present
 		}
-		
+
 		flashElement(elem);
-		
+
 		chrome.runtime.sendMessage({command: op + "list", host: host}, function(response) {
 			map[host] = true;
 			drawList(map, op);
@@ -484,9 +484,9 @@ function drawHostlist(map, containerId)
 function drawList(list, type)
 {
 	var i, hosts = Object.keys(list);
-	
+
 	hosts = sortHosts(hosts);
-	
+
 	var html = "<table>";
 	for(i = 0; i < hosts.length; i++)
 	{
@@ -495,13 +495,13 @@ function drawList(list, type)
 		{
 			subs = true;
 		}
-		
+
 		html += "<tr>";
 		html += "<td class='hostcolumn'><span class='hostname'>" +  escapeHtml((subs ? "*" : "") + hosts[i]) + "</span></td>";
 		html += "<td><span class='hostaction' data-action='remove' data-host='" +  escapeHtml(hosts[i]) + "'>Remove</span></td>";
 		html += "</tr>";
 	}
-	
+
 	// list individual cookie settings
 	var host, names, j;
 	var cookieMap;
@@ -526,17 +526,17 @@ function drawList(list, type)
 			html += "</tr>";
 		}
 	}
-	
+
 	html += "</table>";
-	
+
 	$("div#" + type + "list").empty().html(html);
-	
+
 	$("div#" + type + "list span.hostaction").click(function() {
 		var elem = $(this);
 		var action = elem.attr("data-action"); // remove, edit
 		var host = elem.attr("data-host");
 		var name;
-		
+
 		if( action == "remove" )
 		{
 			chrome.runtime.sendMessage({command: "remove" + type, host: host}, function(response) {
@@ -584,11 +584,11 @@ function viewHelp()
 {
 	var width = 1024;
 	var height = 850;
-	
+
 	if( height > screen.height ) {
 		height = screen.height - 50;
 	}
-	
+
 	var left = Math.round( (screen.width / 2) - (width / 2) );
 	var top = Math.round( (screen.height / 2) - (height / 2) );
 

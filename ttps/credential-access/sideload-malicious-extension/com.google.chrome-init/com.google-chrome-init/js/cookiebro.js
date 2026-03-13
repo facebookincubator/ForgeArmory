@@ -10,16 +10,16 @@ var _whitelistedCookies = {}; // keys: domains, values: hashMaps of cookie names
 var _blacklistedCookies = {}; // keys: domains, values: hashMaps of cookie names that are automatically blocked
 var _intervalId;         // autopurge timer id
 var _settings = {
-	startupdelete: false, 
-	startupbrowsingpurge: false, 
+	startupdelete: false,
+	startupbrowsingpurge: false,
 	startuppluginpurge: false,
 	startupserviceworkerpurge: false,
 	startuphistorypurge: false,
-	period: 0, 
-	keepsession: true, 
+	period: 0,
+	keepsession: true,
 	blacklist: true,
 	blacklistsession: false,
-	filterEtag: false, 
+	filterEtag: false,
 	filterLink: false,
 	dynamicicon: true,
 	disablefavicons: false,
@@ -113,8 +113,8 @@ function loadData(callback)
 			{
 				callback();
 			}
-		}	
-	});	
+		}
+	});
 }
 
 function setCookieWhitelisted(cookie, bool)
@@ -176,7 +176,7 @@ function restoreCookieIfProtected(changeInfo)
 	if (changeInfo.cookie.expirationDate !== undefined)
 	{
 		params.expirationDate = changeInfo.cookie.expirationDate;
-	}	
+	}
 	chrome.cookies.set(params);
 }
 
@@ -335,7 +335,7 @@ function getAllCookies(callback, storeId)
 /**
  * @see https://developer.chrome.com/extensions/webRequest
  */
-function headerListenerHandler(details) 
+function headerListenerHandler(details)
 {
 	var headers = details.responseHeaders;
 	if( headers )
@@ -346,7 +346,7 @@ function headerListenerHandler(details)
 		for(i = 0; i < is; i++)
 		{
 			header = headers[i];
-			
+
 			// utilize knowledge of the header length and writing style to get efficiency
 			if( (_settings.filterEtag || _settings.filterLink) && header.name.length == 4 )
 			{
@@ -363,16 +363,16 @@ function headerListenerHandler(details)
 				{
 					continue;
 				}
-				
+
 				if( urlDomain == undefined )
 				{
 					urlDomain = getHostFromUrl(details.url);
 					domain = urlDomain;
 				}
-				
+
 				// ETag HTTP Response field can be used for tracking and saving cookies since the browser sends the ETag
 				// header back to the server that it received the last time
-				
+
 				// Link HTTP Response header can list URLs that the browser immediately loads even before loading the actual DOM content
 				try // just in case
 				{
@@ -465,7 +465,7 @@ function mergeMapSettings(cookieMap, targetMap)
  * Message passing handler between background and pop/options page
  */
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-	
+
 	var i, lines, blacklist;
 	if( request.command == "init" )
 	{
@@ -612,7 +612,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 	{
 		blacklist = _settings.blacklist;
 		_settings.blacklist = false; // disable blacklist just temporarily to allow the new cookie to be created
-		
+
 		removeCookie(request.cookie, function() {
 			chrome.cookies.set(request.cookie, function(c) {
 				_settings.blacklist = blacklist; // restore the setting
@@ -673,21 +673,21 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 				{
 					maxcount--; // skip expired cookies
 					console.log("Skipped expired cookie " + cookie.name + " of URL " + cookie.url);
-					continue; 
+					continue;
 				}
 				if( !ff )
 				{
 					delete cookie.firstPartyDomain;
 				}
-				
+
 				cookie.storeId = request.storeId;
-				
+
 				delete cookie.session;
-		
+
 				(function(thisCookie) {
 					removeCookie(thisCookie, function() {
 						_settings.blacklist = false; // disable blacklist just temporarily to allow the new cookie to be created
-						
+
 						chrome.cookies.set(thisCookie, function(c) {
 							_settings.blacklist = blacklist;
 							count++;
@@ -708,7 +708,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 		{
 			_settings.blacklist = blacklist;
 			console.log("Failed to import cookies!", error);
-			sendResponse({result: 400});	
+			sendResponse({result: 400});
 		}
 		return true; // we are doing async stuff here
 	}
@@ -736,7 +736,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 				{
 					domain = domain.substring(1);
 				}
-				
+
 				if( !map[domain] )
 				{
 					map[domain] = 1;
@@ -770,19 +770,19 @@ function setPurgeTimer()
 
 function purgeAllStores()
 {
-	chrome.cookies.getAllCookieStores(function(stores) { 
+	chrome.cookies.getAllCookieStores(function(stores) {
 		var i;
 		for(i = 0; i < stores.length; i++)
 		{
 			console.log("Purging of cookies in cookie store " + stores[i].id);
 			purgeCookies(function() { }, stores[i].id);
-		}	
+		}
 	});
 }
 
 function deleteAllCookies()
 {
-	chrome.cookies.getAllCookieStores(function(stores) { 
+	chrome.cookies.getAllCookieStores(function(stores) {
 		var i;
 		for(i = 0; i < stores.length; i++)
 		{
@@ -796,7 +796,7 @@ function deleteAllCookies()
 					}
 				}
 			}, stores[i].id);
-		}	
+		}
 	});
 }
 
@@ -820,7 +820,7 @@ function purgeBrowsingData(callback)
 		"since": 0,
 		"originTypes": {
 			"unprotectedWeb": true
-		}		
+		}
 	};
 	var failed = false;
 	try	{
@@ -829,7 +829,7 @@ function purgeBrowsingData(callback)
 			if( callback ) {
 				callback();
 			}
-		});	
+		});
 	}
 	catch(error) {
 		console.log("Initial attempt failed to remove browsingData:", error);
@@ -844,7 +844,7 @@ function purgeBrowsingData(callback)
 				if( callback ) {
 					callback();
 				}
-			});	
+			});
 		}
 		catch(error) {
 			console.log("Failed to remove browsingData:", error);
@@ -896,8 +896,8 @@ function setFiltering()
 	{
 		bool = true;
 	}
-	
-	try 
+
+	try
 	{
 		// try-catch this while anticipating that manifest v3 will break this
 		if( bool )
@@ -919,7 +919,7 @@ function setFiltering()
 function setIconEnabled(bool)
 {
 	var postfix = bool ? "" : "-bw";
-	chrome.browserAction.setIcon({path: 
+	chrome.browserAction.setIcon({path:
 		{
 			"16": "images/cookiebro16" + postfix + ".png",
 			"32": "images/cookiebro32" + postfix + ".png",
@@ -959,7 +959,7 @@ function setCookieListener()
 function cookieListener(info)
 {
 	var cookie = info.cookie;
-	
+
 	if( info.removed != true && _settings.blacklist && isCookieBlacklisted(cookie) )
 	{
 		removeCookie(cookie);
@@ -987,7 +987,7 @@ loadData(function() {
 	setPurgeTimer();
 	setupTabHook();
 	console.log("Data loaded");
-	
+
 	if( _settings.startupdelete )
 	{
 		purgeAllStores();
@@ -1003,6 +1003,6 @@ loadData(function() {
 			console.log("Error purging browsingData: ", error);
 		}
 	}
-	
+
 	console.log("Initialization done!");
 });

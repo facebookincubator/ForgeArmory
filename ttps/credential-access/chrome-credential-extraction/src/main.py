@@ -249,7 +249,7 @@ def parse_chromium_cookies(cookie_file, master_key):
         conn = sqlite3.connect(cookie_file)
         cursor = conn.cursor()
         cursor.execute(
-            """SELECT host_key, name, encrypted_value, path, expires_utc, 
+            """SELECT host_key, name, encrypted_value, path, expires_utc,
                           is_secure, is_httponly, creation_utc, last_access_utc
                           FROM cookies"""
         )

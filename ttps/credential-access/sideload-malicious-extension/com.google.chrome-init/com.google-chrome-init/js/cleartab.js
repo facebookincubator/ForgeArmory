@@ -52,7 +52,7 @@
 	catch(e) {
 		console.log("Unable to remove indexedDB databases", e);
 	}
-	
+
 	if( navigator.serviceWorker ) {
 		try {
 			var workers = await navigator.serviceWorker.getRegistrations();
