@@ -4,11 +4,11 @@
  * Advanced cookie manager WebExtension by Nodetics <nodetics@gmail.com>
  * All Rights Reserved (C)
  */
-var _isFirefox; 
+var _isFirefox;
 var _isFirstPartyIsolationSupported;
 var _lastUrl;
 var _lastCookie;
- 
+
 function sortHosts(hosts)
 {
 	var sorted_hosts = [];
@@ -18,7 +18,7 @@ function sortHosts(hosts)
 	for(h in hosts)
 	{
 		segments = hosts[h].split('.');
-		segments.reverse(); 
+		segments.reverse();
 		split_hosts.push(segments);
 	}
 	split_hosts.sort();
@@ -43,9 +43,9 @@ function isFirstPartyIsolationSupported()
 	{
 		return _isFirstPartyIsolationSupported;
 	}
-	
+
 	_isFirstPartyIsolationSupported = isFirefox() && getBrowserVersion() >= 59;
-	
+
 	try
 	{
 		if( isFirefox() )
@@ -80,7 +80,7 @@ function getBrowserVersion()
 	return match ? parseInt(match[2]) : 0;
 }
 
-function downloadFile(data, filename, mimeType) 
+function downloadFile(data, filename, mimeType)
 {
     var file = new Blob([data], {type : mimeType});
 	var href = window.URL.createObjectURL(file);
@@ -98,17 +98,17 @@ function readFile(containerId, callback, type)
 	{
 		var fileInput = $(containerId);
 		var f = fileInput.prop("files"); // returns an object of type "FileList" which has File elements
-		
-		if( f == undefined || f.length < 1 ) 
+
+		if( f == undefined || f.length < 1 )
 		{
 			console.log("No file selected!");
 			return;
-		}	
-		
+		}
+
 		var file = f[0]; // select the first file
 		var r = new FileReader();
-		r.onload = function(e) 
-		{ 
+		r.onload = function(e)
+		{
 			var contents = e.target.result;
 			// e.target.fileName should contain the source filename (use it later as default when exporting)
 			callback(contents, file, type);
@@ -147,7 +147,7 @@ function getDomainIcon(domain)
 
 /**
  * @see https://tools.ietf.org/html/rfc6265
- */ 
+ */
 function checkDomain(list, domain)
 {
 	if( list[domain] || list["." + domain] )
@@ -162,7 +162,7 @@ function checkDomain(list, domain)
 	{
 		return true; // if list has "mysite.com" and cookie domain is "www.mysite.com", consider it a match
 	}
-	
+
 	if( domain && domain.length > 1 && domain.charAt(0) == '.' )
 	{
 		domain = domain.substring(1); // .addons.mozilla.org -> addons.mozilla.org
@@ -180,7 +180,7 @@ function checkDomain(list, domain)
 			return false;
 		}
 		domain = domain.substring(a);
-		if( list[domain] ) 
+		if( list[domain] )
 		{
 			return true;
 		}
@@ -198,7 +198,7 @@ function isCookieBlacklisted(cookie) {
 
 function checkSingle(list, cookie) {
 	var domain = cookie.domain;
-	
+
 	if( doesMatch(list, domain, cookie.name) ) {
 		return true;
 	}

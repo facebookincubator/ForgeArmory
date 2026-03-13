@@ -8,9 +8,9 @@ $(document).ready(function() {
 	chrome.tabs.query({active: true, currentWindow: true}, function(arrayOfTabs) {
 		var tab = arrayOfTabs[0];
 		var cookieStoreId = tab.cookieStoreId || "0"; // WebKit based browsers don't have this, default to "0"
-		
+
 		var host = getHostFromUrl(tab.url);
-		
+
 		var tophost;
 		var items = host.split(".");
 		if( items.length > 1 ) // host can be localhost so check this
@@ -18,16 +18,16 @@ $(document).ready(function() {
 			items.shift();
 			tophost = items.join(".");
 		}
-		
+
 		var param = "?store=" + cookieStoreId;
-		
+
 		chrome.runtime.sendMessage({command: "init", host: host, storeId: cookieStoreId}, function(response) {
 			var matchingRules = response.matchingRules;
-			
+
 			var i, html = "<div class='menu'>";
 			if( tab.url.indexOf("http") == 0 )
 			{
-				if( matchingRules.length > 0 )	
+				if( matchingRules.length > 0 )
 				{
 					for(i = 0; i < matchingRules.length; i++) {
 						html += "<div class='menuItem removeHost' data-host='" + matchingRules[i].host + "'>Remove <span class='host'>" + matchingRules[i].display + "</span> from whitelist</div>";
@@ -40,7 +40,7 @@ $(document).ready(function() {
 					if( tophost != undefined )
 					{
 						html += "<div class='menuItem addHost' data-host='." + tophost + "'>Add <span class='host'>*." + tophost + "</span> to cookie whitelist</div>";
-					}	
+					}
 				}
 			}
 			if( response.unwanted > 0 ) {
@@ -54,13 +54,13 @@ $(document).ready(function() {
 			html += "<div class='menuItem' id='editor'>Cookie Editor</div>";
 			html += "<div class='menuItem' id='log'>Cookie Log</div>";
 			html += "</div>";
-			
+
 			$("body").html(html);
-			
+
 			$("div.addHost").click(function() {
 				var item = $(this);
 				var ahost = item.attr("data-host");
-				
+
 				chrome.runtime.sendMessage({command: "whitelist", host: ahost}, function(response) {
 					alertify.success("Added to whitelist successfully!");
 					setTimeout(function() { window.close(); }, 2000);
@@ -69,7 +69,7 @@ $(document).ready(function() {
 			$("div.removeHost").click(function() {
 				var item = $(this);
 				var ahost = item.attr("data-host");
-				
+
 				chrome.runtime.sendMessage({command: "removewhite", host: ahost}, function(response) {
 					alertify.success("Removed from whitelist successfully!");
 					setTimeout(function() { window.close(); }, 2000);
@@ -117,9 +117,9 @@ function openTab(title, url)
 		else
 		{
 			chrome.tabs.create({'url': url});
-		}	
+		}
 		window.close();
-	});	
+	});
 }
 
 function isFirefox() {

