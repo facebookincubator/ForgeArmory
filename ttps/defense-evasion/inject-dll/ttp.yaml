@@ -47,7 +47,8 @@ steps:
       ./inject.exe
       sleep 2
   - name: Killing explorer.exe for cleanup
-    kill_process_name: explorer.exe
+    kill_process:
+      name: "explorer.exe"
   - name: Cleaning up files
     executor: powershell
     inline: |
@@ -56,4 +57,5 @@ steps:
       Start-Process -FilePath "explorer.exe"
       sleep 2
   - name: Killing notepad.exe for cleanup
-    kill_process_name: Notepad.exe
+    kill_process:
+      name: "Notepad.exe"
