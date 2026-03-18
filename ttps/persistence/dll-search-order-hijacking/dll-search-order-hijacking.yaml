@@ -29,7 +29,8 @@ steps:
         checksum:
           sha256: 7d408b0b702b0cba002db15b2ed35fdf794f11013eb055c825fd4b5f78a4d089
   - name: Killing explorer.exe
-    kill_process_name: explorer.exe
+    kill_process:
+      name: "explorer.exe"
   - name: Copying malicious DLL to C:\Windows
     executor: powershell
     inline: |
@@ -44,7 +45,8 @@ steps:
     inline: |
       Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
   - name: Killing explorer.exe for cleanup
-    kill_process_name: explorer.exe
+    kill_process:
+      name: "explorer.exe"
   - name: Cleanup
     executor: powershell
     inline: |
