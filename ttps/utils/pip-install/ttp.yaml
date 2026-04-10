@@ -4,6 +4,7 @@ uuid: 81d231c1-d5b1-4132-8b44-e4733e58b904
 name: "pip Package Installer"
 authors:
   - jazzyle
+  - isaac_fletcher
 description: |
   "This helper-TTP is designed to install python libraries needed for other ttps."
 mitre:
@@ -15,32 +16,30 @@ mitre:
     - T1059.006 Python
 args:
   - name: modules
-    description: |
-      Space delimited list of python libraries needed to be installed
+    description: Space-separated list of Python packages to install
     type: string
+  - name: proxy
+    description: Optional proxy address for pip install
+    default: ""
 steps:
-  - name: pip_check
-    description: |
-      Checks if pip is installed.
-    executor: python3
-    inline: |
-      import sys
-      import subprocess
-      try:
-        import pip
-      except ImportError:
-        try:
-          subprocess.run([sys.executable, "-m", "ensurepip", "--upgrade"], check=True)
-        except:
-          print("pip is not installed. Please install pip and try again.", file=sys.stderr)
-          sys.exit(1)
-
   - name: install
-    description: "Installing python packages: {{.Args.modules}}"
-    executor: python3
+    description: "Install Python packages: {{.Args.modules}}"
     inline: |
-      import sys
-      import shlex
-      import subprocess
-      modules = shlex.split("{{.Args.modules}}")
-      subprocess.run([sys.executable, "-m", "pip", "install", *modules], check=True)
+      python3 -m ensurepip --upgrade 2>/dev/null || {
+        echo "pip is not available and ensurepip failed" >&2
+        exit 1
+      }
+
+      PROXY_FLAG=""
+      {{if .Args.proxy}}
+      PROXY_FLAG="--proxy {{.Args.proxy}}"
+      {{end}}
+
+      for pkg in {{.Args.modules}}; do
+        if python3 -m pip show "${pkg}" >/dev/null 2>&1; then
+          echo "[*] ${pkg} already installed, skipping"
+        else
+          echo "[*] Installing ${pkg}"
+          python3 -m pip install -q "${pkg}" ${PROXY_FLAG}
+        fi
+      done

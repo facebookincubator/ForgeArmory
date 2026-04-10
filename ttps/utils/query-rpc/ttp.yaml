@@ -1,0 +1,44 @@
+---
+api_version: 2.0
+uuid: e06db4b3-de3b-4360-a990-569ca61aa72d
+name: Query RPC
+authors:
+  - isaac_fletcher
+description: |
+  This TTP uses rpcclient to perform RPC queries against an Active Directory Domain Controller.
+requirements:
+  platforms:
+    - os: linux
+args:
+  - name: host
+    description: The Domain Controller IP or hostname to target
+  - name: username
+    description: The username for RPC authentication (leave nil for anonymous query)
+    default: NIL
+  - name: password
+    description: The password for the user (leave nil for anonymous query)
+    default: NIL
+  - name: query
+    description: The RPC query to execute (e.g., enumdomusers, enumdomgroups, queryuser)
+steps:
+  - name: ensure_rpcclient_installed
+    description: Install rpcclient if not already installed
+    inline: |
+      if ! command -v rpcclient &> /dev/null; then
+        echo "rpcclient not found, installing..."
+        sudo dnf install samba-client -y
+      fi
+  - name: execute_rpc_query
+    description: Execute rpcclient to query RPC
+    inline: |
+      if [ "{{.Args.username}}" = "NIL" ] || [ "{{.Args.password}}" = "NIL" ]; then
+        # Anonymous/null session query (no credentials provided)
+        CMD="rpcclient -U '' -N {{.Args.host}} -c '{{.Args.query}}'"
+      else
+        # Authenticated query
+        CMD="rpcclient -U '{{.Args.username}}%{{.Args.password}}' {{.Args.host}} -c '{{.Args.query}}'"
+      fi
+
+      echo "Executing: $(echo "$CMD" | sed "s/%[^']*'/%<REDACTED>'/g")"
+
+      eval "$CMD"

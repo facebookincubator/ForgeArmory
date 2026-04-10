@@ -1,0 +1,77 @@
+---
+api_version: 2.0
+uuid: a3f7c892-4e51-4d8f-b6a2-1c9d5e3f8a72
+name: SMB File Download
+authors:
+  - isaac_fletcher
+description: |
+  Generic utility to download files from an SMB share.
+
+  This TTP connects to an SMB share and downloads files from a specified
+  remote path to a local directory.
+requirements:
+  platforms:
+    - os: linux
+mitre:
+  tactics:
+    - TA0009 Collection
+  techniques:
+    - T1039 Data from Network Shared Drive
+args:
+  - name: server
+    description: The SMB server hostname or IP address
+  - name: share
+    description: The SMB share name (e.g., SYSVOL, C$, NETLOGON)
+  - name: remote_path
+    description: The path on the remote share to download from (e.g., "domain.com/Policies/{GUID}")
+  - name: username
+    description: The username in DOMAIN\\user format for SMB authentication
+  - name: password
+    description: The password for the user
+  - name: output_dir
+    description: Local directory to save downloaded files
+    default: /tmp/smb_download
+  - name: recurse
+    description: Whether to recursively download files
+    type: bool
+    default: true
+  - name: ignore_errors
+    description: Whether to ignore errors and continue downloading files
+    type: bool
+    default: false
+steps:
+  - name: ensure_smbclient_installed
+    description: Install smbclient if not already installed
+    inline: |
+      if ! command -v smbclient &> /dev/null; then
+        echo "smbclient not found, installing..."
+        sudo dnf install samba-client -y
+      fi
+  - name: download_from_smb
+    description: Connect to SMB share and download files
+    inline: |
+      mkdir -p "{{.Args.output_dir}}"
+
+      SMB_DOMAIN=$(echo "{{.Args.username}}" | cut -d'\' -f1)
+      SMB_USER=$(echo "{{.Args.username}}" | cut -d'\' -f2)
+
+      RECURSE_OPT=""
+      if [ "{{.Args.recurse}}" = "true" ]; then
+        RECURSE_OPT="recurse ON;"
+      fi
+
+      if smbclient "//{{.Args.server}}/{{.Args.share}}" \
+        -U "${SMB_DOMAIN}\\${SMB_USER}%{{.Args.password}}" \
+        -c "lcd \"{{.Args.output_dir}}\"; cd \"{{.Args.remote_path}}\"; ${RECURSE_OPT} prompt OFF; mget *" \
+        2>/dev/null; then
+        echo "[+] Downloaded //{{.Args.server}}/{{.Args.share}}/{{.Args.remote_path}}"
+        find "{{.Args.output_dir}}" -type f -printf "    -> %p\n"
+      else
+        echo "[-] Failed to download from: {{.Args.remote_path}}"
+        {{ if not .Args.ignore_errors }} exit 1 {{ end }}
+      fi
+    cleanup:
+      inline: |
+        if [ -d "{{.Args.output_dir}}" ]; then
+          rm -rf "{{.Args.output_dir}}"
+        fi

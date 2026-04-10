@@ -1,0 +1,48 @@
+---
+api_version: 2.0
+uuid: 348a0c83-3b51-4d07-9404-ce7b15b8aaaf
+name: Enumerate Kerberoastable Users via LDAP
+authors:
+  - isaac_fletcher
+description: |
+  This TTP uses LDAP to enumerate Active Directory user accounts that are vulnerable
+  to Kerberoasting. Kerberoasting targets user accounts that have Service Principal
+  Names (SPNs) registered. An attacker can request TGS tickets for these accounts
+  and crack them offline to recover the service account password.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1087 Account Discovery
+  subtechniques:
+    - T1087.002 Domain Account
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: bind_user
+    description: The bind username in DOMAIN\\user format for LDAP authentication
+  - name: bind_password
+    description: The password for the bind user
+  - name: use_ldaps
+    description: Use LDAPS (LDAP over SSL, port 636) instead of LDAP (port 389)
+    type: bool
+    default: false
+steps:
+  - name: enumerate_kerberoastable_users
+    description: Enumerate Active Directory accounts vulnerable to Kerberoasting via LDAP search
+    ttp: //utils/query-ldap/ttp.yaml
+    args:
+      domain: "{{ .Args.domain }}"
+      dc: "{{ .Args.dc }}"
+      bind_user: '{{ .Args.bind_user }}'
+      bind_password: "{{ .Args.bind_password }}"
+      search_filter: "'(&(servicePrincipalName=*)(objectCategory=user)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))(!(sAMAccountName=krbtgt)))' sAMAccountName userPrincipalName servicePrincipalName distinguishedName"
+      use_ldaps: "{{ .Args.use_ldaps }}"

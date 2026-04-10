@@ -1,0 +1,74 @@
+---
+api_version: 2.0
+uuid: 4775b841-2db5-4a14-8ec4-a1f2a62e6fb0
+name: Enumerate Active Directory via DNS SRV Records
+authors:
+  - isaac_fletcher
+description: |
+  This TTP uses dig to query DNS SRV records for Active Directory service discovery.
+  It enumerates Domain Controllers, Global Catalog servers, Kerberos KDCs, and other
+  AD-related services by querying standard AD DNS SRV records.
+  If no host is specified, queries are sent to the system's default DNS resolver.
+requirements:
+  platforms:
+    - os: linux
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1018 Remote System Discovery
+args:
+  - name: domain
+    description: The target Active Directory domain / default naming context (e.g., contoso.com)
+    default: contoso.local
+  - name: host
+    description: The Domain Controller IP or hostname to query DNS against
+    default: dc01.contoso.local
+steps:
+  - name: enumerate_ldap_servers
+    description: Query SRV records for LDAP servers hosting the domain
+    inline: |
+      echo "LDAP Servers for {{ .Args.domain }}:"
+      dig @{{ .Args.host }} +tcp +short SRV _ldap._tcp.{{ .Args.domain }}
+
+  - name: enumerate_domain_controllers
+    description: Query SRV records for Domain Controllers
+    inline: |
+      echo "Domain Controllers for {{ .Args.domain }}:"
+      dig @{{ .Args.host }} +tcp +short SRV _ldap._tcp.dc._msdcs.{{ .Args.domain }}
+
+  - name: enumerate_pdc
+    description: Query SRV records for PDC Emulator
+    inline: |
+      echo "PDC Emulator for {{ .Args.domain }}:"
+      dig @{{ .Args.host }} +tcp +short SRV _ldap._tcp.pdc._msdcs.{{ .Args.domain }}
+
+  - name: enumerate_global_catalog
+    description: Query SRV records for Global Catalog servers
+    inline: |
+      echo "Global Catalog Servers for {{ .Args.domain }}:"
+      dig @{{ .Args.host }} +tcp +short SRV _gc._tcp.{{ .Args.domain }}
+
+  - name: enumerate_kerberos_kdc
+    description: Query SRV records for Kerberos KDC over TCP and UDP
+    inline: |
+      echo "Kerberos KDC (TCP) for {{ .Args.domain }}:"
+      dig @{{ .Args.host }} +tcp +short SRV _kerberos._tcp.{{ .Args.domain }}
+
+      echo "Kerberos KDC (UDP) for {{ .Args.domain }}:"
+      dig @{{ .Args.host }} +tcp +short SRV _kerberos._udp.{{ .Args.domain }}
+
+  - name: enumerate_kerberos_dc
+    description: Query SRV records for DCs running KDC over TCP
+    inline: |
+      echo "DCs running Kerberos KDC (TCP) for {{ .Args.domain }}:"
+      dig @{{ .Args.host }} +tcp +short SRV _kerberos._tcp.dc._msdcs.{{ .Args.domain }}
+
+  - name: enumerate_kpasswd
+    description: Query SRV records for Kerberos password change over TCP and UDP
+    inline: |
+      echo "Kerberos Password Change (TCP) for {{ .Args.domain }}:"
+      dig @{{ .Args.host }} +tcp +short SRV _kpasswd._tcp.{{ .Args.domain }}
+
+      echo "Kerberos Password Change (UDP) for {{ .Args.domain }}:"
+      dig @{{ .Args.host }} +tcp +short SRV _kpasswd._udp.{{ .Args.domain }}
