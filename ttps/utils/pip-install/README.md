@@ -5,6 +5,7 @@ A helper TTP designed to install Python libraries needed for other TTPs. It firs
 
 ## Arguments
 - **modules**: Space-delimited list of Python libraries to install (required, type: string)
+- **proxy**: Optional proxy address for pip install and git clone (leave empty for direct connection). Defaults to `""`.
 
 ## Requirements
 - Python 3 must be available.

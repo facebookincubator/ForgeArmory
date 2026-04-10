@@ -1,0 +1,77 @@
+---
+api_version: 2.0
+uuid: 82913e84-39da-4414-981b-615b0054ded9
+name: Query LDAP
+authors:
+  - isaac_fletcher
+description: |
+  This TTP uses ldapsearch to perform LDAP queries against an Active Directory Domain.
+requirements:
+  platforms:
+    - os: linux
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+  - name: bind_user
+    description: The bind username in DOMAIN\\user format for LDAP authentication
+  - name: bind_password
+    description: The password for the bind user
+  - name: search_filter
+    description: The LDAP search filter to enumerate users
+  - name: base_dn_prefix
+    description: Optional prefix to prepend to the auto-generated base DN (e.g., CN=MicrosoftDNS,DC=DomainDnsZones for ADIDNS queries)
+    default: "NIL"
+  - name: result_limit
+    description: The maximum number of results to return
+    type: int
+    default: 50
+  - name: use_ldaps
+    description: Use LDAPS (LDAP over SSL, port 636) instead of LDAP (port 389)
+    type: bool
+    default: false
+  - name: search_scope
+    description: LDAP search scope - base, one, or sub (default sub)
+    default: "sub"
+steps:
+  - name: execute_ldap_query
+    description: Execute ldapsearch to query LDAP
+    inline: |
+      # Generate base DN from domain by splitting at periods
+      # e.g., contoso.local -> DC=contoso,DC=local
+      DOMAIN_DN=$(echo "{{.Args.domain}}" | sed 's/\./,DC=/g' | sed 's/^/DC=/')
+
+      # Apply optional base DN prefix if provided
+      {{if ne .Args.base_dn_prefix "NIL"}}
+      BASE_DN="{{.Args.base_dn_prefix}},${DOMAIN_DN}"
+      {{else}}
+      BASE_DN="${DOMAIN_DN}"
+      {{end}}
+
+      # Determine protocol based on use_ldaps argument
+      {{if .Args.use_ldaps}}
+      LDAP_URI="ldaps://{{.Args.dc}}"
+
+      # Skip certificate verification for LDAPS (required for self-signed/internal certs)
+      export LDAPTLS_REQCERT=never
+      {{else}}
+      LDAP_URI="ldap://{{.Args.dc}}"
+      {{end}}
+
+      CMD="ldapsearch -LLL \
+        -H ${LDAP_URI} \
+        -D '{{.Args.bind_user}}' \
+        -w '{{.Args.bind_password}}' \
+        -z {{.Args.result_limit}} \
+        -s {{.Args.search_scope}} \
+        -b \"${BASE_DN}\" \
+        {{.Args.search_filter}}"
+
+      echo "Executing: $(echo "$CMD" | sed "s/-w '[^']*'/-w '<REDACTED>'/g")"
+
+      eval "$CMD" && EXIT_CODE=0 || EXIT_CODE=$?
+
+      if [ $EXIT_CODE -eq 4 ]; then
+        echo "Size limit of {{.Args.result_limit}} exceeded. Increase the limit for more results."
+      fi

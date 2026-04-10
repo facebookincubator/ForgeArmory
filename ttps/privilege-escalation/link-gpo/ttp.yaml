@@ -1,0 +1,59 @@
+---
+api_version: 2.0
+uuid: c8f2a1b5-3d7e-4f9c-8a6b-2e5d1c0f9b3a
+name: Link GPO to Organizational Unit
+authors:
+  - isaac_fletcher
+description: |
+  Links a Group Policy Object (GPO) to an Organizational Unit (OU) using pyGPO.
+  This is often a prerequisite for GPO abuse - a GPO must be linked to targets
+  before scheduled tasks or other malicious configurations will apply.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0003 Persistence
+    - TA0004 Privilege Escalation
+  techniques:
+    - T1484 Domain or Tenant Policy Modification
+  subtechniques:
+    - T1484.001 Group Policy Modification
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: username
+    description: Username for authentication (without domain prefix)
+  - name: password
+    description: Password for authentication
+  - name: gpo_id
+    description: The GPO GUID to link (e.g., 12345677-ABCD-9876-ABCD-123456789012)
+  - name: target_dn
+    description: The distinguished name of the OU to link the GPO to (e.g., OU=Workstations,DC=contoso,DC=com)
+steps:
+  - name: setup_pygpo
+    description: Install pyGPO
+    ttp: //utils/pip-install/ttp.yaml
+    args:
+      modules: "git+https://github.com/1ncendium/pyGPO"
+
+  - name: link_gpo
+    description: Link the GPO to the target OU
+    inline: |
+      pygpo '{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}' \
+        -dc-ip '{{.Args.dc}}' \
+        -gpo-id '{{.Args.gpo_id}}' \
+        -target-dn '{{.Args.target_dn}}' \
+        -link
+    cleanup:
+      inline: |
+        pygpo '{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}' \
+          -dc-ip '{{.Args.dc}}' \
+          -gpo-id '{{.Args.gpo_id}}' \
+          -target-dn '{{.Args.target_dn}}' \
+          -unlink || true

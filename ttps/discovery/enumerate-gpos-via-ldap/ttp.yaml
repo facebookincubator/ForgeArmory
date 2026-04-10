@@ -1,0 +1,43 @@
+---
+api_version: 2.0
+uuid: 8d9fcdb2-dff3-4deb-93fe-de3394af5551
+name: Enumerate Domain Group Policy via LDAP
+authors:
+  - isaac_fletcher
+description: |
+  This TTP uses LDAP to enumerate GPOs in an Active Directory domain.
+requirements:
+  platforms:
+    - os: linux
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1615 Group Policy Discovery
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: bind_user
+    description: The bind username in DOMAIN\\user format for LDAP authentication
+    default: CONTOSO\\admin
+  - name: bind_password
+    description: The password for the bind user
+  - name: use_ldaps
+    description: Use LDAPS (LDAP over SSL, port 636) instead of LDAP (port 389)
+    type: bool
+    default: false
+steps:
+  - name: enumerate_domain_policy
+    description: Enumerate Active Directory GPOs via LDAP search
+    ttp: //utils/query-ldap/ttp.yaml
+    args:
+      domain: "{{ .Args.domain }}"
+      dc: "{{ .Args.dc }}"
+      bind_user: '{{ .Args.bind_user }}'
+      bind_password: "{{ .Args.bind_password }}"
+      search_filter: "'(objectClass=groupPolicyContainer)'"
+      use_ldaps: "{{ .Args.use_ldaps }}"

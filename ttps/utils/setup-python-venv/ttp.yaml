@@ -1,0 +1,71 @@
+---
+api_version: 2.0
+uuid: a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d
+name: "Setup Python Virtual Environment"
+authors:
+  - isaac_fletcher
+description: |
+  Creates a Python virtual environment with specified package(s) installed.
+  Outputs the venv path to PYTHON_VENV for use by subsequent steps or parent TTPs.
+
+  Supports PyPI packages and git repos (prefix with git+) in the same list:
+    packages: "impacket,git+https://github.com/Hackndo/pyGPOAbuse.git,requests"
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+args:
+  - name: packages
+    description: Package(s) to install (comma-separated). Use git+https:// prefix for git repos.
+  - name: venv_path
+    description: Path where the virtual environment will be created
+    default: /tmp/python_venv
+  - name: clone_path
+    description: Path where git repositories will be cloned
+    default: /tmp/git_repos
+  - name: proxy
+    description: Optional proxy address for pip install and git clone
+    default: ""
+steps:
+  - name: create_venv
+    description: Create Python virtual environment
+    inline: |
+      python3 -m venv {{.Args.venv_path}}
+      echo "{{.Args.venv_path}}"
+    outputvar: PYTHON_VENV
+    cleanup:
+      inline: rm -rf {{.Args.venv_path}}
+
+  - name: install_packages
+    description: Install packages, cloning git repos as needed
+    inline: |
+      source {{.Args.venv_path}}/bin/activate
+
+      PROXY_FLAG=""
+      GIT_PROXY_FLAGS=""
+      {{if .Args.proxy}}
+      PROXY_FLAG="--proxy {{.Args.proxy}}"
+      GIT_PROXY_FLAGS="-c http.proxy={{.Args.proxy}} -c https.proxy={{.Args.proxy}}"
+      {{end}}
+
+      pip install -q --upgrade pip ${PROXY_FLAG}
+
+      rm -rf {{.Args.clone_path}}
+      mkdir -p {{.Args.clone_path}}
+
+      echo "{{.Args.packages}}" | tr ',' '\n' | while read -r pkg; do
+        [ -z "${pkg}" ] && continue
+
+        if echo "${pkg}" | grep -q "^git+https://\|^git+http://"; then
+          repo_url="${pkg#git+}"
+          repo_name=$(basename "${repo_url}" .git)
+          echo "Cloning ${repo_url}"
+          git ${GIT_PROXY_FLAGS} clone "${repo_url}" "{{.Args.clone_path}}/${repo_name}"
+          pip install -q "{{.Args.clone_path}}/${repo_name}" ${PROXY_FLAG}
+        else
+          echo "[*] Installing ${pkg}"
+          pip install -q "${pkg}" ${PROXY_FLAG}
+        fi
+      done
+    cleanup:
+      inline: rm -rf {{.Args.clone_path}}

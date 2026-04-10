@@ -1,0 +1,46 @@
+---
+api_version: 2.0
+uuid: ae1d28f7-823c-4efc-be4e-08f27ac549b4
+name: Enumerate Active Directory Users via RPC
+authors:
+  - isaac_fletcher
+description: |
+  This TTP uses RPC to enumerate all Domain Users in an Active Directory domain.
+requirements:
+  platforms:
+    - os: linux
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1087 Account Discovery
+  subtechniques:
+    - T1087.002 Domain Account
+args:
+  - name: host
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: username
+    description: The username for RPC authentication
+    default: NIL
+  - name: password
+    description: The password for the user
+    default: NIL
+steps:
+  - name: enumerate_domain_users
+    description: Enumerate Active Directory usernames via RPC
+    ttp: //utils/query-rpc/ttp.yaml
+    args:
+      host: "{{ .Args.host }}"
+      username: "{{ .Args.username }}"
+      password: "{{ .Args.password }}"
+      query: "enumdomusers"
+
+  - name: enumerate_domain_admins
+    description: Enumerate Active Directory Domain Admin usernames via RPC
+    ttp: //utils/query-rpc/ttp.yaml
+    args:
+      host: "{{ .Args.host }}"
+      username: "{{ .Args.username }}"
+      password: "{{ .Args.password }}"
+      query: "querygroupmem 0x200"
