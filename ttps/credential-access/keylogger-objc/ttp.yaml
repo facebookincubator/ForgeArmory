@@ -11,7 +11,7 @@ requirements:
     - os: darwin
 mitre:
   tactics:
-    - TA0001 Credential Access
+    - TA0006 Credential Access
   techniques:
     - T1056 Input Capture
   subtechniques:

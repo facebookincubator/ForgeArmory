@@ -11,7 +11,7 @@ requirements:
     - os: darwin
 mitre:
   tactics:
-    - TA0002 Collection
+    - TA0009 Collection
   techniques:
     - T1113 Screen Capture
 args:
