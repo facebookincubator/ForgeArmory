@@ -11,7 +11,7 @@ requirements:
     - os: darwin
 mitre:
   tactics:
-    - TA0011 Command And Control
+    - TA0011 Command and Control
   techniques:
     - T1219 Remote Access Tools
   subtechniques:

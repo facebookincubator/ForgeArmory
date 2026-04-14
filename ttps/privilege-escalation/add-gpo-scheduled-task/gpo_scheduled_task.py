@@ -14,7 +14,7 @@ import re
 import sys
 import uuid
 from datetime import datetime, timedelta
-from xml.sax.saxutils import escape
+from html import escape
 
 from impacket.examples.utils import parse_credentials
 from impacket.smbconnection import SMBConnection
