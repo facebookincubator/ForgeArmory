@@ -1,0 +1,61 @@
+---
+api_version: 2.0
+uuid: 97cda8df-05aa-40ff-b418-3f82a0d38275
+name: Download GPO Configuration from SYSVOL
+authors:
+  - isaac_fletcher
+description: |
+  This TTP downloads Group Policy Object (GPO) configurations from SYSVOL via SMB.
+
+  GPO configurations are stored in SYSVOL at:
+  \\<DOMAIN>\SYSVOL\<DOMAIN>\Policies\{GPO-GUID}\
+
+  This TTP uses the smb-download utility for the actual file retrieval.
+  It accepts a comma-separated list of GPO GUIDs and downloads each one.
+requirements:
+  platforms:
+    - os: linux
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1615 Group Policy Discovery
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: username
+    description: The username in DOMAIN\\user format for SMB authentication
+    default: CONTOSO\\admin
+  - name: password
+    description: The password for the user
+  - name: gpo_guids
+    description: Comma-separated list of GPO GUIDs to download (e.g., "{GUID1},{GUID2}")
+  - name: output_dir
+    description: Directory to save downloaded GPO configurations
+    default: /tmp/gpo_configs
+steps:
+  {{$gpo_guids := splitList "," .Args.gpo_guids}}
+  - name: prepare_output_directory
+    description: Create base output directory
+    inline: |
+      mkdir -p "{{.Args.output_dir}}"
+      echo "[*] Downloading GPOs from SYSVOL: {{.Args.gpo_guids}}"
+
+  {{range $gpo := $gpo_guids}}
+  - name: download_gpo_{{$gpo | replace "{" "" | replace "}" "" | replace "-" "_"}}
+    description: Download GPO {{$gpo}} from SYSVOL
+    ttp: //collection/smb-download/ttp.yaml
+    args:
+      server: "{{$.Args.dc}}"
+      share: "SYSVOL"
+      remote_path: "{{$.Args.domain}}/Policies/{{$gpo}}"
+      username: "{{$.Args.username}}"
+      password: "{{$.Args.password}}"
+      output_dir: "{{$.Args.output_dir}}/{{$gpo}}"
+      recurse: true
+      ignore_errors: true
+  {{end}}

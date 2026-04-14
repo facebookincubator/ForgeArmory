@@ -1,0 +1,64 @@
+---
+api_version: 2.0
+uuid: 8e374a82-a6b9-4866-b434-01c67de7855f
+name: Create Computer Account
+authors:
+  - isaac_fletcher
+description: |
+  Creates a computer account in Active Directory using Impacket's addcomputer.py.
+  Outputs the computer name for use by subsequent steps or parent TTPs.
+  Cleanup deletes the created computer account.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: username
+    description: Username for authentication (without domain prefix)
+  - name: password
+    description: Password for authentication
+  - name: computer_name
+    description: Name for the new computer account (without trailing $)
+  - name: computer_password
+    description: Password to set on the computer account
+    default: "P@ssw0rd123!"
+  - name: method
+    description: |
+      Method to use for account creation.
+      - LDAPS: Creates object directly via LDAPS
+      - SAMR: Uses SamrCreateUser2InDomain
+    choices:
+      - LDAPS
+      - SAMR
+    default: LDAPS
+steps:
+  - name: setup_impacket
+    description: Install impacket
+    ttp: //utils/pip-install/ttp.yaml
+    args:
+      modules: "impacket"
+
+  - name: create_computer
+    description: Create a computer account via addcomputer.py
+    inline: |
+      echo "Creating {{.Args.computer_name}} in {{.Args.domain}}"
+      addcomputer.py \
+        -method '{{.Args.method}}' \
+        -computer-name '{{.Args.computer_name}}' \
+        -computer-pass '{{.Args.computer_password}}' \
+        -dc-ip '{{.Args.dc}}' \
+        '{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}'
+    outputvar: COMPUTER_NAME
+    cleanup:
+      inline: |
+        addcomputer.py \
+          -computer-name '{{.Args.computer_name}}' \
+          -dc-ip '{{.Args.dc}}' \
+          -delete \
+          '{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}'

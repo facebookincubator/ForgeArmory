@@ -1,0 +1,46 @@
+---
+api_version: 2.0
+uuid: abffc9df-62a3-4b47-973c-4dc909038c8c
+name: "Enumerate Active Directory Users via Kerberos"
+authors:
+  - isaac_fletcher
+description: |
+  This TTP enumerates valid usernames in the given Active Directory domain
+  by sending Kerberos AS-REQ messages without pre-authentication data.
+  This technique does not transmit passwords, does not generate failed logon
+  events, and carries no account-lockout risk.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1087 Account Discovery
+  subtechniques:
+    - T1087.002 Domain Account
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: userlist
+    description: Path to the wordlist containing usernames to enumerate
+    default: users.txt
+steps:
+  - name: setup_impacket
+    description: Install impacket
+    ttp: //utils/pip-install/ttp.yaml
+    args:
+      modules: "impacket"
+
+  - name: enumerate_users
+    description: Enumerate valid Active Directory usernames via Kerberos pre-authentication
+    inline: |
+      python3 enumerate_users.py \
+        --domain "{{ .Args.domain }}" \
+        --dc "{{ .Args.dc }}" \
+        "{{ .Args.userlist }}"

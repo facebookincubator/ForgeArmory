@@ -1,0 +1,96 @@
+---
+api_version: 2.0
+uuid: 782e99c6-5270-4d8f-8ac2-ef9b8bd5a545
+name: Enumerate ADIDNS Records via LDAP
+authors:
+  - isaac_fletcher
+description: |
+  This TTP enumerates Active Directory-Integrated DNS (ADIDNS) records via LDAP.
+  It queries DNS zones and records stored in AD DNS partitions, extracting
+  hostnames and IP addresses to discover machines in the domain.
+requirements:
+  platforms:
+    - os: linux
+mitre:
+  tactics:
+    - TA0007 Discovery
+  techniques:
+    - T1018 Remote System Discovery
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: bind_user
+    description: The bind username in DOMAIN\\user format for LDAP authentication
+  - name: bind_password
+    description: The password for the bind user
+  - name: dns_partition
+    description: "DNS partition: domain, forest, or legacy"
+    default: legacy
+  - name: use_ldaps
+    description: Use LDAPS (port 636) instead of LDAP (port 389)
+    type: bool
+    default: false
+steps:
+  - name: enumerate_dns_records
+    description: Enumerate DNS records in the domain zone
+    ttp: //utils/query-ldap/ttp.yaml
+    args:
+      domain: "{{ .Args.domain }}"
+      dc: "{{ .Args.dc }}"
+      bind_user: '{{ .Args.bind_user }}'
+      bind_password: "{{ .Args.bind_password }}"
+      base_dn_prefix: >-
+        DC={{.Args.domain}},{{if eq .Args.dns_partition "forest"}}CN=MicrosoftDNS,DC=ForestDnsZones{{else if eq .Args.dns_partition "legacy"}}CN=MicrosoftDNS,CN=System{{else}}CN=MicrosoftDNS,DC=DomainDnsZones{{end}}
+      search_filter: "'(objectClass=dnsNode)' name dnsRecord"
+      search_scope: "one"
+      use_ldaps: "{{ .Args.use_ldaps }}"
+    outputvar: DNS_RECORDS
+
+  - name: parse_dns_records
+    description: Parse dnsRecord data to extract hostnames and IPs
+    executor: python3
+    inline: |
+      import base64, struct, socket
+
+      RECORD_TYPES = {1: 'A', 2: 'NS', 5: 'CNAME', 6: 'SOA', 12: 'PTR', 28: 'AAAA', 33: 'SRV'}
+      SKIP_NAMES = {'@', 'DomainDnsZones', 'ForestDnsZones'}
+
+      ldif_data = r'''{[{ .StepVars.DNS_RECORDS }]}'''
+
+      # Join LDIF continuation lines (lines starting with space)
+      lines = []
+      for line in ldif_data.split('\n'):
+          if line.startswith(' ') and lines:
+              lines[-1] += line[1:]
+          else:
+              lines.append(line)
+
+      print(f"{'NAME':<40} {'TYPE':<6} {'VALUE'}")
+      print("-" * 60)
+
+      current_name = None
+      for line in lines:
+          line = line.strip()
+
+          if line.startswith('name:'):
+              current_name = line.split(':', 1)[1].strip()
+
+          elif line.startswith('dnsRecord::') and current_name and current_name not in SKIP_NAMES:
+              try:
+                  record = base64.b64decode(line.split('::', 1)[1].strip())
+                  record_type = struct.unpack('<H', record[2:4])[0]
+                  type_name = RECORD_TYPES.get(record_type, '?')
+                  value = ''
+
+                  if record_type == 1 and len(record) >= 28:
+                      value = socket.inet_ntoa(record[24:28])
+                  elif record_type == 28 and len(record) >= 40:
+                      value = socket.inet_ntop(socket.AF_INET6, record[24:40])
+
+                  print(f"{current_name:<40} {type_name:<6} {value}")
+              except:
+                  pass

