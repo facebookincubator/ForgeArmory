@@ -41,3 +41,6 @@ steps:
   - name: exploit_chrome
     file: src/main.py
     args: ['--id={{.Args.id}}', '--wait-time={{.Args.wait_time}}']
+    cleanup:
+      file: src/cleanup.py
+      args: ['--id={{.Args.id}}']
