@@ -45,15 +45,70 @@ steps:
       echo "Creating temp IAM role..."
 
       role_name="{{.Args.lambda_function_name}}-role"
-      aws iam create-role --role-name $role_name --assume-role-policy-document file://trust-policy.json
-      echo "Temp IAM role created: $role_name"
+
+      # TTPForge runs inline steps under errexit, so an unhandled AWS error aborts
+      # the step. Loop to converge the role across concurrent create/delete races
+      # rather than leaving it in the wrong state. Reuse resets the trust policy,
+      # which a leftover role may have drifted from.
+      role_ready=""
+      for _ in 1 2 3; do  # bounded retries; each pass fixes one race-induced flip
+        if err=$(aws iam get-role --role-name "$role_name" 2>&1 >/dev/null); then
+          if uerr=$(aws iam update-assume-role-policy --role-name "$role_name" --policy-document file://trust-policy.json 2>&1 >/dev/null); then
+            echo "Reusing temp IAM role $role_name (assume-role trust policy reset to trust-policy.json)."
+            role_ready="yes"
+            break
+          elif echo "$uerr" | grep -q 'NoSuchEntity'; then
+            echo "Temp IAM role $role_name was deleted concurrently; recreating." >&2
+            continue
+          else
+            echo "Unexpected error updating trust policy on IAM role $role_name: $uerr" >&2
+            exit 1
+          fi
+        elif echo "$err" | grep -q 'NoSuchEntity'; then
+          if cerr=$(aws iam create-role --role-name "$role_name" --assume-role-policy-document file://trust-policy.json 2>&1 >/dev/null); then
+            echo "Temp IAM role created: $role_name"
+            role_ready="yes"
+            break
+          elif echo "$cerr" | grep -q 'EntityAlreadyExists'; then
+            echo "Temp IAM role $role_name was created concurrently; reconciling its trust policy." >&2
+            continue
+          else
+            echo "Unexpected error creating IAM role $role_name: $cerr" >&2
+            exit 1
+          fi
+        else
+          echo "Unexpected error checking for IAM role $role_name: $err" >&2
+          exit 1
+        fi
+      done
+
+      if [ -z "$role_ready" ]; then
+        echo "Failed to converge temp IAM role $role_name after repeated concurrent create/delete races." >&2
+        exit 1
+      fi
 
     cleanup:
       inline: |
         echo "Deleting temp IAM role..."
 
         role_name="{{.Args.lambda_function_name}}-role"
-        aws iam delete-role --role-name $role_name
+        if err=$(aws iam get-role --role-name "$role_name" 2>&1 >/dev/null); then
+          # Tolerate NoSuchEntity: a concurrent cleanup can delete the role
+          # between get-role and delete-role. Don't abort the step under errexit.
+          if derr=$(aws iam delete-role --role-name "$role_name" 2>&1 >/dev/null); then
+            echo "Temp IAM role deleted: $role_name"
+          elif echo "$derr" | grep -q 'NoSuchEntity'; then
+            echo "Temp IAM role $role_name was already deleted concurrently. Skipping."
+          else
+            echo "Unexpected error deleting IAM role $role_name: $derr" >&2
+            exit 1
+          fi
+        elif echo "$err" | grep -q 'NoSuchEntity'; then
+          echo "Temp IAM role $role_name does not exist (already cleaned up or never created). Skipping."
+        else
+          echo "Unexpected error checking for IAM role $role_name during cleanup: $err" >&2
+          exit 1
+        fi
 
   - name: create_s3_bucket
     description: Create a S3 bucket with a random string name.
