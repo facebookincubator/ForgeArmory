@@ -18,6 +18,29 @@ Reference: https://syntax-err0r.github.io/Return_Of_The_Extension.html
 
 Reference: https://www.cse.chalmers.se/~andrei/cans20.pdf
 
+## Prerequisites and failed runs
+
+The script checks profile access, target installation and enabled state before
+stopping Chrome. An entry containing only retained disable metadata is not an
+installed extension. The target directory and readable manifest must exist.
+
+Failures report `FILE_ACCESS_DENIED`, `EXTENSION_NOT_INSTALLED`, or
+`EXTENSION_DISABLED` separately. Discovery fails on a malformed or unreadable
+profile even if another profile has a usable target, so execution cannot proceed
+with an incompletely inspected set of profiles. These checks do not grant access,
+install an extension, or change developer mode.
+
+Chrome can flush profile data during shutdown, so discovery runs again after it
+stops. If that check fails before any file changes, the script attempts to reopen
+a previously running session. Restore errors report `BROWSER_RESTORE_FAILED`;
+the operation exits unsuccessfully regardless of the restore outcome. A session
+that was already closed stays closed. Process checks and stops are limited to the
+current user.
+
+A reported modification failure, including partial success across profiles, does
+not restart Chrome. Review and manually clean up any changed files before
+reopening it. A failed browser launch returns an unsuccessful exit code.
+
 ## Arguments
 > Note: main.py is the main script that handles the TTP.
 
